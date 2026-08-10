@@ -1,0 +1,104 @@
+<section class="pricing-hero">
+  <div class="container text-center">
+    <span class="eyebrow">MEMBERSHIP</span>
+    <h1 class="display-xl">PICK YOUR <span class="text-gradient">POWER LEVEL</span></h1>
+    <p class="pricing-hero__sub">No hidden fees. Cancel anytime. Upgrade the second you're ready to get BOOK'D more.</p>
+  </div>
+</section>
+
+<section class="section plans">
+  <div class="container plans-grid">
+    @for (plan of plans; track plan.name) {
+      <div class="plan-card" [class.highlighted]="plan.highlighted">
+        @if (plan.highlighted) { <span class="plan-card__tag">MOST POPULAR</span> }
+        <h3>{{ plan.name }}</h3>
+        <div class="plan-card__price">
+          <span class="amount">{{ plan.price }}</span>
+          <span class="period">{{ plan.period }}</span>
+        </div>
+        <p class="plan-card__tagline">{{ plan.tagline }}</p>
+        <ul class="plan-card__features">
+          @for (f of plan.features; track f) {
+            <li>✓ {{ f }}</li>
+          }
+        </ul>
+        <app-animated-button [routerLink]="['/auth/signup']" [queryParams]="{ plan: plan.planKey }" [variant]="plan.highlighted ? 'primary' : 'outline'" [fullWidth]="true">
+          {{ plan.cta }}
+        </app-animated-button>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="section estimator">
+  <div class="container">
+    <div class="section-head centered">
+      <span class="eyebrow">PROJECT BUDGETING</span>
+      <h2 class="display-lg">RATE <span class="text-gradient-acid">ESTIMATOR</span></h2>
+      <p>Not sure what to charge — or budget? Get an instant, data-informed estimate.</p>
+    </div>
+
+    <div class="estimator-panel glass-panel">
+      <div class="estimator-form">
+        <div class="form-field">
+          <label>Category</label>
+          <select [(ngModel)]="estimatorForm.categorySlug" name="categorySlug">
+            <option value="">General / Default</option>
+            @for (c of categories(); track c.id) {
+              <option [value]="c.slug">{{ c.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Duration (days)</label>
+          <input type="number" min="0" [(ngModel)]="estimatorForm.durationDays" name="durationDays" />
+        </div>
+        <div class="form-field">
+          <label>Complexity</label>
+          <select [(ngModel)]="estimatorForm.complexity" name="complexity">
+            <option value="simple">Simple</option>
+            <option value="standard">Standard</option>
+            <option value="complex">Complex</option>
+            <option value="premium">Premium</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Usage Rights</label>
+          <select [(ngModel)]="estimatorForm.usage" name="usage">
+            <option value="social">Social</option>
+            <option value="web">Web</option>
+            <option value="print">Print</option>
+            <option value="campaign">Campaign</option>
+            <option value="broadcast">Broadcast</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Team Size</label>
+          <input type="number" min="1" [(ngModel)]="estimatorForm.teamSize" name="teamSize" />
+        </div>
+        <div class="form-field">
+          <label>Location</label>
+          <select [(ngModel)]="estimatorForm.location" name="location">
+            <option value="local">Local</option>
+            <option value="travel">Travel Required</option>
+            <option value="international">International</option>
+          </select>
+        </div>
+      </div>
+
+      <app-animated-button variant="primary" size="lg" [loading]="estimating()" (clicked)="runEstimate()">
+        Calculate Estimate
+      </app-animated-button>
+
+      @if (estimate(); as est) {
+        <div class="estimate-result animate-scale-in">
+          <span class="estimate-result__label">Estimated Range</span>
+          <div class="estimate-result__value text-gradient">
+            {{ est.estimate.min | currency: est.estimate.currency }} – {{ est.estimate.max | currency: est.estimate.currency }}
+          </div>
+          <p class="estimate-result__disclaimer">{{ est.disclaimer }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

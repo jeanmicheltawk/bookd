@@ -1,0 +1,127 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">TAXONOMY</span>
+      <h1 class="display-lg">CATEGORIES &amp; <span class="text-gradient">FIELDS</span></h1>
+      <p class="admin-page__hint">
+        Add or delete categories, then define extra fields for each one (height, weight, photographer type, etc.).
+      </p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="admin-error">{{ error() }}</p>
+  }
+
+  <div class="create-row">
+    <input type="text" placeholder="New category name" [(ngModel)]="newCategory.name" name="newName" />
+    <input type="text" placeholder="Slug (optional)" [(ngModel)]="newCategory.slug" name="newSlug" />
+    <button type="button" class="primary-btn" [disabled]="saving()" (click)="createCategory()">Add Category</button>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING CATEGORIES..." />
+  } @else if (!categories().length) {
+    <div class="empty-state">
+      <h3>No categories yet. Add your first one above.</h3>
+    </div>
+  } @else {
+    <div class="cats-shell">
+      <div class="cats-list">
+        @for (c of categories(); track c.id) {
+          <div
+            class="cat-row"
+            [class.active]="selectedId() === c.id"
+            (click)="select(c)"
+            (keydown.enter)="select(c)"
+            tabindex="0"
+            role="button"
+          >
+            <div>
+              <strong>{{ c.name }}</strong>
+              <span>{{ c.slug }} · {{ (c.fields || []).length }} field(s)</span>
+            </div>
+            <button type="button" class="delete-btn" (click)="$event.stopPropagation(); deleteCategory(c)">Delete</button>
+          </div>
+        }
+      </div>
+
+      <div class="cat-detail">
+        @if (selected(); as cat) {
+          <div class="cat-detail__head">
+            <div>
+              <h3>{{ cat.name }}</h3>
+              <span>{{ cat.slug }}</span>
+            </div>
+          </div>
+
+          <h4>Extra fields</h4>
+          @if ((cat.fields || []).length) {
+            <div class="fields-list">
+              @for (f of cat.fields; track f.id) {
+                <div class="field-row">
+                  <div>
+                    <strong>{{ f.label }}</strong>
+                    <span>
+                      {{ f.field_key }} · {{ f.field_type }}
+                      @if (f.is_required) { · required }
+                      @if (f.field_type === 'dropdown' && f.options?.length) {
+                        · {{ f.options.join(', ') }}
+                      }
+                    </span>
+                  </div>
+                  <button type="button" class="delete-btn" (click)="removeField(f)">Remove</button>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="muted">No extra fields yet. Example: height &amp; weight for models, type for photographers.</p>
+          }
+
+          <div class="field-form">
+            <h4>Add field</h4>
+            <div class="field-form__grid">
+              <div class="form-field">
+                <label>Label *</label>
+                <input type="text" [(ngModel)]="fieldDraft.label" name="fieldLabel" placeholder="Height" />
+              </div>
+              <div class="form-field">
+                <label>Key (optional)</label>
+                <input type="text" [(ngModel)]="fieldDraft.field_key" name="fieldKey" placeholder="height" />
+              </div>
+              <div class="form-field">
+                <label>Type</label>
+                <select [(ngModel)]="fieldDraft.field_type" name="fieldType">
+                  @for (t of fieldTypes; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Required</label>
+                <label class="check-line">
+                  <input type="checkbox" [(ngModel)]="fieldDraft.is_required" name="fieldRequired" />
+                  Required on apply form
+                </label>
+              </div>
+              @if (fieldDraft.field_type === 'dropdown') {
+                <div class="form-field form-field--full">
+                  <label>Options (comma separated) *</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="fieldDraft.optionsText"
+                    name="fieldOptions"
+                    placeholder="drone, cinema, fashion, wedding"
+                  />
+                </div>
+              }
+            </div>
+            <button type="button" class="primary-btn" [disabled]="saving()" (click)="addField()">Add Field</button>
+          </div>
+        } @else {
+          <div class="empty-detail">Select a category to manage its fields.</div>
+        }
+      </div>
+    </div>
+  }
+</div>

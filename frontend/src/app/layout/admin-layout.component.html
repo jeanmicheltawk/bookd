@@ -1,0 +1,32 @@
+<div class="admin-shell" [class.collapsed]="collapsed()">
+  <aside class="admin-sidebar">
+    <a routerLink="/" class="admin-sidebar__logo">
+      BK<span class="accent">'D</span>
+      <span class="admin-sidebar__tag">ADMIN</span>
+    </a>
+
+    <nav class="admin-sidebar__nav">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
+          routerLinkActive="active"
+        >
+          <span class="icon">{{ item.icon }}</span>
+          <span class="label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="admin-sidebar__footer">
+      <a routerLink="/" class="admin-sidebar__back">← Back to Site</a>
+      <button class="admin-sidebar__logout" (click)="logout()">Log Out</button>
+    </div>
+  </aside>
+
+  <button class="admin-toggle" (click)="toggleCollapsed()" aria-label="Toggle sidebar">☰</button>
+
+  <main class="admin-main">
+    <router-outlet />
+  </main>
+</div>

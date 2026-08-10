@@ -1,0 +1,74 @@
+@if (loading()) {
+  <app-loading-screen label="LOADING ANNOUNCEMENT..." [fullscreen]="false" />
+} @else if (notFound()) {
+  <div class="container not-found-block">
+    <h2>Announcement not found</h2>
+    <a routerLink="/announcements">← Back to announcements</a>
+  </div>
+} @else {
+@if (announcement(); as a) {
+  <section class="detail-hero">
+    <div class="container">
+      <a routerLink="/announcements" class="back-link">← All Announcements</a>
+      <div class="detail-hero__top">
+        <span class="detail-hero__type">{{ a.announcement_type }}</span>
+        @if (a.is_paid) { <span class="detail-hero__paid">PAID OPPORTUNITY</span> }
+      </div>
+      <h1 class="display-lg">{{ a.title }}</h1>
+      <div class="detail-hero__author">
+        <span>Posted by <strong>{{ a.author_professional_name || a.author_name }}</strong></span>
+        <span>{{ a.created_at | date: 'MMM d, y' }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section detail-body">
+    <div class="container detail-grid">
+      <div class="detail-main">
+        <h3>Description</h3>
+        <p class="detail-description">{{ a.description || 'No further description provided.' }}</p>
+
+        @if (a.moodboard_urls?.length) {
+          <h3>Moodboard</h3>
+          <div class="moodboard-grid">
+            @for (url of a.moodboard_urls; track url) {
+              <img [src]="url" alt="Moodboard reference" loading="lazy" />
+            }
+          </div>
+        }
+
+        <div class="apply-box glass-panel">
+          <h3>Apply to this Announcement</h3>
+          @if (applied()) {
+            <p class="apply-success">✅ Your application has been submitted! The poster can now reach out to you.</p>
+          } @else {
+            <textarea
+              placeholder="Introduce yourself and explain why you're a great fit..."
+              [(ngModel)]="applyMessage"
+              rows="4"
+            ></textarea>
+            @if (applyError()) { <p class="apply-error">{{ applyError() }}</p> }
+            <app-animated-button variant="primary" [loading]="applying()" (clicked)="submitApplication()">
+              {{ auth.isAuthenticated() ? 'Submit Application' : 'Log In to Apply' }}
+            </app-animated-button>
+          }
+        </div>
+      </div>
+
+      <aside class="detail-side">
+        <div class="detail-card glass-panel">
+          <h4>At a Glance</h4>
+          <ul>
+            @if (a.required_category_name) { <li><span>Category</span><strong>{{ a.required_category_name }}</strong></li> }
+            @if (a.location) { <li><span>Location</span><strong>{{ a.location }}</strong></li> }
+            @if (a.budget) { <li><span>Budget</span><strong>${{ a.budget }}</strong></li> }
+            <li><span>People Needed</span><strong>{{ a.people_needed }}</strong></li>
+            @if (a.deadline) { <li><span>Deadline</span><strong>{{ a.deadline | date: 'MMM d, y' }}</strong></li> }
+            <li><span>Status</span><strong class="status-{{ a.status }}">{{ a.status }}</strong></li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+}
+}

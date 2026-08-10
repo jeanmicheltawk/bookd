@@ -1,0 +1,83 @@
+<section class="container dash-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">POST A CALL</span>
+      <h1 class="display-lg">MY <span class="text-gradient">ANNOUNCEMENTS</span></h1>
+    </div>
+    <app-animated-button variant="primary" (clicked)="showForm.set(!showForm())">
+      {{ showForm() ? 'Cancel' : '+ New Announcement' }}
+    </app-animated-button>
+  </div>
+
+  <app-dashboard-nav />
+
+  @if (showForm()) {
+    <form class="ann-form glass-panel animate-scale-in" #annForm="ngForm" (ngSubmit)="submit(annForm)">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Title *</label>
+          <input type="text" name="title" [(ngModel)]="form.title" required />
+        </div>
+        <div class="form-field">
+          <label>Type *</label>
+          <input type="text" name="announcementType" placeholder="e.g. Photoshoot, Campaign" [(ngModel)]="form.announcementType" required />
+        </div>
+        <div class="form-field">
+          <label>Required Category</label>
+          <select name="requiredCategorySlug" [(ngModel)]="form.requiredCategorySlug">
+            <option value="">Any</option>
+            @for (c of categories(); track c.id) { <option [value]="c.slug">{{ c.name }}</option> }
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Location</label>
+          <input type="text" name="location" [(ngModel)]="form.location" />
+        </div>
+        <div class="form-field">
+          <label>Budget ($)</label>
+          <input type="number" name="budget" [(ngModel)]="form.budget" min="0" />
+        </div>
+        <div class="form-field">
+          <label>People Needed</label>
+          <input type="number" name="peopleNeeded" [(ngModel)]="form.peopleNeeded" min="1" />
+        </div>
+        <div class="form-field">
+          <label>Deadline</label>
+          <input type="date" name="deadline" [(ngModel)]="form.deadline" />
+        </div>
+        <div class="form-field checkbox-field">
+          <label><input type="checkbox" name="isPaid" [(ngModel)]="form.isPaid" /> This is a paid opportunity</label>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Description</label>
+        <textarea name="description" [(ngModel)]="form.description" rows="4"></textarea>
+      </div>
+
+      @if (formError()) { <p class="form-error">{{ formError() }}</p> }
+
+      <app-animated-button type="submit" variant="primary" [loading]="submitting()">Post Announcement (Pending Review)</app-animated-button>
+    </form>
+  }
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (announcements().length) {
+    <div class="my-ann-list">
+      @for (a of announcements(); track a.id) {
+        <div class="my-ann-row">
+          <div>
+            <strong>{{ a.title }}</strong>
+            <span>{{ a.announcement_type }}</span>
+          </div>
+          <span class="status-badge status-{{ a.status }}">{{ a.status }}</span>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>You haven't posted any announcements yet.</h3>
+      <p>Post a call for talent and let creatives come to you.</p>
+    </div>
+  }
+</section>

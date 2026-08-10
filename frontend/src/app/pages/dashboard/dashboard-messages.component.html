@@ -1,0 +1,67 @@
+<section class="container dash-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">INBOX</span>
+      <h1 class="display-lg">MY <span class="text-gradient">MESSAGES</span></h1>
+    </div>
+  </div>
+
+  <app-dashboard-nav />
+
+  <div class="messages-shell">
+    <div class="conv-list">
+      @if (loadingConversations()) {
+        <app-loading-screen [fullscreen]="false" label="LOADING..." />
+      } @else if (conversations().length) {
+        @for (c of conversations(); track c.id) {
+          <button
+            class="conv-item"
+            [class.active]="activeConversation()?.id === c.id"
+            [class.unread]="c.unread_count > 0"
+            (click)="openConversation(c)"
+          >
+            <img [src]="api.assetUrl(c.participants[0].profile_photo_url) || 'https://placehold.co/48x48/1a0f28/fff?text=BKD'" alt="" />
+            <div class="conv-item__info">
+              <strong>{{ otherParticipant(c) }}</strong>
+              <span>{{ c.last_message || 'No messages yet' }}</span>
+            </div>
+            @if (c.unread_count > 0) { <span class="unread-dot">{{ c.unread_count }}</span> }
+          </button>
+        }
+      } @else {
+        <p class="empty-hint">No conversations yet.</p>
+      }
+    </div>
+
+    <div class="thread-panel">
+      @if (activeConversation(); as conv) {
+        <div class="thread-header">
+          <strong>{{ otherParticipant(conv) }}</strong>
+          @if (conv.booking_status) { <span class="status-badge">{{ conv.booking_status }}</span> }
+        </div>
+
+        <div class="thread-body">
+          @if (loadingMessages()) {
+            <app-loading-screen [fullscreen]="false" label="LOADING MESSAGES..." />
+          } @else {
+            @for (m of messages(); track m.id) {
+              <div class="msg-bubble" [class.mine]="isMine(m)">
+                <p>{{ m.body }}</p>
+                <span>{{ m.created_at | date: 'shortTime' }}</span>
+              </div>
+            }
+          }
+        </div>
+
+        <form class="thread-composer" (ngSubmit)="send()">
+          <input type="text" placeholder="Type a message..." [(ngModel)]="draft" name="draft" />
+          <button type="submit" [disabled]="sending() || !draft.trim()">Send</button>
+        </form>
+      } @else {
+        <div class="thread-empty">
+          <p>Select a conversation to start chatting.</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

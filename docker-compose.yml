@@ -1,0 +1,63 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: bookd-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bookd_haus
+      POSTGRES_USER: bookd
+      POSTGRES_PASSWORD: bookd_secret
+    ports:
+      - "5433:5432"
+    volumes:
+      - bookd_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookd -d bookd_haus"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bookd-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: bookd_haus
+      DB_USER: bookd
+      DB_PASSWORD: bookd_secret
+      JWT_SECRET: ${JWT_SECRET:-bookd-prod-jwt-change-me}
+      JWT_EXPIRES_IN: 7d
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-bookd-prod-refresh-change-me}
+      JWT_REFRESH_EXPIRES_IN: 30d
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4200}
+      ADMIN_EMAIL: admin@bookd.com
+      ADMIN_PASSWORD: bookdadmin
+      UPLOAD_DIR: uploads
+    ports:
+      - "3000:3000"
+    volumes:
+      - bookd_uploads:/app/uploads
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bookd-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  bookd_pgdata:
+  bookd_uploads:

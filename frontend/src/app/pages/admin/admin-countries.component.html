@@ -1,0 +1,41 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">LOCATIONS</span>
+      <h1 class="display-lg">COUNTRIES</h1>
+      <p class="admin-page__hint">
+        Manage the country list used in Discover filters and the apply form.
+      </p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="admin-error">{{ error() }}</p>
+  }
+
+  <div class="create-row">
+    <input type="text" placeholder="New country name" [(ngModel)]="newCountry.name" name="newName" />
+    <input type="text" placeholder="Slug (optional)" [(ngModel)]="newCountry.slug" name="newSlug" />
+    <button type="button" class="primary-btn" [disabled]="saving()" (click)="createCountry()">Add Country</button>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING COUNTRIES..." />
+  } @else if (!countries().length) {
+    <div class="empty-state">
+      <h3>No countries yet. Add your first one above.</h3>
+    </div>
+  } @else {
+    <div class="countries-list">
+      @for (c of countries(); track c.id) {
+        <div class="country-row">
+          <div>
+            <strong>{{ c.name }}</strong>
+            <span>{{ c.slug }}</span>
+          </div>
+          <button type="button" class="delete-btn" [disabled]="saving()" (click)="deleteCountry(c)">Delete</button>
+        </div>
+      }
+    </div>
+  }
+</div>

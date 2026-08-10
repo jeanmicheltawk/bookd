@@ -1,0 +1,85 @@
+.admin-page__head {
+  margin-bottom: 28px;
+  p { color: var(--text-muted); margin-top: 8px; }
+}
+
+.presets {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.preset-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+  font-size: 0.8rem;
+  font-weight: 700;
+  &:hover { border-color: var(--color-primary); }
+
+  &__swatches {
+    display: flex;
+    span { width: 16px; height: 16px; border-radius: 50%; margin-left: -6px; border: 2px solid var(--surface-1); }
+    span:first-child { margin-left: 0; }
+  }
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 32px;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 560px) { grid-template-columns: 1fr; }
+}
+
+.color-field {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+
+  label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  &__row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+
+    input[type="color"] {
+      width: 42px; height: 42px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-border);
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-family: monospace;
+      font-size: 0.85rem;
+      &:focus { outline: none; border-color: var(--color-primary); }
+    }
+  }
+}
+
+.theme-actions { display: flex; gap: 12px; }
+.save-success { color: var(--bkd-acid-lime); margin-top: 16px; font-size: 0.9rem; }

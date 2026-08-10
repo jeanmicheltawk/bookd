@@ -1,0 +1,42 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <span class="eyebrow">MODERATION</span>
+    <h1 class="display-lg">ANNOUNCEMENTS <span class="text-gradient">QUEUE</span></h1>
+  </div>
+
+  <div class="status-chips">
+    @for (s of statuses; track s) {
+      <button class="chip" [class.active]="activeStatus() === s" (click)="filterByStatus(s)">{{ s }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (announcements().length) {
+    <div class="mod-list">
+      @for (a of announcements(); track a.id) {
+        <div class="mod-row">
+          <div class="mod-row__info">
+            <strong>{{ a.title }}</strong>
+            <span>{{ a.announcement_type }} · by {{ a.author_name }} {{ a.required_category_name ? '· ' + a.required_category_name : '' }}</span>
+            <p>{{ a.description || 'No description' }}</p>
+          </div>
+          <div class="mod-row__actions">
+            @if (a.status === 'pending') {
+              <button class="approve-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'approved')">Approve</button>
+              <button class="reject-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'rejected')">Reject</button>
+            } @else if (a.status === 'approved') {
+              <button class="close-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'closed')">Close</button>
+            } @else {
+              <button class="approve-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'approved')">Re-approve</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No {{ activeStatus() }} announcements.</h3>
+    </div>
+  }
+</div>

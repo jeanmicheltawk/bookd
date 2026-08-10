@@ -1,0 +1,52 @@
+<section class="container dash-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">MANAGE</span>
+      <h1 class="display-lg">MY <span class="text-gradient">BOOKINGS</span></h1>
+    </div>
+  </div>
+
+  <app-dashboard-nav />
+
+  <div class="tabs">
+    <button class="chip" [class.active]="activeTab() === 'all'" (click)="activeTab.set('all')">All</button>
+    <button class="chip" [class.active]="activeTab() === 'pending'" (click)="activeTab.set('pending')">Pending</button>
+    <button class="chip" [class.active]="activeTab() === 'active'" (click)="activeTab.set('active')">Active</button>
+    <button class="chip" [class.active]="activeTab() === 'completed'" (click)="activeTab.set('completed')">Completed</button>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING BOOKINGS..." />
+  } @else if (filtered().length) {
+    <div class="booking-list">
+      @for (b of filtered(); track b.id) {
+        <div class="booking-row">
+          <img class="booking-row__photo" [src]="api.assetUrl(isCreative(b) ? b.client_photo : b.creative_photo) || 'https://placehold.co/80x80/1a0f28/fff?text=BKD'" alt="" />
+          <div class="booking-row__info">
+            <strong>{{ b.project_type || 'Untitled Project' }}</strong>
+            <span>{{ isCreative(b) ? (b.client_professional_name || b.client_name) : (b.creative_professional_name || b.creative_name) }}</span>
+            @if (b.project_date) { <span class="date">{{ b.project_date | date: 'MMM d, y' }}</span> }
+          </div>
+          <span class="status-badge status-{{ b.status }}">{{ b.status }}</span>
+          <div class="booking-row__actions">
+            @if (b.status === 'pending' && isCreative(b)) {
+              <app-animated-button variant="primary" size="sm" [loading]="actioningId() === b.id" (clicked)="accept(b)">Accept</app-animated-button>
+              <app-animated-button variant="danger" size="sm" [loading]="actioningId() === b.id" (clicked)="decline(b)">Decline</app-animated-button>
+            }
+            @if (b.status === 'accepted' || b.status === 'in_progress') {
+              <app-animated-button variant="outline" size="sm" [loading]="actioningId() === b.id" (clicked)="markStatus(b, 'completed')">Mark Completed</app-animated-button>
+            }
+            @if (b.conversationId || b.status !== 'pending') {
+              <app-animated-button variant="ghost" size="sm" [routerLink]="['/dashboard/messages']" [queryParams]="{ booking: b.id }">Message</app-animated-button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No bookings here yet.</h3>
+      <p>Bookings you make or receive will show up in this list.</p>
+    </div>
+  }
+</section>

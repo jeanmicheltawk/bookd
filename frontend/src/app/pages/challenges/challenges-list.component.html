@@ -1,0 +1,46 @@
+<section class="ch-hero">
+  <div class="container">
+    <span class="eyebrow">COMPETE. CREATE. GET NOTICED.</span>
+    <h1 class="display-lg">CHALLENGES &amp; <span class="text-gradient">EVENTS</span></h1>
+    <p class="ch-hero__sub">Enter themed creative challenges, join live events, and win prizes while building your portfolio.</p>
+
+    <div class="ch-filters">
+      <button class="chip" [class.active]="filterType() === ''" (click)="filterType.set('')">All</button>
+      <button class="chip" [class.active]="filterType() === 'challenge'" (click)="filterType.set('challenge')">Challenges</button>
+      <button class="chip" [class.active]="filterType() === 'event'" (click)="filterType.set('event')">Events</button>
+      <button class="chip" [class.active]="filterType() === 'workshop'" (click)="filterType.set('workshop')">Workshops</button>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    @if (loading()) {
+      <app-loading-screen [fullscreen]="false" label="LOADING CHALLENGES..." />
+    } @else if (filtered().length) {
+      <div class="ch-grid">
+        @for (e of filtered(); track e.id; let i = $index) {
+          <a class="ch-card" [routerLink]="['/challenges', e.slug]" [style.animation-delay.ms]="i * 70">
+            <div class="ch-card__cover" [style.background-image]="e.cover_image ? 'url(' + e.cover_image + ')' : null">
+              @if (isUpcoming(e)) { <span class="ch-card__live">UPCOMING</span> }
+              <span class="ch-card__type">{{ e.event_type }}</span>
+            </div>
+            <div class="ch-card__body">
+              <h3>{{ e.title }}</h3>
+              <p>{{ e.description || 'Details coming soon.' }}</p>
+              <div class="ch-card__meta">
+                @if (e.starts_at) { <span>📅 {{ e.starts_at | date: 'MMM d, y' }}</span> }
+                @if (e.prize) { <span>🏆 {{ e.prize }}</span> }
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h3>No challenges live right now.</h3>
+        <p>Big things are brewing. Check back soon for the next challenge drop.</p>
+      </div>
+    }
+  </div>
+</section>

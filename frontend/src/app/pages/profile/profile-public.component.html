@@ -1,0 +1,106 @@
+@if (loading()) {
+  <app-loading-screen label="LOADING PROFILE..." [fullscreen]="false" />
+} @else if (notFound()) {
+  <div class="container not-found-block">
+    <h2>Profile not found or private</h2>
+    <a routerLink="/">← Back to Discover</a>
+  </div>
+} @else {
+@if (profile(); as p) {
+  <section class="p-hero" [style.background-image]="p.cover_photo_url ? 'url(' + photo(p.cover_photo_url) + ')' : null">
+    <div class="p-hero__scrim"></div>
+  </section>
+
+  <section class="p-main container">
+    <div class="p-header">
+      <div class="p-header__photo">
+        @if (p.profile_photo_url) {
+          <img [src]="photo(p.profile_photo_url)" [alt]="p.professional_name || p.full_name" />
+        } @else {
+          <div class="p-header__placeholder">{{ (p.professional_name || p.full_name).slice(0,2).toUpperCase() }}</div>
+        }
+      </div>
+
+      <div class="p-header__info">
+        <div class="p-header__name-row">
+          <h1>{{ p.professional_name || p.full_name }}</h1>
+          @if (p.is_verified) { <span class="verified-badge" title="Verified">✓</span> }
+          @if (p.membership === 'premium') { <span class="premium-badge">PREMIUM</span> }
+        </div>
+        <p class="p-header__meta">
+          @if (p.category_name) { <span class="chip">{{ p.category_name }}</span> }
+          @if (p.city || p.country) { <span>{{ p.city }}{{ p.city && p.country ? ', ' : '' }}{{ p.country }}</span> }
+          @if (p.years_experience) { <span>{{ p.years_experience }}+ yrs experience</span> }
+        </p>
+        @if (p.availability) {
+          <span class="availability-pill" [class.is-open]="p.availability === 'available'">
+            {{ p.availability === 'available' ? '● AVAILABLE NOW' : p.availability }}
+          </span>
+        }
+      </div>
+
+      <div class="p-header__actions">
+        <app-animated-button variant="primary" size="lg" (clicked)="bookNow()">BOOK NOW →</app-animated-button>
+        <app-animated-button variant="outline" size="lg" (clicked)="messageNow()">Message</app-animated-button>
+      </div>
+    </div>
+
+    <div class="p-grid">
+      <div class="p-main-col">
+        @if (p.bio) {
+          <div class="p-section">
+            <h3>About</h3>
+            <p class="p-bio">{{ p.bio }}</p>
+          </div>
+        }
+
+        @if (p.portfolio?.length) {
+          <div class="p-section">
+            <h3>Portfolio</h3>
+            <div class="portfolio-grid">
+              @for (item of p.portfolio; track item.id) {
+                <div class="portfolio-item">
+                  @if (item.media_type === 'video') {
+                    <video [src]="item.url" [poster]="item.thumbnail_url || ''" controls></video>
+                  } @else {
+                    <img [src]="item.url" [alt]="item.title || 'Portfolio piece'" loading="lazy" />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (p.brands_worked_with?.length) {
+          <div class="p-section">
+            <h3>Brands Worked With</h3>
+            <div class="brand-tags">
+              @for (b of p.brands_worked_with; track b) { <span class="chip">{{ b }}</span> }
+            </div>
+          </div>
+        }
+      </div>
+
+      <aside class="p-side">
+        <div class="p-side-card glass-panel">
+          <h4>Details</h4>
+          <ul>
+            @if (p.languages; as langs) { @if (langs.length) { <li><span>Languages</span><strong>{{ langs.join(', ') }}</strong></li> } }
+            @if (p.equipment_owned) { <li><span>Equipment</span><strong>{{ p.equipment_owned }}</strong></li> }
+            @if (p.studio_access !== undefined) { <li><span>Studio Access</span><strong>{{ p.studio_access ? 'Yes' : 'No' }}</strong></li> }
+            @if (p.custom_fields) {
+              @for (entry of p.custom_fields | keyvalue; track entry.key) {
+                @if (entry.value) {
+                  <li><span>{{ entry.key }}</span><strong>{{ entry.value }}</strong></li>
+                }
+              }
+            }
+            @if (p.website) { <li><span>Website</span><a [href]="p.website" target="_blank" rel="noopener">Visit ↗</a></li> }
+            @if (p.instagram) { <li><span>Instagram</span><a [href]="'https://instagram.com/' + p.instagram" target="_blank" rel="noopener">&#64;{{ p.instagram }}</a></li> }
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+}
+}

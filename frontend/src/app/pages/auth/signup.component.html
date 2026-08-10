@@ -1,0 +1,212 @@
+@if (submitted()) {
+  <div class="auth-card animate-slide-up apply-success">
+    <span class="eyebrow">APPLICATION RECEIVED</span>
+    <h2 class="display-lg">UNDER <span class="text-gradient">REVIEW</span></h2>
+    <p class="auth-card__sub">
+      Thanks for applying to BOOK'D HAUS. An admin will review your profile.
+      Once approved, your profile will go live and you can log in.
+    </p>
+    <app-animated-button routerLink="/auth/login" variant="primary" size="lg" [fullWidth]="true">
+      Back to Log In
+    </app-animated-button>
+  </div>
+} @else {
+  <div class="auth-card auth-card--wide animate-slide-up">
+    <span class="eyebrow">JOIN THE HAUS</span>
+    <h2 class="display-lg">APPLY</h2>
+    <p class="auth-card__sub">
+      Submit your profile for review. Profiles go live only after admin approval.
+    </p>
+
+    <form #signupForm="ngForm" (ngSubmit)="submit(signupForm)" novalidate>
+      <div class="role-toggle">
+        <button type="button" class="chip" [class.active]="role() === 'member'" (click)="onRoleChange('member')">Creative / Talent</button>
+        <button type="button" class="chip" [class.active]="role() === 'brand'" (click)="onRoleChange('brand')">Brand / Client</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Full Name *</label>
+          <input type="text" name="fullName" [(ngModel)]="form.fullName" required minlength="2" autocomplete="name" />
+        </div>
+        <div class="form-field">
+          <label>Professional Name</label>
+          <input type="text" name="professionalName" [(ngModel)]="form.professionalName" autocomplete="nickname" />
+        </div>
+        <div class="form-field">
+          <label>Email *</label>
+          <input
+            type="email"
+            name="email"
+            [ngModel]="form.email"
+            (ngModelChange)="onEmailChange($event)"
+            required
+            [pattern]="emailPattern"
+            autocomplete="email"
+          />
+          @if (fieldErrors().email) {
+            <p class="field-error">{{ fieldErrors().email }}</p>
+          }
+        </div>
+        <div class="form-field">
+          <label>Password *</label>
+          <input type="password" name="password" [(ngModel)]="form.password" required minlength="6" autocomplete="new-password" />
+        </div>
+
+        @if (role() === 'member') {
+          <div class="form-field">
+            <label>Category *</label>
+            <select
+              name="category"
+              [(ngModel)]="form.categorySlug"
+              required
+              (ngModelChange)="onCategoryChange()"
+            >
+              <option value="" disabled>Choose your category</option>
+              @for (c of categories(); track c.id) {
+                @if (c.slug !== 'brand-client') {
+                  <option [value]="c.slug">{{ c.name }}</option>
+                }
+              }
+            </select>
+          </div>
+        }
+
+        <div class="form-field">
+          <label>Membership Program *</label>
+          <select name="membership" [(ngModel)]="form.membership" required>
+            @for (opt of membershipOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }} — {{ opt.description }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Country</label>
+          <select name="country" [(ngModel)]="form.country" autocomplete="country-name">
+            <option value="">Select country</option>
+            @for (c of countries(); track c.id) {
+              <option [value]="c.name">{{ c.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-field">
+          <label>City</label>
+          <input type="text" name="city" [(ngModel)]="form.city" autocomplete="address-level2" />
+        </div>
+        <div class="form-field">
+          <label>Instagram</label>
+          <input type="text" name="instagram" [(ngModel)]="form.instagram" placeholder="@handle" />
+        </div>
+        <div class="form-field">
+          <label>Phone</label>
+          <input
+            type="tel"
+            name="phone"
+            [ngModel]="form.phone"
+            (ngModelChange)="onPhoneChange($event)"
+            [pattern]="phonePattern"
+            autocomplete="tel"
+            placeholder="+1234567890"
+          />
+          @if (fieldErrors().phone) {
+            <p class="field-error">{{ fieldErrors().phone }}</p>
+          }
+        </div>
+        <div class="form-field">
+          <label>WhatsApp</label>
+          <input
+            type="tel"
+            name="whatsapp"
+            [ngModel]="form.whatsapp"
+            (ngModelChange)="onWhatsappChange($event)"
+            [pattern]="phonePattern"
+            placeholder="+1234567890"
+          />
+          @if (fieldErrors().whatsapp) {
+            <p class="field-error">{{ fieldErrors().whatsapp }}</p>
+          }
+        </div>
+        <div class="form-field">
+          <label>Website</label>
+          <input type="url" name="website" [(ngModel)]="form.website" placeholder="https://" />
+        </div>
+
+        @if (role() === 'member') {
+          <div class="form-field">
+            <label>Gender</label>
+            <input type="text" name="gender" [(ngModel)]="form.gender" />
+          </div>
+          <div class="form-field">
+            <label>Age</label>
+            <input type="number" name="age" [(ngModel)]="form.age" min="16" max="100" />
+          </div>
+        }
+      </div>
+
+      @if (selectedCategoryFields().length) {
+        <div class="category-fields">
+          <span class="eyebrow">CATEGORY DETAILS</span>
+          <div class="form-grid">
+            @for (field of selectedCategoryFields(); track field.id) {
+              <div class="form-field" [class.form-field--full]="field.field_type === 'textarea'">
+                <label>
+                  {{ field.label }}
+                  @if (field.is_required) { * }
+                </label>
+
+                @if (field.field_type === 'dropdown') {
+                  <select
+                    [name]="'cf-' + field.field_key"
+                    [ngModel]="customFields()[field.field_key] || ''"
+                    (ngModelChange)="setCustomField(field.field_key, $event)"
+                    [required]="field.is_required"
+                  >
+                    <option value="" disabled>Select {{ field.label }}</option>
+                    @for (opt of field.options; track opt) {
+                      <option [value]="opt">{{ opt }}</option>
+                    }
+                  </select>
+                } @else if (field.field_type === 'textarea') {
+                  <textarea
+                    [name]="'cf-' + field.field_key"
+                    rows="3"
+                    [ngModel]="customFields()[field.field_key] || ''"
+                    (ngModelChange)="setCustomField(field.field_key, $event)"
+                    [required]="field.is_required"
+                  ></textarea>
+                } @else {
+                  <input
+                    [type]="field.field_type === 'number' ? 'number' : 'text'"
+                    [name]="'cf-' + field.field_key"
+                    [ngModel]="customFields()[field.field_key] || ''"
+                    (ngModelChange)="setCustomField(field.field_key, $event)"
+                    [required]="field.is_required"
+                  />
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="form-field">
+        <label>Bio / About you</label>
+        <textarea name="bio" [(ngModel)]="form.bio" rows="4" placeholder="Tell brands and creatives who you are..."></textarea>
+      </div>
+
+      @if (error()) { <p class="auth-error">{{ error() }}</p> }
+
+      <button type="submit" class="apply-submit" [disabled]="loading()">
+        @if (loading()) {
+          <span class="apply-submit__spinner"></span>
+          Submitting...
+        } @else {
+          Submit Application
+        }
+      </button>
+    </form>
+
+    <p class="auth-switch">Already approved? <a routerLink="/auth/login">Log In</a></p>
+  </div>
+}

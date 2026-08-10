@@ -1,0 +1,63 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">INBOX</span>
+      <h1 class="display-lg">CONTACT <span class="text-gradient">MESSAGES</span></h1>
+    </div>
+    <button class="export-btn" [disabled]="exporting()" (click)="exportCsv()">
+      {{ exporting() ? 'Exporting...' : '⬇ Export CSV' }}
+    </button>
+  </div>
+
+  <div class="status-chips">
+    <button class="chip" [class.active]="activeStatus() === ''" (click)="filterByStatus('')">All</button>
+    @for (s of statuses; track s) {
+      <button class="chip" [class.active]="activeStatus() === s" (click)="filterByStatus(s)">{{ s }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING MESSAGES..." />
+  } @else if (messages().length) {
+    <div class="contacts-shell">
+      <div class="contacts-list">
+        @for (m of messages(); track m.id) {
+          <button class="contact-row" [class.active]="activeMessage()?.id === m.id" [class.unread]="m.status === 'new'" (click)="open(m)">
+            <div>
+              <strong>{{ m.name }}</strong>
+              <span>{{ m.subject || m.message.slice(0, 40) }}</span>
+            </div>
+            <span class="status-badge status-{{ m.status }}">{{ m.status }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="contact-detail">
+        @if (activeMessage(); as m) {
+          <div class="contact-detail__head">
+            <div>
+              <h3>{{ m.name }}</h3>
+              <a [href]="'mailto:' + m.email">{{ m.email }}</a>
+            </div>
+            <span>{{ m.created_at | date: 'medium' }}</span>
+          </div>
+          @if (m.subject) { <p class="contact-detail__subject">{{ m.subject }}</p> }
+          <p class="contact-detail__message">{{ m.message }}</p>
+
+          <div class="contact-detail__actions">
+            @for (s of statuses; track s) {
+              <button class="chip" [class.active]="m.status === s" (click)="updateStatus(m, s)">{{ s }}</button>
+            }
+            <button class="delete-btn" (click)="remove(m)">Delete</button>
+          </div>
+        } @else {
+          <div class="contact-detail__empty">Select a message to view details</div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No contact messages{{ activeStatus() ? ' with status "' + activeStatus() + '"' : '' }}.</h3>
+    </div>
+  }
+</div>

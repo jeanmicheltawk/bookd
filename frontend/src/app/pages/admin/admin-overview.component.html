@@ -1,0 +1,79 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <span class="eyebrow">ADMIN</span>
+    <h1 class="display-lg">CONTROL <span class="text-gradient">ROOM</span></h1>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING ANALYTICS..." />
+  } @else {
+  @if (data(); as d) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="label">Visitors (24h)</span>
+        <span class="value text-gradient-acid">{{ d.visitors.last_24h }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Visitors (7d)</span>
+        <span class="value">{{ d.visitors.last_7d }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Unique Visitors (30d)</span>
+        <span class="value text-gradient">{{ d.visitors.unique_visitors_30d }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">New Contact Messages</span>
+        <span class="value">{{ d.contacts.new_count }}</span>
+      </div>
+    </div>
+
+    <div class="quick-links">
+      @for (l of quickLinks; track l.path) {
+        <a [routerLink]="l.path" class="quick-link">
+          <span class="quick-link__icon">{{ l.icon }}</span>
+          <span>{{ l.label }}</span>
+          <span class="quick-link__arrow">→</span>
+        </a>
+      }
+    </div>
+
+    <div class="admin-grid">
+      <div class="panel">
+        <h3>Popular Pages (30d)</h3>
+        @if (d.popularPages.length) {
+          <div class="bar-list">
+            @for (p of d.popularPages; track p.path) {
+              <div class="bar-row">
+                <span class="bar-row__path">{{ p.path }}</span>
+                <div class="bar-row__track">
+                  <div class="bar-row__fill" [style.width.%]="(p.views / maxViews()) * 100"></div>
+                </div>
+                <span class="bar-row__count">{{ p.views }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-hint">No pageview data yet.</p>
+        }
+      </div>
+
+      <div class="panel">
+        <h3>Recent Activity</h3>
+        @if (d.recentActivity.length) {
+          <div class="activity-list">
+            @for (a of d.recentActivity; track a.id) {
+              <div class="activity-row">
+                <span class="activity-row__type">{{ a.event_type }}</span>
+                <span class="activity-row__detail">{{ a.user_email || a.profile_name || 'Anonymous' }} · {{ a.path }}</span>
+                <span class="activity-row__time">{{ a.created_at | date: 'short' }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-hint">No recent activity.</p>
+        }
+      </div>
+    </div>
+  }
+  }
+</div>

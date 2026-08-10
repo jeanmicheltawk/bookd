@@ -1,0 +1,69 @@
+<section class="container dash-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">DASHBOARD</span>
+      <h1 class="display-lg">HEY, <span class="text-gradient">{{ (auth.user()?.professional_name || auth.user()?.full_name || 'CREATIVE').toUpperCase() }}</span></h1>
+    </div>
+    @if (auth.user()?.profile_id) {
+      <app-animated-button [routerLink]="['/profile', auth.user()?.profile_id]" variant="outline">View Public Profile</app-animated-button>
+    }
+  </div>
+
+  <app-dashboard-nav />
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING DASHBOARD..." />
+  } @else {
+  @if (summary(); as s) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-card__label">Pending Bookings</span>
+        <span class="stat-card__value text-gradient-acid">{{ s.bookings.pending }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Active Bookings</span>
+        <span class="stat-card__value text-gradient">{{ s.bookings.active }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Completed</span>
+        <span class="stat-card__value">{{ s.bookings.completed }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Unread Messages</span>
+        <span class="stat-card__value">{{ s.messages.unread }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Profile Views (7d)</span>
+        <span class="stat-card__value">{{ s.analytics.views_7d }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Profile Views (30d)</span>
+        <span class="stat-card__value">{{ s.analytics.views_30d }}</span>
+      </div>
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section__head">
+        <h3>Recent Bookings</h3>
+        <a routerLink="/dashboard/bookings">View All →</a>
+      </div>
+
+      @if (s.recentBookings.length) {
+        <div class="recent-list">
+          @for (b of s.recentBookings; track b.id) {
+            <div class="recent-item">
+              <div>
+                <strong>{{ b.project_type || 'Project' }}</strong>
+                <span>with {{ b.counterpart_name || 'Unknown' }}</span>
+              </div>
+              <span class="status-badge status-{{ b.status }}">{{ b.status }}</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty-hint">No bookings yet. Once you start booking or getting booked, they'll show up here.</p>
+      }
+    </div>
+  }
+  }
+</section>

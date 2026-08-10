@@ -1,0 +1,24 @@
+@if (categories().length) {
+  <div class="cat-bar">
+    <div class="cat-bar__track container">
+      <a
+        routerLink="/"
+        [routerLinkActiveOptions]="{ exact: true }"
+        routerLinkActive="active"
+        class="cat-bar__chip"
+      >
+        All
+      </a>
+      @for (cat of categories(); track cat.id) {
+        <a
+          [routerLink]="['/']"
+          [queryParams]="{ category: cat.slug }"
+          routerLinkActive="active"
+          class="cat-bar__chip"
+        >
+          {{ cat.name }}
+        </a>
+      }
+    </div>
+  </div>
+}

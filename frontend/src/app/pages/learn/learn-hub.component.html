@@ -1,0 +1,44 @@
+<section class="learn-hero">
+  <div class="container">
+    <span class="eyebrow">LEVEL UP YOUR CRAFT</span>
+    <h1 class="display-lg">THE <span class="text-gradient">LEARNING HUB</span></h1>
+    <p class="learn-hero__sub">Guides, videos, and playbooks from working creatives — negotiating rates, building portfolios, and getting BOOK'D.</p>
+
+    @if (categories().length) {
+      <div class="learn-filters">
+        <button class="chip" [class.active]="activeCategory() === ''" (click)="activeCategory.set('')">All</button>
+        @for (c of categories(); track c) {
+          <button class="chip" [class.active]="activeCategory() === c" (click)="activeCategory.set(c)">{{ c }}</button>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    @if (loading()) {
+      <app-loading-screen [fullscreen]="false" label="LOADING ARTICLES..." />
+    } @else if (filtered().length) {
+      <div class="learn-grid">
+        @for (a of filtered(); track a.id; let i = $index) {
+          <a class="learn-card" [routerLink]="['/learn', a.slug]" [style.animation-delay.ms]="i * 60">
+            <div class="learn-card__cover" [style.background-image]="a.cover_image ? 'url(' + a.cover_image + ')' : null">
+              @if (a.video_url) { <span class="learn-card__play">▶</span> }
+            </div>
+            <div class="learn-card__body">
+              @if (a.category) { <span class="learn-card__cat">{{ a.category }}</span> }
+              <h3>{{ a.title }}</h3>
+              <span class="learn-card__cta">READ MORE →</span>
+            </div>
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h3>No articles published yet.</h3>
+        <p>The Learning Hub is being stocked with fresh knowledge. Check back soon.</p>
+      </div>
+    }
+  </div>
+</section>

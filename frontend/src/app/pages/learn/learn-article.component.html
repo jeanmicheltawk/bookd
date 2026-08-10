@@ -1,0 +1,28 @@
+@if (loading()) {
+  <app-loading-screen label="LOADING ARTICLE..." [fullscreen]="false" />
+} @else if (notFound()) {
+  <div class="container not-found-block">
+    <h2>Article not found</h2>
+    <a routerLink="/learn">← Back to learning hub</a>
+  </div>
+} @else {
+@if (article(); as a) {
+  <article class="la">
+    <div class="container">
+      <a routerLink="/learn" class="back-link">← Learning Hub</a>
+      @if (a.category) { <span class="la__cat">{{ a.category }}</span> }
+      <h1 class="display-lg">{{ a.title }}</h1>
+
+      @if (safeVideoUrl()) {
+        <div class="la__video">
+          <iframe [src]="safeVideoUrl()" title="Article video" allowfullscreen frameborder="0"></iframe>
+        </div>
+      } @else if (a.cover_image) {
+        <img class="la__cover" [src]="a.cover_image" [alt]="a.title" />
+      }
+
+      <div class="la__content" [innerHTML]="a.content"></div>
+    </div>
+  </article>
+}
+}

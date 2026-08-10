@@ -1,0 +1,49 @@
+<section class="about-hero">
+  <div class="container text-center">
+    <span class="eyebrow">OUR STORY</span>
+    <h1 class="display-xl">WE'RE NOT HERE<br />TO BE <span class="text-gradient">SUBTLE</span></h1>
+    <p class="about-hero__sub">
+      BOOK'D HAUS exists because the creative industry deserved a platform as bold as the people in it.
+      No boring forms. No beige branding. Just talent, opportunity, and neon.
+    </p>
+  </div>
+</section>
+
+<section class="section values">
+  <div class="container">
+    <div class="values-grid">
+      @for (v of values; track v.title; let i = $index) {
+        <div class="value-card" [style.animation-delay.ms]="i * 100">
+          <h3>{{ v.title }}</h3>
+          <p>{{ v.copy }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section timeline">
+  <div class="container">
+    <div class="section-head centered">
+      <span class="eyebrow">HOW WE GOT HERE</span>
+      <h2 class="display-lg">THE <span class="text-gradient-acid">JOURNEY</span></h2>
+    </div>
+
+    <div class="timeline-track">
+      @for (t of timeline; track t.year; let i = $index) {
+        <div class="timeline-item" [style.animation-delay.ms]="i * 120">
+          <span class="timeline-item__year">{{ t.year }}</span>
+          <h4>{{ t.title }}</h4>
+          <p>{{ t.copy }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section about-cta">
+  <div class="container text-center">
+    <h2 class="display-lg">READY TO JOIN <span class="text-gradient">THE HAUS</span>?</h2>
+    <app-animated-button routerLink="/auth/signup" variant="primary" size="lg">Apply Now</app-animated-button>
+  </div>
+</section>

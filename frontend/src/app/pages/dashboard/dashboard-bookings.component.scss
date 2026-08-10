@@ -1,0 +1,66 @@
+.dash-page { padding: 48px 0 100px; }
+
+.dash-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.tabs { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap; }
+
+.booking-list { display: flex; flex-direction: column; gap: 12px; }
+
+.booking-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+  flex-wrap: wrap;
+
+  &__photo {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 160px;
+    strong { font-size: 0.95rem; }
+    span { font-size: 0.8rem; color: var(--text-muted); }
+    .date { font-family: var(--font-editorial); color: var(--color-accent); }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.status-pending { color: var(--bkd-nuclear-yellow); }
+.status-accepted, .status-in_progress, .status-negotiating { color: var(--bkd-laser-cyan); }
+.status-completed, .status-reviewed { color: var(--bkd-acid-lime); }
+.status-cancelled { color: #ff6584; }
+
+.empty-state { text-align: center; padding: 80px 24px; border: 1px dashed var(--surface-border); border-radius: var(--radius-lg); }

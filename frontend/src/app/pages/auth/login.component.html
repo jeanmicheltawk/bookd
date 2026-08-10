@@ -1,0 +1,25 @@
+<div class="auth-card animate-slide-up">
+  <span class="eyebrow">WELCOME BACK</span>
+  <h2 class="display-lg">LOG IN</h2>
+  <p class="auth-card__sub">Pick up right where you left off.</p>
+
+  <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)">
+    <div class="form-field">
+      <label>Email</label>
+      <input type="email" name="email" [(ngModel)]="form.email" required email autocomplete="email" />
+    </div>
+    <div class="form-field">
+      <label>Password</label>
+      <input type="password" name="password" [(ngModel)]="form.password" required minlength="6" autocomplete="current-password" />
+    </div>
+
+    @if (error()) { <p class="auth-error">{{ error() }}</p> }
+
+    <app-animated-button type="submit" variant="primary" size="lg" [fullWidth]="true" [loading]="loading()">
+      Log In
+    </app-animated-button>
+  </form>
+
+  <p class="auth-switch">New to BOOK'D HAUS? <a routerLink="/auth/signup">Apply to join</a></p>
+  <p class="auth-admin-hint">Admin demo: admin&#64;bookd.com / bookdadmin</p>
+</div>

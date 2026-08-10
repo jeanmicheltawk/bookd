@@ -1,0 +1,26 @@
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+
+  &__sub { margin: 8px 0 32px; }
+}
+
+.auth-error {
+  color: #ff6584;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.auth-switch {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  a { color: var(--color-primary); font-weight: 700; }
+}
+
+.auth-admin-hint {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

@@ -1,0 +1,34 @@
+@if (loading()) {
+  <app-loading-screen label="LOADING..." [fullscreen]="false" />
+} @else if (notFound()) {
+  <div class="container not-found-block">
+    <h2>Challenge not found</h2>
+    <a routerLink="/challenges">← Back to challenges</a>
+  </div>
+} @else {
+@if (event(); as e) {
+  <section class="cd-hero" [style.background-image]="e.cover_image ? 'linear-gradient(0deg, rgba(9,0,15,0.9), rgba(9,0,15,0.5)), url(' + e.cover_image + ')' : null">
+    <div class="container">
+      <a routerLink="/challenges" class="back-link">← All Challenges</a>
+      <span class="cd-hero__type">{{ e.event_type }}</span>
+      <h1 class="display-lg">{{ e.title }}</h1>
+      <div class="cd-hero__meta">
+        @if (e.starts_at) { <span>📅 Starts {{ e.starts_at | date: 'MMM d, y' }}</span> }
+        @if (e.ends_at) { <span>🏁 Ends {{ e.ends_at | date: 'MMM d, y' }}</span> }
+        @if (e.prize) { <span>🏆 {{ e.prize }}</span> }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container cd-body">
+      <p class="cd-description">{{ e.description || 'Full details coming soon — stay tuned!' }}</p>
+      <div class="cd-cta glass-panel">
+        <h3>Ready to enter?</h3>
+        <p>Submit your best work through your dashboard or reach out via the community for details.</p>
+        <app-animated-button routerLink="/dashboard/portfolio" variant="primary" size="lg">Submit Your Work</app-animated-button>
+      </div>
+    </div>
+  </section>
+}
+}

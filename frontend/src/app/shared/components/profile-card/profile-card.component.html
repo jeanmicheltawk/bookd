@@ -1,0 +1,36 @@
+<a class="p-card" [routerLink]="['/profile', link]" [style.animation-delay.ms]="index * 60">
+  <div class="p-card__media">
+    @if (photo) {
+      <img [src]="photo" [alt]="displayName" loading="lazy" />
+    } @else {
+      <div class="p-card__placeholder">{{ initials }}</div>
+    }
+    @if (profile.membership === 'premium') {
+      <span class="p-card__badge badge-premium">PREMIUM</span>
+    }
+    @if (profile.is_verified) {
+      <span class="p-card__badge badge-verified" title="Verified">✓</span>
+    }
+    @if (profile.spotlight_label) {
+      <span class="p-card__spotlight">{{ profile.spotlight_label }}</span>
+    }
+    <div class="p-card__scrim"></div>
+    <div class="p-card__overlay">
+      <span class="p-card__cta">VIEW PROFILE →</span>
+    </div>
+  </div>
+  <div class="p-card__body">
+    <h4 class="p-card__name">{{ displayName }}</h4>
+    <p class="p-card__meta">
+      @if (profile.category_name) { <span class="chip-sm">{{ profile.category_name }}</span> }
+      @if (profile.city || profile.country) {
+        <span class="p-card__location">{{ profile.city }}{{ profile.city && profile.country ? ', ' : '' }}{{ profile.country }}</span>
+      }
+    </p>
+    @if (profile.availability) {
+      <span class="p-card__availability" [class.is-open]="profile.availability === 'available'">
+        {{ profile.availability === 'available' ? 'AVAILABLE NOW' : profile.availability }}
+      </span>
+    }
+  </div>
+</a>

@@ -1,0 +1,268 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">DIRECTORY</span>
+      <h1 class="display-lg">PLATFORM <span class="text-gradient">USERS</span></h1>
+      <p class="admin-page__hint">
+        Review applications, approve or reject creatives, verify profiles, and manage membership.
+      </p>
+    </div>
+  </div>
+
+  <div class="status-chips">
+    @for (s of statuses; track s) {
+      <button type="button" class="chip" [class.active]="activeStatus() === s" (click)="filterByStatus(s)">{{ s }}</button>
+    }
+  </div>
+
+  <div class="users-toolbar">
+    <input type="text" placeholder="Search email, name..." [(ngModel)]="search" name="search" (keyup.enter)="load()" />
+    <label class="verified-toggle">
+      <input type="checkbox" [(ngModel)]="verifiedOnly" name="verifiedOnly" (change)="load()" /> Verified only
+    </label>
+    <button class="search-btn" type="button" (click)="load()">Search</button>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING USERS..." />
+  } @else if (users().length) {
+    <div class="mod-list">
+      @for (u of users(); track u.id) {
+        <div class="mod-row" [class.is-saving]="savingId() === u.id">
+          <div class="mod-row__info">
+            <div class="user-name">
+              <img [src]="u.profile_photo_url ? api.assetUrl(u.profile_photo_url) : 'assets/placeholder-avatar.svg'" [alt]="u.full_name || u.email" />
+              <span>
+                <strong>{{ u.professional_name || u.full_name || '—' }}</strong>
+                <small>{{ u.email }}</small>
+              </span>
+            </div>
+            <span>
+              {{ u.category_name || 'No category' }}
+              · {{ u.membership === 'basic' ? 'Normal' : (u.membership === 'premium' ? 'Premium' : u.membership) }}
+              · {{ u.role }}
+              @if (u.country) { · {{ u.city ? u.city + ', ' : '' }}{{ u.country }} }
+            </span>
+            <p>{{ u.bio || 'No bio provided.' }}</p>
+            <div class="meta-line">
+              @if (u.instagram) { <span>IG {{ u.instagram }}</span> }
+              @if (u.phone) { <span>{{ u.phone }}</span> }
+              @if (u.website) { <span>{{ u.website }}</span> }
+              @if (u.age) { <span>Age {{ u.age }}</span> }
+              @if (u.gender) { <span>{{ u.gender }}</span> }
+              @if (u.custom_fields) {
+                @for (entry of u.custom_fields | keyvalue; track entry.key) {
+                  @if (entry.value) {
+                    <span>{{ entry.key }}: {{ entry.value }}</span>
+                  }
+                }
+              }
+            </div>
+          </div>
+
+          <div class="mod-row__actions">
+            <button type="button" class="edit-btn" (click)="openEdit(u)">Edit</button>
+
+            @if (u.approval_status === 'pending') {
+              <button type="button" class="approve-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'approved')">Approve</button>
+              <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
+            } @else if (u.approval_status === 'rejected') {
+              <button type="button" class="approve-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'approved')">Approve</button>
+            } @else if (u.role !== 'admin') {
+              <select [ngModel]="u.membership" (ngModelChange)="setMembership(u, $event)" [name]="'mem-' + u.id">
+                <option value="basic">Normal ($7.99)</option>
+                <option value="premium">Premium ($14.99)</option>
+                <option value="free">Legacy free</option>
+              </select>
+              <button type="button" class="chip-btn" [class.on]="u.is_verified" (click)="toggleVerified(u)">
+                {{ u.is_verified ? 'Verified' : 'Verify' }}
+              </button>
+              <button type="button" class="chip-btn" [class.off]="!u.is_active" (click)="toggleActive(u)">
+                {{ u.is_active ? 'Active' : 'Suspended' }}
+              </button>
+              <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No {{ activeStatus() === 'all' ? '' : activeStatus() + ' ' }}users found.</h3>
+    </div>
+  }
+</div>
+
+@if (editingUser(); as user) {
+  <div class="edit-overlay" (click)="closeEdit()">
+    <div class="edit-panel glass-panel" (click)="$event.stopPropagation()">
+      <div class="edit-panel__head">
+        <div>
+          <span class="eyebrow">APPLICATION DETAILS</span>
+          <h2>Edit {{ user.professional_name || user.full_name || user.email }}</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="closeEdit()">Close</button>
+      </div>
+
+      <form class="edit-form" (ngSubmit)="saveEdit()">
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Full Name *</label>
+            <input type="text" name="full_name" [(ngModel)]="editForm.full_name" required />
+          </div>
+          <div class="form-field">
+            <label>Professional Name</label>
+            <input type="text" name="professional_name" [(ngModel)]="editForm.professional_name" />
+          </div>
+          <div class="form-field">
+            <label>Email *</label>
+            <input
+              type="email"
+              name="email"
+              [ngModel]="editForm.email"
+              (ngModelChange)="onEmailChange($event)"
+              required
+              [pattern]="emailPattern"
+            />
+            @if (fieldErrors().email) {
+              <p class="field-error">{{ fieldErrors().email }}</p>
+            }
+          </div>
+          <div class="form-field">
+            <label>Membership</label>
+            <select name="membership" [(ngModel)]="editForm.membership">
+              <option value="basic">Normal ($7.99)</option>
+              <option value="premium">Premium ($14.99)</option>
+              <option value="free">Legacy free</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Category</label>
+            <select name="categorySlug" [(ngModel)]="editForm.categorySlug" (ngModelChange)="onEditCategoryChange()">
+              <option value="">No category</option>
+              @for (c of categories(); track c.id) {
+                <option [value]="c.slug">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Country</label>
+            <select name="country" [(ngModel)]="editForm.country">
+              <option value="">Select country</option>
+              @for (c of countries(); track c.id) {
+                <option [value]="c.name">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field">
+            <label>City</label>
+            <input type="text" name="city" [(ngModel)]="editForm.city" />
+          </div>
+          <div class="form-field">
+            <label>Instagram</label>
+            <input type="text" name="instagram" [(ngModel)]="editForm.instagram" />
+          </div>
+          <div class="form-field">
+            <label>Phone</label>
+            <input
+              type="tel"
+              name="phone"
+              [ngModel]="editForm.phone"
+              (ngModelChange)="onPhoneChange($event)"
+              [pattern]="phonePattern"
+              placeholder="+1234567890"
+            />
+            @if (fieldErrors().phone) {
+              <p class="field-error">{{ fieldErrors().phone }}</p>
+            }
+          </div>
+          <div class="form-field">
+            <label>WhatsApp</label>
+            <input
+              type="tel"
+              name="whatsapp"
+              [ngModel]="editForm.whatsapp"
+              (ngModelChange)="onWhatsappChange($event)"
+              [pattern]="phonePattern"
+              placeholder="+1234567890"
+            />
+            @if (fieldErrors().whatsapp) {
+              <p class="field-error">{{ fieldErrors().whatsapp }}</p>
+            }
+          </div>
+          <div class="form-field">
+            <label>Website</label>
+            <input type="text" name="website" [(ngModel)]="editForm.website" />
+          </div>
+          <div class="form-field">
+            <label>Gender</label>
+            <input type="text" name="gender" [(ngModel)]="editForm.gender" />
+          </div>
+          <div class="form-field">
+            <label>Age</label>
+            <input type="number" name="age" [(ngModel)]="editForm.age" min="16" max="100" />
+          </div>
+        </div>
+
+        @if (selectedCategoryFields.length) {
+          <div class="category-fields">
+            <span class="eyebrow">CATEGORY DETAILS</span>
+            <div class="form-grid">
+              @for (field of selectedCategoryFields; track field.id) {
+                <div class="form-field" [class.form-field--full]="field.field_type === 'textarea'">
+                  <label>
+                    {{ field.label }}
+                    @if (field.is_required) { * }
+                  </label>
+
+                  @if (field.field_type === 'dropdown') {
+                    <select
+                      [name]="'cf-' + field.field_key"
+                      [ngModel]="editForm.custom_fields[field.field_key] || ''"
+                      (ngModelChange)="setCustomField(field.field_key, $event)"
+                    >
+                      <option value="">Select {{ field.label }}</option>
+                      @for (opt of field.options; track opt) {
+                        <option [value]="opt">{{ opt }}</option>
+                      }
+                    </select>
+                  } @else if (field.field_type === 'textarea') {
+                    <textarea
+                      [name]="'cf-' + field.field_key"
+                      rows="3"
+                      [ngModel]="editForm.custom_fields[field.field_key] || ''"
+                      (ngModelChange)="setCustomField(field.field_key, $event)"
+                    ></textarea>
+                  } @else {
+                    <input
+                      [type]="field.field_type === 'number' ? 'number' : 'text'"
+                      [name]="'cf-' + field.field_key"
+                      [ngModel]="editForm.custom_fields[field.field_key] || ''"
+                      (ngModelChange)="setCustomField(field.field_key, $event)"
+                    />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="form-field form-field--full">
+          <label>Bio</label>
+          <textarea name="bio" rows="4" [(ngModel)]="editForm.bio"></textarea>
+        </div>
+
+        @if (editError()) {
+          <p class="form-error">{{ editError() }}</p>
+        }
+
+        <div class="edit-actions">
+          <button type="button" class="cancel-btn" (click)="closeEdit()" [disabled]="editSaving()">Cancel</button>
+          <button type="submit" class="save-btn" [disabled]="editSaving()">
+            {{ editSaving() ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

@@ -1,0 +1,79 @@
+<section class="discover-hero">
+  <div class="container">
+    <span class="eyebrow">DISCOVER</span>
+    <h1 class="display-lg">FIND YOUR <span class="text-gradient">CREATIVE MATCH</span></h1>
+
+    <form class="filter-bar glass-panel" (ngSubmit)="applyFilters()">
+      <select [(ngModel)]="filters.category" name="category">
+        <option value="">All Categories</option>
+        @for (c of categories(); track c.id) {
+          <option [value]="c.slug">{{ c.name }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="filters.country" name="country">
+        <option value="">All Countries</option>
+        @for (c of countries(); track c.id) {
+          <option [value]="c.name">{{ c.name }}</option>
+        }
+      </select>
+
+      <select [(ngModel)]="filters.availability" name="availability">
+        <option value="">Any Availability</option>
+        <option value="available">Available Now</option>
+        <option value="busy">Busy</option>
+        <option value="booked">Booked</option>
+      </select>
+
+      @if (isModelsOrTalents) {
+        <select [(ngModel)]="filters.gender" name="gender">
+          <option value="">Any Gender</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="non-binary">Non-binary</option>
+        </select>
+      }
+
+      <label class="filter-bar__check">
+        <input type="checkbox" [(ngModel)]="filters.verified" name="verified" />
+        Verified only
+      </label>
+
+      <button type="submit" class="filter-bar__submit">Search</button>
+      <button type="button" class="filter-bar__clear" (click)="clearFilters()">Clear</button>
+    </form>
+  </div>
+</section>
+
+<section class="section results">
+  <div class="container">
+    @if (loading()) {
+      <app-loading-screen [fullscreen]="false" label="FINDING CREATIVES..." />
+    } @else {
+      <div class="results__head">
+        <p>{{ total() }} creative{{ total() === 1 ? '' : 's' }} found</p>
+      </div>
+
+      @if (results().length) {
+        <div class="results-grid">
+          @for (r of results(); track r.id; let i = $index) {
+            <app-profile-card [profile]="r" [index]="i" />
+          }
+        </div>
+
+        @if (totalPages() > 1) {
+          <div class="pagination">
+            <button (click)="goToPage(page() - 1)" [disabled]="page() === 1">← Prev</button>
+            <span>Page {{ page() }} of {{ totalPages() }}</span>
+            <button (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">Next →</button>
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <h3>No creatives match those filters yet.</h3>
+          <p>Try widening your search or check back soon — new talent joins the Haus every day.</p>
+        </div>
+      }
+    }
+  </div>
+</section>

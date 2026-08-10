@@ -1,0 +1,52 @@
+<section class="ann-hero">
+  <div class="container">
+    <span class="eyebrow">LIVE GIGS &amp; CALLS</span>
+    <div class="ann-hero__row">
+      <h1 class="display-lg">GET <span class="text-gradient-acid">DISCOVERED</span> TODAY</h1>
+      @if (auth.isAuthenticated()) {
+        <app-animated-button routerLink="/dashboard/announcements" variant="outline">Post an Announcement</app-animated-button>
+      }
+    </div>
+
+    <div class="ann-filters">
+      <input type="text" placeholder="Type (e.g. photoshoot, campaign)" [(ngModel)]="filterType" (change)="load()" />
+      <input type="text" placeholder="Location" [(ngModel)]="filterLocation" (change)="load()" />
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    @if (loading()) {
+      <app-loading-screen [fullscreen]="false" label="LOADING OPPORTUNITIES..." />
+    } @else if (announcements().length) {
+      <div class="ann-grid">
+        @for (a of announcements(); track a.id; let i = $index) {
+          <a class="ann-card" [routerLink]="['/announcements', a.id]" [style.animation-delay.ms]="i * 60">
+            <div class="ann-card__top">
+              <span class="ann-card__type">{{ a.announcement_type }}</span>
+              @if (a.is_paid) { <span class="ann-card__paid">PAID</span> }
+            </div>
+            <h3>{{ a.title }}</h3>
+            <p>{{ a.description || 'No description provided.' }}</p>
+            <div class="ann-card__meta">
+              @if (a.required_category_name) { <span class="chip">{{ a.required_category_name }}</span> }
+              @if (a.location) { <span>{{ a.location }}</span> }
+              @if (a.budget) { <span>${{ a.budget }}</span> }
+              @if (a.deadline) { <span>{{ a.deadline | date: 'MMM d' }}</span> }
+            </div>
+            <div class="ann-card__footer">
+              <span>By {{ a.author_professional_name || a.author_name }}</span>
+              <span class="ann-card__cta">VIEW &amp; APPLY →</span>
+            </div>
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h3>No announcements right now.</h3>
+        <p>New casting calls and gigs drop constantly — check back soon.</p>
+      </div>
+    }
+  </div>
+</section>

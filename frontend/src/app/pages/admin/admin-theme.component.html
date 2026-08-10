@@ -1,0 +1,44 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <span class="eyebrow">LIVE PREVIEW</span>
+    <h1 class="display-lg">THEME <span class="text-gradient">EDITOR</span></h1>
+    <p>Changes preview instantly across the whole site. Hit save to make them permanent.</p>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING THEME..." />
+  } @else {
+  @if (theme(); as t) {
+    <div class="presets">
+      @for (p of presets; track p.name) {
+        <button class="preset-btn" (click)="applyPreset(p)">
+          <span class="preset-btn__swatches">
+            <span [style.background]="p.colors.primary_color"></span>
+            <span [style.background]="p.colors.secondary_color"></span>
+            <span [style.background]="p.colors.accent_color"></span>
+          </span>
+          {{ p.name }}
+        </button>
+      }
+    </div>
+
+    <div class="theme-grid">
+      @for (field of colorFields; track field.key) {
+        <div class="color-field">
+          <label>{{ field.label }}</label>
+          <div class="color-field__row">
+            <input type="color" [(ngModel)]="t[field.key]" [name]="field.key" (input)="onColorChange()" />
+            <input type="text" [(ngModel)]="t[field.key]" [name]="field.key + '-text'" (change)="onColorChange()" />
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="theme-actions">
+      <app-animated-button variant="outline" (clicked)="resetPreview()">Reset Preview</app-animated-button>
+      <app-animated-button variant="primary" size="lg" [loading]="saving()" (clicked)="save()">Save Theme</app-animated-button>
+    </div>
+    @if (saved()) { <p class="save-success">✅ Theme saved and live for all visitors!</p> }
+  }
+  }
+</div>

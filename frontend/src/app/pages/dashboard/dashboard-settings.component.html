@@ -1,0 +1,165 @@
+<section class="container dash-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">YOUR ACCOUNT</span>
+      <h1 class="display-lg">SETTINGS</h1>
+    </div>
+  </div>
+
+  <app-dashboard-nav />
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else {
+    <div class="settings-grid">
+      <div class="settings-panel glass-panel">
+        <h3>Profile Photo</h3>
+        <div class="photo-row">
+          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="Profile" />
+          <label class="upload-btn">
+            <input type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
+            {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-panel glass-panel">
+        <h3>Profile Details</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="form.fullName" name="fullName" />
+          </div>
+          <div class="form-field">
+            <label>Professional Name</label>
+            <input type="text" [(ngModel)]="form.professionalName" name="professionalName" />
+          </div>
+
+          @if (!isBrand) {
+            <div class="form-field">
+              <label>Category</label>
+              <select
+                name="categorySlug"
+                [(ngModel)]="form.categorySlug"
+                (ngModelChange)="onCategoryChange()"
+              >
+                <option value="">Choose your category</option>
+                @for (c of categories(); track c.id) {
+                  @if (c.slug !== 'brand-client') {
+                    <option [value]="c.slug">{{ c.name }}</option>
+                  }
+                }
+              </select>
+            </div>
+          }
+
+          <div class="form-field">
+            <label>City</label>
+            <input type="text" [(ngModel)]="form.city" name="city" />
+          </div>
+          <div class="form-field">
+            <label>Country</label>
+            <select [(ngModel)]="form.country" name="country">
+              <option value="">Select country</option>
+              @for (c of countries(); track c.id) {
+                <option [value]="c.name">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Website</label>
+            <input type="text" [(ngModel)]="form.website" name="website" />
+          </div>
+          <div class="form-field">
+            <label>Instagram Handle</label>
+            <input type="text" [(ngModel)]="form.instagram" name="instagram" />
+          </div>
+          <div class="form-field">
+            <label>Phone</label>
+            <input type="text" [(ngModel)]="form.phone" name="phone" />
+          </div>
+          <div class="form-field">
+            <label>WhatsApp</label>
+            <input type="text" [(ngModel)]="form.whatsapp" name="whatsapp" />
+          </div>
+
+          @if (!isBrand) {
+            <div class="form-field">
+              <label>Gender</label>
+              <input type="text" [(ngModel)]="form.gender" name="gender" />
+            </div>
+            <div class="form-field">
+              <label>Age</label>
+              <input type="number" [(ngModel)]="form.age" name="age" min="16" max="100" />
+            </div>
+          }
+
+          <div class="form-field">
+            <label>Availability</label>
+            <select [(ngModel)]="form.availability" name="availability">
+              <option value="available">Available Now</option>
+              <option value="busy">Busy</option>
+              <option value="booked">Booked</option>
+            </select>
+          </div>
+          <div class="form-field checkbox-field">
+            <label><input type="checkbox" [(ngModel)]="form.isPublic" name="isPublic" /> Public Profile (visible in search)</label>
+          </div>
+        </div>
+
+        @if (selectedCategoryFields().length) {
+          <div class="category-fields">
+            <span class="eyebrow">CATEGORY DETAILS</span>
+            <div class="form-grid">
+              @for (field of selectedCategoryFields(); track field.id) {
+                <div class="form-field" [class.form-field--full]="field.field_type === 'textarea'">
+                  <label>
+                    {{ field.label }}
+                    @if (field.is_required) { * }
+                  </label>
+
+                  @if (field.field_type === 'dropdown') {
+                    <select
+                      [name]="'cf-' + field.field_key"
+                      [ngModel]="customFields()[field.field_key] || ''"
+                      (ngModelChange)="setCustomField(field.field_key, $event)"
+                    >
+                      <option value="">Select {{ field.label }}</option>
+                      @for (opt of field.options; track opt) {
+                        <option [value]="opt">{{ opt }}</option>
+                      }
+                    </select>
+                  } @else if (field.field_type === 'textarea') {
+                    <textarea
+                      [name]="'cf-' + field.field_key"
+                      rows="3"
+                      [ngModel]="customFields()[field.field_key] || ''"
+                      (ngModelChange)="setCustomField(field.field_key, $event)"
+                    ></textarea>
+                  } @else {
+                    <input
+                      [type]="field.field_type === 'number' ? 'number' : 'text'"
+                      [name]="'cf-' + field.field_key"
+                      [ngModel]="customFields()[field.field_key] || ''"
+                      (ngModelChange)="setCustomField(field.field_key, $event)"
+                    />
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="form-field">
+          <label>Bio</label>
+          <textarea [(ngModel)]="form.bio" name="bio" rows="5"></textarea>
+        </div>
+
+        @if (error()) { <p class="form-error">{{ error() }}</p> }
+        @if (saved()) { <p class="form-success">Changes saved!</p> }
+
+        <app-animated-button variant="primary" size="lg" [loading]="saving()" (clicked)="save()">Save Changes</app-animated-button>
+      </div>
+    </div>
+  }
+</section>

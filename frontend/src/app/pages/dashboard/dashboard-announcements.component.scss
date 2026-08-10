@@ -1,0 +1,69 @@
+.dash-page { padding: 48px 0 100px; }
+
+.dash-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.ann-form {
+  padding: 28px;
+  margin-bottom: 32px;
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 20px;
+    @media (max-width: 640px) { grid-template-columns: 1fr; }
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    &:focus { outline: none; border-color: var(--color-primary); }
+  }
+
+  .checkbox-field label {
+    display: flex; align-items: center; gap: 8px;
+    text-transform: none; font-size: 0.85rem; color: var(--text-secondary);
+  }
+}
+
+.form-error { color: #ff6584; font-size: 0.85rem; margin-bottom: 12px; }
+
+.my-ann-list { display: flex; flex-direction: column; gap: 10px; }
+.my-ann-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border);
+
+  div { display: flex; flex-direction: column; gap: 4px; }
+  strong { font-size: 0.92rem; }
+  span { font-size: 0.78rem; color: var(--text-muted); }
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--surface-2);
+}
+.status-approved { color: var(--bkd-acid-lime); }
+.status-pending { color: var(--bkd-nuclear-yellow); }
+.status-rejected, .status-closed { color: #ff6584; }
+
+.empty-state { text-align: center; padding: 80px 24px; border: 1px dashed var(--surface-border); border-radius: var(--radius-lg); }

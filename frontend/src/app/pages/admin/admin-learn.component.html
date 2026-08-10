@@ -1,0 +1,51 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">MANAGE</span>
+      <h1 class="display-lg">LEARNING <span class="text-gradient">HUB</span></h1>
+    </div>
+    <app-animated-button variant="primary" (clicked)="showForm() ? showForm.set(false) : startCreate()">
+      {{ showForm() ? 'Cancel' : '+ New Article' }}
+    </app-animated-button>
+  </div>
+
+  @if (showForm()) {
+    <form class="crud-form glass-panel animate-scale-in" #f="ngForm" (ngSubmit)="submit(f)">
+      <div class="form-grid">
+        <div class="form-field"><label>Title *</label><input type="text" name="title" [(ngModel)]="form.title" required /></div>
+        <div class="form-field"><label>Slug</label><input type="text" name="slug" [(ngModel)]="form.slug" placeholder="auto-generated if empty" /></div>
+        <div class="form-field"><label>Category</label><input type="text" name="category" [(ngModel)]="form.category" placeholder="e.g. negotiation, portfolio" /></div>
+        <div class="form-field"><label>Cover Image URL</label><input type="text" name="coverImage" [(ngModel)]="form.coverImage" /></div>
+        <div class="form-field"><label>Video URL (optional)</label><input type="text" name="videoUrl" [(ngModel)]="form.videoUrl" /></div>
+        <div class="form-field checkbox-field"><label><input type="checkbox" name="isPublished" [(ngModel)]="form.isPublished" /> Published</label></div>
+      </div>
+      <div class="form-field"><label>Content</label><textarea name="content" [(ngModel)]="form.content" rows="6"></textarea></div>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+      <app-animated-button type="submit" variant="primary" [loading]="saving()">{{ editingId() ? 'Update' : 'Publish' }} Article</app-animated-button>
+    </form>
+  }
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (articles().length) {
+    <div class="crud-table">
+      <div class="crud-table__row crud-table__row--head">
+        <span>Title</span><span>Category</span><span>Created</span><span>Published</span><span></span>
+      </div>
+      @for (a of articles(); track a.id) {
+        <div class="crud-table__row">
+          <span>{{ a.title }}</span>
+          <span>{{ a.category || '—' }}</span>
+          <span>{{ a.created_at | date: 'MMM d, y' }}</span>
+          <span [class.yes]="a.is_published" [class.no]="!a.is_published">{{ a.is_published ? 'Yes' : 'No' }}</span>
+          <span class="row-actions">
+            <button (click)="startEdit(a)">Edit</button>
+            <button class="danger" (click)="remove(a)">Delete</button>
+          </span>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state"><h3>No articles yet.</h3></div>
+  }
+</div>

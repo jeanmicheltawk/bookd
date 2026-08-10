@@ -1,0 +1,52 @@
+<ng-template #projected>
+  <ng-content />
+</ng-template>
+
+@if (routerLink) {
+  <a
+    class="bkd-btn"
+    [class]="'variant-' + variant + ' size-' + size"
+    [class.full-width]="fullWidth"
+    [class.is-disabled]="disabled"
+    [routerLink]="disabled ? null : routerLink"
+    [queryParams]="queryParams || null"
+    (click)="onClick($event)"
+  >
+    <span class="bkd-btn__glow"></span>
+    <span class="bkd-btn__content">
+      <ng-container *ngTemplateOutlet="projected" />
+    </span>
+  </a>
+} @else if (href) {
+  <a
+    class="bkd-btn"
+    [class]="'variant-' + variant + ' size-' + size"
+    [class.full-width]="fullWidth"
+    [class.is-disabled]="disabled"
+    [href]="disabled ? null : href"
+    (click)="onClick($event)"
+  >
+    <span class="bkd-btn__glow"></span>
+    <span class="bkd-btn__content">
+      <ng-container *ngTemplateOutlet="projected" />
+    </span>
+  </a>
+} @else {
+  <button
+    class="bkd-btn"
+    [class]="'variant-' + variant + ' size-' + size"
+    [class.full-width]="fullWidth"
+    [class.is-disabled]="disabled || loading"
+    [type]="type"
+    [disabled]="disabled || loading"
+    (click)="onClick($event)"
+  >
+    <span class="bkd-btn__glow"></span>
+    <span class="bkd-btn__content">
+      @if (loading) {
+        <span class="bkd-btn__spinner"></span>
+      }
+      <ng-container *ngTemplateOutlet="projected" />
+    </span>
+  </button>
+}

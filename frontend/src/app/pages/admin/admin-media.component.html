@@ -1,0 +1,61 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <span class="eyebrow">ASSETS</span>
+    <h1 class="display-lg">MEDIA <span class="text-gradient">LIBRARY</span></h1>
+  </div>
+
+  <div class="media-toolbar">
+    <input type="text" placeholder="Search filename or alt text..." [(ngModel)]="search" name="search" (change)="load()" />
+    <select [(ngModel)]="uploadFolder" name="uploadFolder">
+      <option value="general">general</option>
+      <option value="avatars">avatars</option>
+      <option value="portfolio">portfolio</option>
+      <option value="cms">cms</option>
+      <option value="events">events</option>
+    </select>
+    <label class="upload-btn">
+      <input type="file" hidden (change)="onFileSelected($event)" [disabled]="uploading()" />
+      {{ uploading() ? 'Uploading...' : '+ Upload File' }}
+    </label>
+  </div>
+
+  <div class="folder-chips">
+    <button class="chip" [class.active]="activeFolder() === ''" (click)="selectFolder('')">All</button>
+    @for (f of folders(); track f.folder) {
+      <button class="chip" [class.active]="activeFolder() === f.folder" (click)="selectFolder(f.folder)">
+        {{ f.folder }} ({{ f.count }})
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING MEDIA..." />
+  } @else if (items().length) {
+    <div class="media-grid">
+      @for (item of items(); track item.id) {
+        <div class="media-tile">
+          @if (item.mime_type.startsWith('image')) {
+            <img [src]="api.assetUrl(item.url)" [alt]="item.alt_text || item.original_name" loading="lazy" />
+          } @else if (item.mime_type.startsWith('video')) {
+            <video [src]="api.assetUrl(item.url)" muted></video>
+          } @else {
+            <div class="media-tile__file">📄</div>
+          }
+          <div class="media-tile__overlay">
+            <span class="media-tile__name">{{ item.original_name }}</span>
+            <span class="media-tile__size">{{ formatBytes(item.size_bytes) }}</span>
+            <div class="media-tile__actions">
+              <button (click)="copyUrl(item)">Copy URL</button>
+              <button class="danger" (click)="delete(item)">Delete</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No media uploaded yet.</h3>
+      <p>Upload images and videos to use across the site.</p>
+    </div>
+  }
+</div>

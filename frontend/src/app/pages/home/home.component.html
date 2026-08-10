@@ -1,0 +1,215 @@
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero__bg">
+    <div class="hero__blob blob-1"></div>
+    <div class="hero__blob blob-2"></div>
+    <div class="hero__blob blob-3"></div>
+    <div class="hero__grid"></div>
+  </div>
+
+  <div class="container hero__inner">
+    <span class="eyebrow animate-fade-in">WELCOME TO THE HAUS</span>
+
+    @for (slide of slides(); track $index) {
+      @if ($index === activeSlide()) {
+        <div class="hero__slide">
+          <h1 class="hero__title display-xl animate-slide-up">
+            <span class="text-gradient">{{ slide.title }}</span>
+          </h1>
+          @if (slide.subtitle) {
+            <p class="hero__subtitle animate-slide-up delay-2">{{ slide.subtitle }}</p>
+          }
+        </div>
+      }
+    }
+
+    <div class="hero__actions animate-slide-up delay-3">
+      <app-animated-button routerLink="/auth/signup" variant="primary" size="lg">Apply →</app-animated-button>
+      <app-animated-button routerLink="/discover" variant="outline" size="lg">Discover Talent</app-animated-button>
+    </div>
+
+    @if (slides().length > 1) {
+      <div class="hero__dots">
+        @for (slide of slides(); track $index) {
+          <button
+            class="hero__dot"
+            [class.active]="$index === activeSlide()"
+            (click)="goToSlide($index)"
+            [attr.aria-label]="'Go to slide ' + ($index + 1)"
+          ></button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="hero__scroll-cue">
+    <span></span>
+    SCROLL
+  </div>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee">
+  <div class="marquee__track">
+    @for (i of [0,1,2,3,4,5,6,7]; track i) {
+      <span>BOOK AND GET BOOK'D</span>
+      <span class="dot">/</span>
+    }
+  </div>
+</div>
+
+<!-- ============ ANNOUNCEMENTS TEASER ============ -->
+<section class="section announcements-teaser">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">LIVE OPPORTUNITIES</span>
+        <h2 class="display-lg">FRESH <span class="text-gradient-acid">ANNOUNCEMENTS</span></h2>
+      </div>
+      <a routerLink="/announcements" class="section-head__link">View All →</a>
+    </div>
+
+    @if (announcements().length) {
+      <div class="announcement-grid">
+        @for (a of announcements(); track a.id) {
+          <a class="announcement-card" [routerLink]="['/announcements', a.id]">
+            <span class="announcement-card__type">{{ a.announcement_type }}</span>
+            <h3>{{ a.title }}</h3>
+            <p>{{ a.description || 'No description provided.' }}</p>
+            <div class="announcement-card__meta">
+              @if (a.location) { <span>{{ a.location }}</span> }
+              @if (a.budget) { <span>${{ a.budget }}</span> }
+              <span class="announcement-card__cta">APPLY →</span>
+            </div>
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="empty-teaser">
+        <p>No live announcements right now — check back soon or post your own.</p>
+        <app-animated-button routerLink="/announcements" variant="outline">Browse Announcements</app-animated-button>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- ============ COMMUNITY SPOTLIGHT ============ -->
+<section class="section spotlight">
+  <div class="hero__blob blob-4"></div>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">COMMUNITY SPOTLIGHT</span>
+        <h2 class="display-lg">FACES OF THE <span class="text-gradient">HAUS</span></h2>
+      </div>
+      <a routerLink="/discover" class="section-head__link">Discover All →</a>
+    </div>
+
+    @if (spotlight().length) {
+      <div class="spotlight__scroller">
+        @for (profile of spotlight(); track profile.id; let i = $index) {
+          <div class="spotlight__item">
+            <app-profile-card [profile]="profile" [index]="i" />
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-teaser">
+        <p>Our spotlight is warming up. Be one of the first faces of BOOK'D HAUS.</p>
+        <app-animated-button routerLink="/auth/signup" variant="outline">Apply Now</app-animated-button>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- ============ ABOUT / VALUES ============ -->
+<section class="section values">
+  <div class="container">
+    <div class="section-head centered">
+      <span class="eyebrow">WHY BOOK'D HAUS</span>
+      <h2 class="display-lg">NOT YOUR AVERAGE<br /><span class="text-gradient-acid">BOOKING PLATFORM</span></h2>
+    </div>
+
+    <div class="values-grid">
+      @for (v of values; track v.title; let i = $index) {
+        <div class="value-card" [style.animation-delay.ms]="i * 100">
+          <span class="value-card__icon">{{ v.icon }}</span>
+          <h3>{{ v.title }}</h3>
+          <p>{{ v.copy }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============ SERVICES / CATEGORIES ============ -->
+<section class="section services">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">WHO'S HERE</span>
+        <h2 class="display-lg">FIND YOUR <span class="text-gradient">CREATIVE MATCH</span></h2>
+      </div>
+    </div>
+
+    <div class="services-grid">
+      @for (cat of categories(); track cat.id; let i = $index) {
+        <a
+          class="service-tile"
+          [routerLink]="['/discover']"
+          [queryParams]="{ category: cat.slug }"
+          [style.animation-delay.ms]="i * 60"
+        >
+          <span class="service-tile__icon">{{ categoryIcon(cat.slug) }}</span>
+          <span class="service-tile__name">{{ cat.name }}</span>
+          <span class="service-tile__arrow">→</span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============ MEMBERSHIP CTA ============ -->
+<section class="section membership-cta">
+  <div class="container membership-cta__inner">
+    <span class="eyebrow">LEVEL UP</span>
+    <h2 class="display-xl">
+      GO <span class="text-gradient">PREMIUM.</span><br />
+      GET <span class="text-gradient-acid">BOOK'D</span> FASTER.
+    </h2>
+    <p>Unlock priority spotlight placement, advanced filters, unlimited applications, and performance analytics.</p>
+    <div class="membership-cta__actions">
+      <app-animated-button routerLink="/pricing" variant="primary" size="lg">See Membership Plans</app-animated-button>
+      <app-animated-button routerLink="/about" variant="ghost" size="lg">Learn More</app-animated-button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+@if (testimonials().length) {
+  <section class="section testimonials">
+    <div class="container">
+      <div class="section-head centered">
+        <span class="eyebrow">REAL TALK</span>
+        <h2 class="display-lg">THE HAUS <span class="text-gradient-acid">SPEAKS</span></h2>
+      </div>
+
+      <div class="testimonials-grid">
+        @for (t of testimonials(); track t.id; let i = $index) {
+          <div class="testimonial-card" [style.animation-delay.ms]="i * 90">
+            <p class="testimonial-card__stars">
+              @for (s of [1,2,3,4,5]; track s) {
+                <span [class.filled]="s <= (t.rating || 5)">★</span>
+              }
+            </p>
+            <p class="testimonial-card__content">"{{ t.content }}"</p>
+            <div class="testimonial-card__author">
+              <strong>{{ t.author_name }}</strong>
+              @if (t.author_role) { <span>{{ t.author_role }}</span> }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}

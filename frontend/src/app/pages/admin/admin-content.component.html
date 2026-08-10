@@ -1,0 +1,102 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <span class="eyebrow">CMS</span>
+    <h1 class="display-lg">CONTENT <span class="text-gradient">EDITOR</span></h1>
+  </div>
+
+  <div class="page-tabs">
+    @for (slug of knownPages; track slug) {
+      <button class="chip" [class.active]="activeSlug() === slug" (click)="selectPage(slug)">{{ slug }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING PAGE..." />
+  } @else if (notFound()) {
+    <div class="empty-state">
+      <h3>Page "{{ activeSlug() }}" not found in CMS.</h3>
+      <p>This page may not have been seeded yet in the backend.</p>
+    </div>
+  } @else {
+  @if (page(); as p) {
+    <div class="panel">
+      <h3>Page Settings — /{{ p.slug }}</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Title</label>
+          <input type="text" [(ngModel)]="p.title" name="title" />
+        </div>
+        <div class="form-field">
+          <label>Meta Title</label>
+          <input type="text" [(ngModel)]="p.meta_title" name="metaTitle" />
+        </div>
+        <div class="form-field checkbox-field">
+          <label><input type="checkbox" [(ngModel)]="p.is_published" name="isPublished" /> Published</label>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Meta Description</label>
+        <textarea [(ngModel)]="p.meta_description" name="metaDescription" rows="2"></textarea>
+      </div>
+      @if (pageSaved()) { <p class="save-success">✅ Page settings saved!</p> }
+      <app-animated-button variant="outline" [loading]="savingPage()" (clicked)="savePage()">Save Page Settings</app-animated-button>
+    </div>
+
+    <h3 class="sections-title">Sections</h3>
+    @if (sections().length) {
+      <div class="sections-list">
+        @for (section of sections(); track section.id) {
+          <div class="panel section-panel">
+            <div class="section-panel__head">
+              <strong>{{ section.key }}</strong>
+              <label class="visible-toggle">
+                <input type="checkbox" [(ngModel)]="section.is_visible" [name]="'visible-' + section.id" />
+                Visible
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Title</label>
+                <input type="text" [(ngModel)]="section.title" [name]="'title-' + section.id" />
+              </div>
+              <div class="form-field">
+                <label>Subtitle</label>
+                <input type="text" [(ngModel)]="section.subtitle" [name]="'subtitle-' + section.id" />
+              </div>
+              <div class="form-field">
+                <label>CTA Label</label>
+                <input type="text" [(ngModel)]="section.cta_label" [name]="'ctaLabel-' + section.id" />
+              </div>
+              <div class="form-field">
+                <label>CTA URL</label>
+                <input type="text" [(ngModel)]="section.cta_url" [name]="'ctaUrl-' + section.id" />
+              </div>
+              <div class="form-field">
+                <label>Media URL</label>
+                <input type="text" [(ngModel)]="section.media_url" [name]="'mediaUrl-' + section.id" />
+              </div>
+              <div class="form-field">
+                <label>Sort Order</label>
+                <input type="number" [(ngModel)]="section.sort_order" [name]="'sortOrder-' + section.id" />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Content (JSON)</label>
+              <textarea class="json-editor" [(ngModel)]="section.contentJson" [name]="'content-' + section.id" rows="6"></textarea>
+              @if (section.jsonError) { <p class="save-error">{{ section.jsonError }}</p> }
+            </div>
+
+            <app-animated-button variant="primary" size="sm" [loading]="savingSectionId() === section.id" (clicked)="saveSection(section)">
+              Save Section
+            </app-animated-button>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="empty-hint">This page has no sections yet.</p>
+    }
+  }
+  }
+</div>

@@ -1,0 +1,103 @@
+<header class="navbar" [class.is-scrolled]="scrolled()">
+  <div class="navbar__inner container">
+    <a routerLink="/" class="navbar__logo" (click)="closeMobileMenu()">
+      <span class="navbar__logo-mark">BK<span class="accent">'D</span></span>
+    </a>
+
+    <form class="navbar__search" (ngSubmit)="submitSearch()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="search"
+        placeholder="Search creatives, brands, gigs..."
+        name="q"
+        [(ngModel)]="searchTerm"
+      />
+    </form>
+
+    <nav class="navbar__links hide-mobile">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Discover</a>
+      <!-- FUTURE: <a routerLink="/announcements" routerLinkActive="active">Announcements</a> -->
+      <!-- FUTURE: <a routerLink="/challenges" routerLinkActive="active">Challenges</a> -->
+      <!-- FUTURE: <a routerLink="/learn" routerLinkActive="active">Learn</a> -->
+      <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
+    </nav>
+
+    <div class="navbar__actions">
+      @if (auth.isAuthenticated()) {
+        <a routerLink="/dashboard/messages" class="navbar__icon-btn hide-mobile" aria-label="Messages">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </a>
+        <a routerLink="/dashboard/notifications" class="navbar__icon-btn hide-mobile" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+        </a>
+
+        <button class="navbar__avatar-btn" [matMenuTriggerFor]="userMenu" aria-label="Account menu">
+          @if (avatarUrl) {
+            <img [src]="avatarUrl" alt="avatar" class="navbar__avatar" />
+          } @else {
+            <span class="navbar__avatar navbar__avatar--fallback">{{ initials }}</span>
+          }
+        </button>
+        <mat-menu #userMenu="matMenu" xPosition="before">
+          @if (auth.isAdmin()) {
+            <a mat-menu-item routerLink="/admin">Admin Dashboard</a>
+            <a mat-menu-item routerLink="/admin/users">Review Applications</a>
+          }
+          <a mat-menu-item routerLink="/dashboard">Dashboard</a>
+          <a mat-menu-item [routerLink]="['/profile', auth.user()?.profile_id]">My Profile</a>
+          <a mat-menu-item routerLink="/dashboard/bookings">Bookings</a>
+          <a mat-menu-item routerLink="/dashboard/settings">Settings</a>
+          <button mat-menu-item (click)="logout()">Log Out</button>
+        </mat-menu>
+      } @else {
+        <a routerLink="/auth/login" class="navbar__text-link hide-mobile">Log In</a>
+        <a routerLink="/auth/signup" class="navbar__signup-btn">Apply</a>
+      }
+
+      <button class="navbar__more-btn" [matMenuTriggerFor]="moreMenu" aria-label="More">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+        </svg>
+      </button>
+      <mat-menu #moreMenu="matMenu" xPosition="before">
+        <a mat-menu-item routerLink="/about">About</a>
+        <a mat-menu-item routerLink="/contact">Contact</a>
+        <!-- FUTURE: <a mat-menu-item routerLink="/challenges">Challenges &amp; Events</a> -->
+        <!-- FUTURE: <a mat-menu-item routerLink="/learn">Learning Hub</a> -->
+      </mat-menu>
+
+      <button class="navbar__burger hide-desktop" (click)="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  @if (mobileMenuOpen()) {
+    <div class="navbar__mobile-panel animate-slide-down">
+      <a routerLink="/" (click)="closeMobileMenu()">Discover</a>
+      <!-- FUTURE: <a routerLink="/announcements" (click)="closeMobileMenu()">Announcements</a> -->
+      <!-- FUTURE: <a routerLink="/challenges" (click)="closeMobileMenu()">Challenges</a> -->
+      <!-- FUTURE: <a routerLink="/learn" (click)="closeMobileMenu()">Learn</a> -->
+      <a routerLink="/pricing" (click)="closeMobileMenu()">Pricing</a>
+      <a routerLink="/about" (click)="closeMobileMenu()">About</a>
+      <a routerLink="/contact" (click)="closeMobileMenu()">Contact</a>
+      <hr class="divider-neon" />
+      @if (!auth.isAuthenticated()) {
+        <a routerLink="/auth/login" (click)="closeMobileMenu()">Log In</a>
+        <a routerLink="/auth/signup" (click)="closeMobileMenu()" class="mobile-signup">Apply</a>
+      } @else {
+        <a routerLink="/dashboard" (click)="closeMobileMenu()">Dashboard</a>
+        <a routerLink="/dashboard/messages" (click)="closeMobileMenu()">Messages</a>
+        <button class="btn-reset" (click)="logout(); closeMobileMenu()">Log Out</button>
+      }
+    </div>
+  }
+</header>

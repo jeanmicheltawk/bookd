@@ -1,0 +1,112 @@
+<div class="booking-shell">
+  <header class="booking-topbar">
+    <a routerLink="/" class="booking-topbar__logo">BK<span class="accent">'D</span></a>
+    <span class="booking-topbar__title">BOOKING REQUEST</span>
+    <a routerLink="/" class="booking-topbar__close">✕</a>
+  </header>
+
+  @if (loading()) {
+    <app-loading-screen label="LOADING..." />
+  } @else if (notFound()) {
+    <div class="container not-found-block">
+      <h2>Creative not found</h2>
+      <a routerLink="/">← Back to Discover</a>
+    </div>
+  } @else if (success()) {
+    <div class="container success-block animate-scale-in">
+      <span class="success-icon">🎉</span>
+      <h1 class="display-lg">YOU'RE <span class="text-gradient-acid">BOOK'D!</span></h1>
+      <p>Your request has been sent. You'll be notified as soon as they respond.</p>
+      <app-animated-button variant="primary" size="lg" (clicked)="goToDashboard()">Go to My Bookings</app-animated-button>
+    </div>
+  } @else {
+  @if (profile(); as p) {
+    <div class="container booking-body">
+      <aside class="booking-summary glass-panel">
+        <img [src]="api.assetUrl(p.profile_photo_url) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="" />
+        <h3>{{ p.professional_name || p.full_name }}</h3>
+        <p>{{ p.category_name }}</p>
+        @if (p.city || p.country) { <span class="loc">{{ p.city }}{{ p.city && p.country ? ', ' : '' }}{{ p.country }}</span> }
+      </aside>
+
+      <div class="booking-form-panel">
+        <div class="step-indicator">
+          @for (i of [1,2,3]; track i) {
+            <div class="step-dot" [class.active]="step() >= i">{{ i }}</div>
+          }
+        </div>
+
+        @if (step() === 1) {
+          <div class="step-content animate-slide-up">
+            <h2>Project Details</h2>
+            <div class="form-field">
+              <label>Project Type *</label>
+              <input type="text" placeholder="e.g. Editorial Shoot, Brand Campaign" [(ngModel)]="form.projectType" name="projectType" />
+            </div>
+            <div class="form-field">
+              <label>Project Date</label>
+              <input type="date" [(ngModel)]="form.projectDate" name="projectDate" />
+            </div>
+            <div class="form-field">
+              <label>Location</label>
+              <input type="text" [(ngModel)]="form.location" name="location" />
+            </div>
+            <div class="form-field">
+              <label>Budget ($)</label>
+              <input type="number" min="0" [(ngModel)]="form.budget" name="budget" />
+            </div>
+            <div class="form-field">
+              <label>Description</label>
+              <textarea rows="4" [(ngModel)]="form.description" name="description"></textarea>
+            </div>
+          </div>
+        }
+
+        @if (step() === 2) {
+          <div class="step-content animate-slide-up">
+            <h2>Moodboard (Optional)</h2>
+            <p class="step-hint">Add reference image URLs to help communicate your vision.</p>
+            <div class="moodboard-input">
+              <input type="text" placeholder="https://..." [(ngModel)]="form.moodboardUrl" name="moodboardUrl" (keyup.enter)="addMoodboardUrl()" />
+              <button type="button" (click)="addMoodboardUrl()">Add</button>
+            </div>
+            @if (form.moodboardUrls.length) {
+              <div class="moodboard-tags">
+                @for (url of form.moodboardUrls; track url) {
+                  <span class="moodboard-tag">{{ url.slice(0, 32) }}... <button (click)="removeMoodboardUrl(url)">✕</button></span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (step() === 3) {
+          <div class="step-content animate-slide-up">
+            <h2>Review & Confirm</h2>
+            <ul class="review-list">
+              <li><span>Project Type</span><strong>{{ form.projectType || '—' }}</strong></li>
+              <li><span>Date</span><strong>{{ form.projectDate || 'Flexible' }}</strong></li>
+              <li><span>Location</span><strong>{{ form.location || '—' }}</strong></li>
+              <li><span>Budget</span><strong>{{ form.budget ? ('$' + form.budget) : 'Negotiable' }}</strong></li>
+              <li><span>Moodboard Refs</span><strong>{{ form.moodboardUrls.length }}</strong></li>
+            </ul>
+            @if (form.description) { <p class="review-desc">{{ form.description }}</p> }
+            @if (error()) { <p class="form-error">{{ error() }}</p> }
+          </div>
+        }
+
+        <div class="step-actions">
+          @if (step() > 1) {
+            <app-animated-button variant="outline" (clicked)="prevStep()">← Back</app-animated-button>
+          }
+          @if (step() < totalSteps) {
+            <app-animated-button variant="primary" [disabled]="step() === 1 && !canProceedFromStep1()" (clicked)="nextStep()">Continue →</app-animated-button>
+          } @else {
+            <app-animated-button variant="primary" [loading]="submitting()" (clicked)="submit()">Send Booking Request</app-animated-button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+  }
+</div>

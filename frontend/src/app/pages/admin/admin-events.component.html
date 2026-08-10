@@ -1,0 +1,60 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">MANAGE</span>
+      <h1 class="display-lg">EVENTS &amp; <span class="text-gradient">CHALLENGES</span></h1>
+    </div>
+    <app-animated-button variant="primary" (clicked)="showForm() ? showForm.set(false) : startCreate()">
+      {{ showForm() ? 'Cancel' : '+ New Event' }}
+    </app-animated-button>
+  </div>
+
+  @if (showForm()) {
+    <form class="crud-form glass-panel animate-scale-in" #f="ngForm" (ngSubmit)="submit(f)">
+      <div class="form-grid">
+        <div class="form-field"><label>Title *</label><input type="text" name="title" [(ngModel)]="form.title" required /></div>
+        <div class="form-field"><label>Slug</label><input type="text" name="slug" [(ngModel)]="form.slug" placeholder="auto-generated if empty" /></div>
+        <div class="form-field">
+          <label>Type</label>
+          <select name="eventType" [(ngModel)]="form.eventType">
+            <option value="challenge">Challenge</option>
+            <option value="event">Event</option>
+            <option value="workshop">Workshop</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Cover Image URL</label><input type="text" name="coverImage" [(ngModel)]="form.coverImage" /></div>
+        <div class="form-field"><label>Starts At</label><input type="date" name="startsAt" [(ngModel)]="form.startsAt" /></div>
+        <div class="form-field"><label>Ends At</label><input type="date" name="endsAt" [(ngModel)]="form.endsAt" /></div>
+        <div class="form-field"><label>Prize</label><input type="text" name="prize" [(ngModel)]="form.prize" /></div>
+        <div class="form-field checkbox-field"><label><input type="checkbox" name="isPublished" [(ngModel)]="form.isPublished" /> Published</label></div>
+      </div>
+      <div class="form-field"><label>Description</label><textarea name="description" [(ngModel)]="form.description" rows="4"></textarea></div>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+      <app-animated-button type="submit" variant="primary" [loading]="saving()">{{ editingId() ? 'Update' : 'Create' }} Event</app-animated-button>
+    </form>
+  }
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (events().length) {
+    <div class="crud-table">
+      <div class="crud-table__row crud-table__row--head">
+        <span>Title</span><span>Type</span><span>Starts</span><span>Published</span><span></span>
+      </div>
+      @for (e of events(); track e.id) {
+        <div class="crud-table__row">
+          <span>{{ e.title }}</span>
+          <span>{{ e.event_type }}</span>
+          <span>{{ e.starts_at ? (e.starts_at | date: 'MMM d, y') : '—' }}</span>
+          <span [class.yes]="e.is_published" [class.no]="!e.is_published">{{ e.is_published ? 'Yes' : 'No' }}</span>
+          <span class="row-actions">
+            <button (click)="startEdit(e)">Edit</button>
+            <button class="danger" (click)="remove(e)">Delete</button>
+          </span>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state"><h3>No events yet.</h3></div>
+  }
+</div>

@@ -1,0 +1,23 @@
+<section class="container dash-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">STAY IN THE LOOP</span>
+      <h1 class="display-lg">NOTIFICATIONS</h1>
+    </div>
+  </div>
+
+  <app-dashboard-nav />
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else {
+    <div class="notif-summary glass-panel">
+      <span class="notif-summary__count text-gradient">{{ unreadCount() }}</span>
+      <p>unread notification{{ unreadCount() === 1 ? '' : 's' }}</p>
+    </div>
+    <div class="empty-state">
+      <h3>Detailed notifications are coming soon.</h3>
+      <p>For now, keep an eye on your bookings and messages tabs — that's where the action is.</p>
+    </div>
+  }
+</section>

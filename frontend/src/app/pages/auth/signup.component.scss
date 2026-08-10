@@ -1,0 +1,115 @@
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  &__sub { margin: 8px 0 28px; }
+
+  &--wide {
+    max-width: 720px;
+  }
+}
+
+.apply-success {
+  text-align: center;
+  .auth-card__sub { margin-bottom: 32px; }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+  margin-bottom: 14px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 100px;
+    background: var(--surface-2, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.12));
+    border-radius: var(--radius-sm, 8px);
+    padding: 12px 14px;
+    color: var(--text-primary, #fff);
+    font: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+.role-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.auth-error { color: #ff6584; font-size: 0.85rem; margin-bottom: 16px; }
+
+.field-error {
+  color: #ff6584;
+  font-size: 0.75rem;
+  margin: 4px 0 0;
+  line-height: 1.3;
+}
+
+.category-fields {
+  margin: 8px 0 20px;
+
+  .eyebrow {
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .form-field--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.apply-submit {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 14px 22px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--gradient-acid, linear-gradient(135deg, #c6ff00, #ff00a8));
+  color: var(--button-text-color, #09000f);
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &:hover:not(:disabled) { transform: translateY(-1px); }
+  &:disabled { opacity: 0.65; cursor: wait; }
+
+  &__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.auth-switch {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  a { color: var(--color-primary); font-weight: 700; }
+}

@@ -1,0 +1,104 @@
+.footer {
+  position: relative;
+  padding: 80px 0 32px;
+  overflow: hidden;
+  background: var(--surface-0);
+  border-top: 1px solid var(--surface-border);
+
+  &__glow {
+    position: absolute;
+    bottom: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 400px;
+    background: var(--gradient-neon);
+    filter: blur(140px);
+    opacity: 0.18;
+    pointer-events: none;
+  }
+
+  &__inner { position: relative; z-index: 1; }
+
+  &__top {
+    display: grid;
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+    gap: 40px;
+    margin-bottom: 48px;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 560px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__logo {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 800;
+    .accent {
+      background: var(--gradient-neon);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  &__slogan {
+    margin: 12px 0 20px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  &__socials {
+    display: flex;
+    gap: 10px;
+    a {
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      border: 1px solid var(--surface-border);
+      font-size: 0.7rem;
+      font-weight: 800;
+      transition: all var(--dur-fast);
+      &:hover { border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-3px); }
+    }
+  }
+
+  &__col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    h5 {
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    a {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      transition: color var(--dur-fast);
+      &:hover { color: var(--color-primary); }
+    }
+  }
+
+  &__bottom {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 24px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+}
