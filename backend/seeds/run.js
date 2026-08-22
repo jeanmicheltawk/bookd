@@ -74,9 +74,9 @@ async function seed() {
          background_color, text_color, button_color, button_text_color,
          gradient_from, gradient_to, verified_badge_color
        )
-       SELECT 'BOOK''D Neon', TRUE, '#C6FF00', '#FF00A8', '#00F5FF',
-              '#09000F', '#FFFFFF', '#C6FF00', '#09000F',
-              '#C6FF00', '#FF00A8', '#00F5FF'
+       SELECT 'BOOK''D Acid', TRUE, '#C6FF00', '#FF00A8', '#00F5FF',
+              '#FF4D00', '#FFFFFF', '#C6FF00', '#09000F',
+              '#C6FF00', '#C6FF00', '#00F5FF'
        WHERE NOT EXISTS (SELECT 1 FROM theme_settings WHERE is_active = TRUE)`
     );
 
@@ -99,17 +99,11 @@ async function seed() {
         ],
       }],
       ['contact', {
-        email: 'hello@bookd.com',
-        supportEmail: 'support@bookd.com',
-        phone: '',
-        address: '',
+        email: 'info@bookdhaus.com',
+        supportEmail: 'info@bookdhaus.com',
       }],
       ['social', {
-        instagram: 'https://instagram.com/bookd',
-        tiktok: 'https://tiktok.com/@bookd',
-        twitter: 'https://x.com/bookd',
-        youtube: '',
-        linkedin: '',
+        instagram: 'https://www.instagram.com/bookdhaus?igsi=MWh3ZWl2ZTZ3engzcg==',
       }],
       ['footer', {
         copyright: "© 2026 BOOK'D HAUS. All rights reserved.",
@@ -234,23 +228,27 @@ async function seed() {
          RETURNING id`,
         [u.email, demoPass, u.role || 'member', u.membership, u.verified]
       );
+      const isTalent = (u.role || 'member') !== 'brand';
       await client.query(
         `INSERT INTO profiles (user_id, category_id, full_name, professional_name, country, bio, is_public, years_experience, availability)
-         VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7, 'available')
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'available')
          ON CONFLICT (user_id) DO UPDATE SET
            category_id = EXCLUDED.category_id,
            full_name = EXCLUDED.full_name,
            professional_name = EXCLUDED.professional_name,
            country = EXCLUDED.country,
-           is_public = TRUE`,
+           is_public = EXCLUDED.is_public`,
         [
           ur.rows[0].id,
           cat.rows[0]?.id || null,
           u.name,
           u.pro,
           u.country,
-          `${u.pro} — creative on BOOK'D. Ready to collaborate.`,
-          3 + Math.floor(Math.random() * 10),
+          isTalent
+            ? `${u.pro} — creative on BOOK'D. Ready to collaborate.`
+            : `${u.pro} — client on BOOK'D.`,
+          isTalent,
+          isTalent ? 3 + Math.floor(Math.random() * 10) : null,
         ]
       );
     }

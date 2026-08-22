@@ -1,23 +1,23 @@
 .not-found-block { padding: 120px 24px; text-align: center; }
-.back-link { display: inline-block; margin-bottom: 20px; color: var(--text-muted); font-size: 0.85rem; &:hover { color: var(--color-primary); } }
+.back-link { display: inline-block; margin-bottom: 20px; color: var(--text); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; &:hover { color: var(--acid-lime); } }
 
 .detail-hero {
   padding: 48px 0 32px;
-  background: var(--gradient-radial-glow);
+  background: transparent;
 
   &__top { display: flex; gap: 10px; margin-bottom: 14px; }
   &__type, &__paid {
-    padding: 5px 14px; border-radius: var(--radius-pill);
-    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    padding: 5px 14px;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
   }
-  &__type { background: rgba(0,245,255,0.12); color: var(--bkd-laser-cyan); }
-  &__paid { background: rgba(198,255,0,0.15); color: var(--bkd-acid-lime); }
+  &__type { background: var(--laser-cyan); color: var(--ink-black); }
+  &__paid { background: var(--acid-lime); color: var(--ink-black); }
 
   &__author {
     display: flex; gap: 20px; margin-top: 16px;
     font-family: var(--font-editorial);
-    font-size: 0.85rem; color: var(--text-muted);
-    strong { color: var(--text-primary); }
+    font-size: 0.85rem; color: var(--text);
+    strong { color: var(--text); }
   }
 }
 
@@ -30,7 +30,7 @@
   @media (max-width: 860px) { grid-template-columns: 1fr; }
 }
 
-.detail-main h3 { font-size: 1.1rem; margin: 24px 0 12px; text-transform: none; &:first-child { margin-top: 0; } }
+.detail-main h3 { font-size: 1.1rem; margin: 24px 0 12px; text-transform: uppercase; &:first-child { margin-top: 0; } }
 .detail-description { white-space: pre-line; }
 
 .moodboard-grid {
@@ -38,43 +38,47 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-bottom: 24px;
-  img { border-radius: var(--radius-md); aspect-ratio: 1; object-fit: cover; }
+  img { aspect-ratio: 1; object-fit: cover; border: 1px solid currentColor; }
 }
 
 .apply-box {
   padding: 28px;
   margin-top: 32px;
+  background: transparent;
+  border: 1px solid currentColor;
 
   textarea {
     width: 100%;
-    background: var(--surface-2);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-sm);
-    padding: 14px;
-    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid currentColor;
+    padding: 14px 0;
+    color: var(--text);
     margin: 16px 0;
     font-family: var(--font-body);
-    &:focus { outline: none; border-color: var(--color-primary); }
+    &:focus { outline: none; border-bottom-color: var(--focus); }
   }
-  .apply-success { color: var(--bkd-acid-lime); font-weight: 600; }
-  .apply-error { color: #ff6584; font-size: 0.85rem; margin-bottom: 12px; }
+  .apply-success { color: var(--acid-lime); font-weight: 600; }
+  .apply-error { font-size: 0.85rem; margin-bottom: 12px; }
 }
 
 .detail-card {
   padding: 24px;
-  h4 { font-size: 0.95rem; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+  background: transparent;
+  border: 1px solid currentColor;
+  h4 { font-size: 0.95rem; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.12em; }
   ul { display: flex; flex-direction: column; gap: 12px; }
   li {
     display: flex; justify-content: space-between; gap: 12px;
     font-family: var(--font-editorial);
     font-size: 0.85rem;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--surface-border);
+    border-bottom: 1px solid currentColor;
     &:last-child { border: none; padding: 0; }
-    span { color: var(--text-muted); }
-    strong { text-transform: capitalize; }
+    span { color: var(--text); }
+    strong { text-transform: uppercase; }
   }
-  .status-approved { color: var(--bkd-acid-lime); }
-  .status-pending { color: var(--bkd-nuclear-yellow); }
-  .status-closed, .status-rejected { color: var(--text-muted); }
+  .status-approved { color: var(--acid-lime); }
+  .status-pending { color: var(--nuclear-yellow); }
+  .status-closed, .status-rejected { color: var(--hyper-pink); }
 }

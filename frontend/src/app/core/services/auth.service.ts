@@ -31,6 +31,8 @@ export interface RegisterPayload {
 export interface RegisterResponse {
   message: string;
   user: Pick<User, 'id' | 'email' | 'role' | 'membership'> & { approval_status: string };
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 export interface LoginPayload {
@@ -48,6 +50,7 @@ export class AuthService {
   readonly user = computed(() => this.userSignal());
   readonly isAuthenticated = computed(() => !!this.userSignal());
   readonly isAdmin = computed(() => this.userSignal()?.role === 'admin');
+  readonly isBrand = computed(() => this.userSignal()?.role === 'brand');
 
   private readUserFromStorage(): User | null {
     try {
@@ -73,8 +76,17 @@ export class AuthService {
   }
 
   register(payload: RegisterPayload): Observable<RegisterResponse> {
-    // Applications do not create a session — admin must approve first
-    return this.api.post<RegisterResponse>('/auth/register', payload);
+    return this.api.post<RegisterResponse>('/auth/register', payload).pipe(
+      tap((res) => {
+        if (res.accessToken && res.refreshToken) {
+          this.setSession({
+            user: res.user as User,
+            accessToken: res.accessToken,
+            refreshToken: res.refreshToken,
+          });
+        }
+      }),
+    );
   }
 
   refresh(): Observable<{ accessToken: string; refreshToken: string }> {

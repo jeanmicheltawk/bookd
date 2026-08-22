@@ -5,16 +5,8 @@
   height: var(--nav-height);
   display: flex;
   align-items: center;
-  background: rgba(9, 0, 15, 0.55);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid transparent;
-  transition: background var(--dur-medium), border-color var(--dur-medium);
-
-  &.is-scrolled {
-    background: rgba(9, 0, 15, 0.92);
-    border-bottom-color: var(--surface-border);
-  }
+  background: var(--toxic-orange);
+  border-bottom: 1px solid currentColor;
 
   &__inner {
     display: flex;
@@ -23,50 +15,16 @@
     width: 100%;
   }
 
-  &__logo-mark {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 1.6rem;
-    letter-spacing: -0.02em;
-    color: var(--text-primary);
-
-    .accent {
-      background: var(--gradient-neon);
-      background-size: 200% 200%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradient-shift 5s ease infinite;
-    }
-  }
-
-  &__search {
+  &__logo {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex: 1;
-    max-width: 420px;
-    padding: 10px 18px;
-    border-radius: var(--radius-pill);
-    background: var(--surface-glass);
-    border: 1px solid var(--surface-border);
-    color: var(--text-muted);
-    transition: border-color var(--dur-fast);
+    flex-shrink: 0;
+  }
 
-    &:focus-within { border-color: var(--color-primary); color: var(--text-primary); }
-
-    input {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text-primary);
-      font-size: 0.85rem;
-      width: 100%;
-      font-family: var(--font-body);
-      &::placeholder { color: var(--text-muted); }
-    }
-
-    @media (max-width: 900px) { display: none; }
+  &__logo-mark {
+    display: block;
+    height: 28px;
+    width: auto;
   }
 
   &__links {
@@ -76,21 +34,22 @@
     font-size: 0.82rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.12em;
 
     a {
-      color: var(--text-secondary);
+      color: var(--text);
       position: relative;
       padding: 6px 0;
-      transition: color var(--dur-fast);
-      &:hover, &.active { color: var(--color-primary); }
-      &.active::after {
-        content: '';
-        position: absolute;
-        left: 0; right: 0; bottom: -2px;
-        height: 2px;
-        background: var(--gradient-acid);
-        border-radius: var(--radius-pill);
+      &:hover { color: var(--acid-lime); }
+      &.active {
+        color: var(--acid-lime);
+        &::after {
+          content: '';
+          position: absolute;
+          left: 0; right: 0; bottom: -2px;
+          height: 2px;
+          background: var(--acid-lime);
+        }
       }
     }
   }
@@ -103,14 +62,30 @@
   }
 
   &__icon-btn {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 40px; height: 40px;
-    border-radius: 50%;
-    color: var(--text-secondary);
-    transition: all var(--dur-fast);
-    &:hover { color: var(--color-primary); background: var(--surface-glass); }
+    color: var(--text);
+    &:hover { color: var(--acid-lime); }
+  }
+
+  &__badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hyper-pink);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1;
   }
 
   &__avatar-btn {
@@ -118,15 +93,15 @@
   }
   &__avatar {
     width: 38px; height: 38px;
-    border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--color-primary);
+    border: 1px solid currentColor;
     &--fallback {
       display: flex; align-items: center; justify-content: center;
-      background: var(--gradient-neon);
-      color: #fff;
+      background: var(--electric-blue);
+      color: #ffffff;
       font-weight: 800;
       font-size: 0.75rem;
+      letter-spacing: 0.08em;
     }
   }
 
@@ -134,32 +109,31 @@
     font-size: 0.82rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: var(--text-secondary);
+    letter-spacing: 0.12em;
+    color: var(--text);
     padding: 10px 12px;
-    &:hover { color: var(--text-primary); }
+    &:hover { color: var(--acid-lime); }
   }
 
   &__signup-btn {
     font-size: 0.78rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.12em;
     padding: 11px 22px;
-    border-radius: var(--radius-pill);
-    background: var(--color-primary);
-    color: var(--color-button-text);
-    box-shadow: 0 4px 20px rgba(198, 255, 0, 0.3);
-    transition: transform var(--dur-fast) var(--ease-bounce), box-shadow var(--dur-fast);
-    &:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 28px rgba(198, 255, 0, 0.5); }
+    background: var(--cta);
+    color: var(--ink-black);
+    border: none;
+    transition: transform var(--dur-fast);
+    &:hover { transform: translateY(-1px); }
   }
 
   &__more-btn {
     display: flex; align-items: center; justify-content: center;
     width: 40px; height: 40px;
-    border-radius: 50%;
     background: none; border: none;
-    color: var(--text-secondary);
-    &:hover { color: var(--color-primary); background: var(--surface-glass); }
+    color: var(--text);
+    &:hover { color: var(--acid-lime); }
   }
 
   &__burger {
@@ -168,17 +142,15 @@
     background: none; border: none;
     span {
       display: block; height: 2px; width: 22px;
-      background: var(--text-primary);
-      border-radius: 2px;
-      transition: all var(--dur-fast);
+      background: var(--text);
     }
   }
 
   &__mobile-panel {
     position: absolute;
     top: 100%; left: 0; right: 0;
-    background: var(--surface-0);
-    border-bottom: 1px solid var(--surface-border);
+    background: var(--toxic-orange);
+    border-bottom: 1px solid currentColor;
     display: flex;
     flex-direction: column;
     padding: 12px 24px 24px;
@@ -187,11 +159,12 @@
       padding: 14px 0;
       font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.12em;
       font-size: 0.9rem;
-      color: var(--text-secondary);
+      color: var(--text);
       text-align: left;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid currentColor;
     }
-    .mobile-signup { color: var(--color-primary); }
+    .mobile-signup { color: var(--acid-lime); }
   }
 }

@@ -8,82 +8,100 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   template: `
     <div class="auth-shell">
       <div class="auth-shell__visual">
-        <a routerLink="/" class="auth-shell__logo">BK<span class="accent">'D</span></a>
+        <a routerLink="/" class="auth-shell__logo">
+          <img src="/assets/logo.svg" alt="BOOK'D" />
+        </a>
         <h1 class="auth-shell__headline">BOOK AND<br />GET <span class="text-gradient">BOOK'D</span></h1>
         <p class="auth-shell__sub">Where models, talents, photographers, stylists and brands find each other and get to work.</p>
-        <div class="auth-shell__orb orb-1"></div>
-        <div class="auth-shell__orb orb-2"></div>
       </div>
       <div class="auth-shell__form">
-        <router-outlet />
+        <div class="auth-shell__form-inner">
+          <router-outlet />
+        </div>
       </div>
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+    }
+
     .auth-shell {
-      min-height: 100vh;
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
       display: grid;
       grid-template-columns: 1fr 1fr;
+      background: var(--toxic-orange);
 
-      @media (max-width: 900px) { grid-template-columns: 1fr; }
+      @media (max-width: 900px) {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: none;
+        min-height: 100dvh;
+        overflow: visible;
+      }
     }
 
     .auth-shell__visual {
       position: relative;
+      min-height: 0;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: center;
       padding: 64px;
-      background: radial-gradient(circle at 30% 20%, rgba(143,0,255,0.35), transparent 55%),
-                  radial-gradient(circle at 80% 80%, rgba(0,245,255,0.25), transparent 50%),
-                  var(--surface-0);
+      background: var(--uv-purple);
+      color: #ffffff;
 
       @media (max-width: 900px) { padding: 48px 24px; min-height: 280px; }
     }
 
     .auth-shell__logo {
-      font-family: var(--font-display);
-      font-size: 2rem;
-      font-weight: 800;
+      display: block;
+      width: min(280px, 70%);
       margin-bottom: 40px;
-      z-index: 1;
-      .accent {
-        background: var(--gradient-neon);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
+      img { width: 100%; height: auto; }
     }
 
     .auth-shell__headline {
+      font-family: var(--font-campaign);
       font-size: clamp(2.2rem, 5vw, 3.6rem);
-      z-index: 1;
+      font-weight: 800;
+      line-height: 0.9;
+      letter-spacing: -0.01em;
       text-transform: uppercase;
     }
 
     .auth-shell__sub {
       max-width: 420px;
-      z-index: 1;
       font-size: 1rem;
+      font-weight: 600;
       margin-top: 16px;
+      color: #ffffff;
     }
-
-    .auth-shell__orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(60px);
-      opacity: 0.5;
-    }
-    .orb-1 { width: 280px; height: 280px; background: var(--bkd-acid-lime); top: -80px; right: -60px; animation: float 8s ease-in-out infinite; }
-    .orb-2 { width: 200px; height: 200px; background: var(--bkd-hyper-pink); bottom: -60px; left: 10%; animation: float-slow 10s ease-in-out infinite; }
 
     .auth-shell__form {
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      background: var(--toxic-orange);
+
+      @media (max-width: 900px) {
+        overflow: visible;
+        height: auto;
+      }
+    }
+
+    .auth-shell__form-inner {
+      width: 100%;
+      margin-block: auto;
+      display: flex;
       justify-content: center;
       padding: 48px 24px;
-      background: var(--color-background);
     }
   `],
 })

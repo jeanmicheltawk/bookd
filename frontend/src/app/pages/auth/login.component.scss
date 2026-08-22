@@ -6,7 +6,6 @@
 }
 
 .auth-error {
-  color: #ff6584;
   font-size: 0.85rem;
   margin-bottom: 16px;
 }
@@ -15,12 +14,15 @@
   margin-top: 24px;
   text-align: center;
   font-size: 0.9rem;
-  a { color: var(--color-primary); font-weight: 700; }
+  font-weight: 600;
+  a { color: var(--acid-lime); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 }
 
 .auth-admin-hint {
   margin-top: 12px;
   text-align: center;
   font-size: 0.75rem;
-  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
 }

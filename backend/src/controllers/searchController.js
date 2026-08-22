@@ -31,6 +31,7 @@ async function searchProfiles(req, res, next) {
       'p.is_public = TRUE',
       'c.is_searchable = TRUE',
       'u.is_active = TRUE',
+      `u.role = 'member'`,
       `u.approval_status = 'approved'`,
     ];
 
@@ -130,6 +131,7 @@ async function getSpotlight(req, res, next) {
        WHERE p.is_public = TRUE
          AND c.is_searchable = TRUE
          AND u.is_active = TRUE
+         AND u.role = 'member'
          AND u.approval_status = 'approved'
        ORDER BY RANDOM()
        LIMIT 16`

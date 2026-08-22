@@ -1,0 +1,120 @@
+@use '../../../styles/admin-crud';
+
+.admin-page__hint {
+  font-size: 0.8rem;
+  color: var(--text);
+  max-width: 640px;
+  margin-top: 8px;
+}
+
+.status-chips {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  text-transform: uppercase;
+}
+
+.chip-count {
+  margin-left: 8px;
+  font-weight: 800;
+}
+
+.users-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  input[type='text'] {
+    flex: 1;
+    min-width: 220px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid currentColor;
+    padding: 12px 0;
+    color: var(--text);
+    &:focus { outline: none; border-bottom-color: var(--focus); }
+  }
+}
+
+.search-btn {
+  padding: 12px 22px;
+  background: var(--cta);
+  color: var(--ink-black);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  border: none;
+  cursor: pointer;
+  &:hover { transform: translateY(-1px); }
+}
+
+.booking-list { display: flex; flex-direction: column; gap: 14px; }
+
+.booking-card {
+  padding: 20px;
+  border: 1px solid currentColor;
+  background: transparent;
+
+  &__head {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 18px;
+    @media (max-width: 720px) { grid-template-columns: 1fr; }
+  }
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  &__label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  strong { font-size: 1rem; }
+  small { font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; }
+}
+
+.booking-details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin: 0;
+  @media (max-width: 760px) { grid-template-columns: 1fr 1fr; }
+
+  &__full { grid-column: 1 / -1; }
+  dt {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  dd { margin: 0; font-size: 0.9rem; white-space: pre-wrap; }
+}
+
+.status-badge {
+  padding: 4px 12px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--laser-cyan);
+  color: var(--ink-black);
+  white-space: nowrap;
+  justify-self: end;
+}
+.status-pending { background: var(--nuclear-yellow); color: var(--ink-black); }
+.status-accepted, .status-in_progress, .status-negotiating { background: var(--laser-cyan); color: var(--ink-black); }
+.status-completed, .status-reviewed { background: var(--acid-lime); color: var(--ink-black); }
+.status-cancelled { background: var(--hyper-pink); color: #ffffff; }

@@ -6,13 +6,7 @@
 
   <div class="media-toolbar">
     <input type="text" placeholder="Search filename or alt text..." [(ngModel)]="search" name="search" (change)="load()" />
-    <select [(ngModel)]="uploadFolder" name="uploadFolder">
-      <option value="general">general</option>
-      <option value="avatars">avatars</option>
-      <option value="portfolio">portfolio</option>
-      <option value="cms">cms</option>
-      <option value="events">events</option>
-    </select>
+    <app-select [(ngModel)]="uploadFolder" name="uploadFolder" [options]="folderOptions" />
     <label class="upload-btn">
       <input type="file" hidden (change)="onFileSelected($event)" [disabled]="uploading()" />
       {{ uploading() ? 'Uploading...' : '+ Upload File' }}

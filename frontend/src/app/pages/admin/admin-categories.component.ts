@@ -6,11 +6,12 @@ import { catchError, of } from 'rxjs';
 import { Category, CategoryField, CategoryFieldType } from '../../core/models';
 import { CategoryService } from '../../core/services/category.service';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 
 @Component({
   selector: 'app-admin-categories',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingScreenComponent],
+  imports: [CommonModule, FormsModule, LoadingScreenComponent, SelectComponent],
   templateUrl: './admin-categories.component.html',
   styleUrl: './admin-categories.component.scss',
 })
@@ -39,6 +40,7 @@ export class AdminCategoriesComponent implements OnInit {
   };
 
   fieldTypes: CategoryFieldType[] = ['text', 'number', 'dropdown', 'textarea'];
+  fieldTypeOptions: SelectOption[] = this.fieldTypes.map((t) => ({ value: t, label: t }));
 
   ngOnInit(): void {
     this.load();

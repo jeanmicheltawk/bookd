@@ -1,20 +1,21 @@
 .not-found-block { padding: 120px 24px; text-align: center; }
-.back-link { display: inline-block; margin-bottom: 20px; color: rgba(255,255,255,0.7); font-size: 0.85rem; &:hover { color: var(--color-primary); } }
+.back-link { display: inline-block; margin-bottom: 20px; color: var(--text); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; &:hover { color: var(--acid-lime); } }
 
 .cd-hero {
   padding: 64px 0 48px;
+  background-color: var(--uv-purple);
   background-size: cover;
   background-position: center;
 
   &__type {
     display: inline-block;
     padding: 5px 14px;
-    border-radius: var(--radius-pill);
-    background: rgba(0,245,255,0.15);
-    color: var(--bkd-laser-cyan);
+    background: var(--laser-cyan);
+    color: var(--ink-black);
     font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
+    letter-spacing: 0.1em;
     margin-bottom: 14px;
   }
 
@@ -23,7 +24,7 @@
     margin-top: 16px;
     font-family: var(--font-editorial);
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--text);
   }
 }
 
@@ -33,6 +34,8 @@
 .cd-cta {
   padding: 32px;
   text-align: center;
+  background: transparent;
+  border: 1px solid currentColor;
   h3 { margin-bottom: 8px; }
   p { margin-bottom: 24px; }
 }

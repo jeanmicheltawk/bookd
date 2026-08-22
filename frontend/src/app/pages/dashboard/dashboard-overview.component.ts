@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { DashboardService } from '../../core/services/dashboard.service';
+import { AlertService } from '../../core/services/alert.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DashboardSummary } from '../../core/models';
 import { DashboardNavComponent } from './dashboard-nav.component';
@@ -19,6 +20,7 @@ import { AnimatedButtonComponent } from '../../shared/components/animated-button
 })
 export class DashboardOverviewComponent implements OnInit {
   private dashboardService = inject(DashboardService);
+  private alerts = inject(AlertService);
   auth = inject(AuthService);
 
   summary = signal<DashboardSummary | null>(null);
@@ -29,6 +31,7 @@ export class DashboardOverviewComponent implements OnInit {
       .pipe(catchError(() => of(null)))
       .subscribe((res) => {
         this.summary.set(res);
+        this.alerts.apply(res?.alerts);
         this.loading.set(false);
       });
   }

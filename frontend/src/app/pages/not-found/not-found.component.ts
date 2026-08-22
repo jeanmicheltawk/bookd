@@ -26,11 +26,12 @@ import { AnimatedButtonComponent } from '../../shared/components/animated-button
       gap: 16px;
     }
     .nf__code {
-      font-family: var(--font-impact);
+      font-family: var(--font-campaign);
       font-size: clamp(6rem, 20vw, 12rem);
-      font-weight: 400;
-      line-height: 1;
-      letter-spacing: 0.02em;
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
     }
     .nf h2 { text-transform: uppercase; font-size: clamp(1.4rem, 4vw, 2.2rem); }
     .nf p { max-width: 480px; margin-bottom: 12px; }

@@ -16,11 +16,7 @@
         <div class="form-field"><label>Slug</label><input type="text" name="slug" [(ngModel)]="form.slug" placeholder="auto-generated if empty" /></div>
         <div class="form-field">
           <label>Type</label>
-          <select name="eventType" [(ngModel)]="form.eventType">
-            <option value="challenge">Challenge</option>
-            <option value="event">Event</option>
-            <option value="workshop">Workshop</option>
-          </select>
+          <app-select name="eventType" [(ngModel)]="form.eventType" [options]="eventTypeOptions" />
         </div>
         <div class="form-field"><label>Cover Image URL</label><input type="text" name="coverImage" [(ngModel)]="form.coverImage" /></div>
         <div class="form-field"><label>Starts At</label><input type="date" name="startsAt" [(ngModel)]="form.startsAt" /></div>

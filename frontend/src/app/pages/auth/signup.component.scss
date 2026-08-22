@@ -22,6 +22,10 @@
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
+
+  .form-field--full {
+    grid-column: 1 / -1;
+  }
 }
 
 .form-field {
@@ -29,16 +33,16 @@
     width: 100%;
     resize: vertical;
     min-height: 100px;
-    background: var(--surface-2, rgba(255, 255, 255, 0.04));
-    border: 1px solid var(--surface-border, rgba(255, 255, 255, 0.12));
-    border-radius: var(--radius-sm, 8px);
-    padding: 12px 14px;
-    color: var(--text-primary, #fff);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid currentColor;
+    padding: 12px 0;
+    color: var(--text);
     font: inherit;
 
     &:focus {
       outline: none;
-      border-color: var(--color-primary);
+      border-bottom-color: var(--focus);
     }
   }
 }
@@ -49,10 +53,9 @@
   margin-bottom: 24px;
 }
 
-.auth-error { color: #ff6584; font-size: 0.85rem; margin-bottom: 16px; }
+.auth-error { font-size: 0.85rem; margin-bottom: 16px; }
 
 .field-error {
-  color: #ff6584;
   font-size: 0.75rem;
   margin: 4px 0 0;
   line-height: 1.3;
@@ -80,15 +83,14 @@
   min-height: 52px;
   padding: 14px 22px;
   border: none;
-  border-radius: var(--radius-pill, 999px);
-  background: var(--gradient-acid, linear-gradient(135deg, #c6ff00, #ff00a8));
-  color: var(--button-text-color, #09000f);
+  background: var(--cta);
+  color: var(--ink-black);
   font-weight: 800;
   font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.12em;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: transform var(--dur-fast);
 
   &:hover:not(:disabled) { transform: translateY(-1px); }
   &:disabled { opacity: 0.65; cursor: wait; }
@@ -98,7 +100,6 @@
     height: 16px;
     border: 2px solid currentColor;
     border-right-color: transparent;
-    border-radius: 50%;
     animation: spin 0.7s linear infinite;
   }
 }
@@ -111,5 +112,5 @@
   margin-top: 24px;
   text-align: center;
   font-size: 0.9rem;
-  a { color: var(--color-primary); font-weight: 700; }
+  a { color: var(--acid-lime); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 }

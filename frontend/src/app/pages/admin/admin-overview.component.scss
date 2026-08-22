@@ -14,11 +14,10 @@
   flex-direction: column;
   gap: 8px;
   padding: 22px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
-  .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-  .value { font-family: var(--font-display); font-size: 2rem; font-weight: 800; }
+  background: transparent;
+  border: 1px solid currentColor;
+  .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text); }
+  .value { font-family: var(--font-body); font-size: 2rem; font-weight: 800; }
 }
 
 .quick-links {
@@ -33,13 +32,13 @@
   align-items: center;
   gap: 10px;
   padding: 16px 18px;
-  border-radius: var(--radius-md);
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
+  background: transparent;
+  border: 1px solid currentColor;
   font-size: 0.85rem;
   font-weight: 700;
-  transition: all var(--dur-fast);
-  &:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
   &__icon { font-size: 1.1rem; }
   &__arrow { margin-left: auto; }
 }
@@ -53,10 +52,9 @@
 
 .panel {
   padding: 24px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
-  h3 { font-size: 1rem; text-transform: none; margin-bottom: 20px; }
+  background: transparent;
+  border: 1px solid currentColor;
+  h3 { font-size: 1rem; text-transform: uppercase; margin-bottom: 20px; }
 }
 
 .bar-list { display: flex; flex-direction: column; gap: 14px; }
@@ -66,10 +64,10 @@
   align-items: center;
   gap: 12px;
   font-size: 0.8rem;
-  &__path { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  &__track { height: 8px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; }
-  &__fill { height: 100%; background: var(--gradient-acid); border-radius: var(--radius-pill); }
-  &__count { color: var(--text-muted); text-align: right; }
+  &__path { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__track { height: 8px; background: transparent; border: 1px solid currentColor; overflow: hidden; }
+  &__fill { height: 100%; background: var(--acid-lime); }
+  &__count { color: var(--text); text-align: right; }
 }
 
 .activity-list { display: flex; flex-direction: column; gap: 12px; max-height: 340px; overflow-y: auto; }
@@ -78,11 +76,11 @@
   flex-direction: column;
   gap: 2px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--surface-border);
+  border-bottom: 1px solid currentColor;
   &:last-child { border: none; }
-  &__type { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--color-accent); }
-  &__detail { font-size: 0.82rem; color: var(--text-secondary); }
-  &__time { font-size: 0.7rem; color: var(--text-muted); }
+  &__type { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--laser-cyan); }
+  &__detail { font-size: 0.82rem; color: var(--text); }
+  &__time { font-size: 0.7rem; color: var(--text); }
 }
 
-.empty-hint { color: var(--text-muted); font-size: 0.85rem; }
+.empty-hint { color: var(--text); font-size: 0.85rem; }

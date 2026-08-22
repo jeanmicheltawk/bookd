@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,11 +11,12 @@ import { AnalyticsService } from '../../core/services/analytics.service';
 import { Category, Country, SearchResult } from '../../core/models';
 import { ProfileCardComponent } from '../../shared/components/profile-card/profile-card.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 
 @Component({
   selector: 'app-discover',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProfileCardComponent, LoadingScreenComponent],
+  imports: [CommonModule, FormsModule, ProfileCardComponent, LoadingScreenComponent, SelectComponent],
   templateUrl: './discover.component.html',
   styleUrl: './discover.component.scss',
 })
@@ -43,12 +44,34 @@ export class DiscoverComponent implements OnInit {
     gender: '',
   };
 
+  categoryOptions = computed<SelectOption[]>(() =>
+    selectOptions(this.categories().map((c) => ({ value: c.slug, label: c.name })), 'All Categories'),
+  );
+
+  countryOptions = computed<SelectOption[]>(() =>
+    selectOptions(this.countries().map((c) => ({ value: c.name, label: c.name })), 'All Countries'),
+  );
+
+  availabilityOptions: SelectOption[] = [
+    { value: '', label: 'Any Availability' },
+    { value: 'available', label: 'Available Now' },
+    { value: 'busy', label: 'Busy' },
+    { value: 'booked', label: 'Booked' },
+  ];
+
+  genderOptions: SelectOption[] = [
+    { value: '', label: 'Any Gender' },
+    { value: 'female', label: 'Female' },
+    { value: 'male', label: 'Male' },
+    { value: 'non-binary', label: 'Non-binary' },
+  ];
+
   get isModelsOrTalents(): boolean {
     return ['models', 'talents'].includes(this.filters.category);
   }
 
   ngOnInit(): void {
-    this.categoryService.list().pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.categories.set(res.data));
+    this.categoryService.list({ searchable: true }).pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.categories.set(res.data));
     this.countryService.list().pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.countries.set(res.data));
 
     this.route.queryParamMap.subscribe((params) => {

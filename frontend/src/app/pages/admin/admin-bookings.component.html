@@ -1,0 +1,77 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">OPERATIONS</span>
+      <h1 class="display-lg">BOOKING <span class="text-gradient">TRACKER</span></h1>
+      <p class="admin-page__hint">See who is booked, what’s pending, and which jobs are done — with full request details.</p>
+    </div>
+  </div>
+
+  <div class="status-chips">
+    @for (tab of tabs; track tab.id) {
+      <button type="button" class="chip" [class.active]="activeTab() === tab.id" (click)="filterBy(tab.id)">
+        {{ tab.label }}
+        <span class="chip-count">{{ tabCount(tab.id) }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="users-toolbar">
+    <input type="text" placeholder="Search client, creative, email, location..." [(ngModel)]="search" name="search" (keyup.enter)="load()" />
+    <button class="search-btn" type="button" (click)="load()">Search</button>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING BOOKINGS..." />
+  } @else if (bookings().length) {
+    <div class="booking-list">
+      @for (b of bookings(); track b.id) {
+        <article class="booking-card">
+          <div class="booking-card__head">
+            <div class="who">
+              <span class="who__label">Client</span>
+              <strong>{{ name(b.client_name, b.client_professional_name) }}</strong>
+              <small>{{ b.client_email }}</small>
+              @if (b.client_phone) { <small>{{ b.client_phone }}</small> }
+            </div>
+            <div class="who">
+              <span class="who__label">Creative</span>
+              <strong>{{ name(b.creative_name, b.creative_professional_name) }}</strong>
+              <small>{{ b.creative_email }}</small>
+              @if (b.creative_phone) { <small>{{ b.creative_phone }}</small> }
+            </div>
+            <span class="status-badge status-{{ b.status }}">{{ statusLabel(b.status) }}</span>
+          </div>
+
+          <dl class="booking-details">
+            <div>
+              <dt>Date</dt>
+              <dd>{{ b.project_date ? (b.project_date | date: 'mediumDate') : '—' }}</dd>
+            </div>
+            <div>
+              <dt>Time</dt>
+              <dd>{{ formatTime(b.project_time) }}</dd>
+            </div>
+            <div>
+              <dt>Hours</dt>
+              <dd>{{ formatHours(b.duration_hours) }}</dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd>{{ b.location || '—' }}</dd>
+            </div>
+            <div class="booking-details__full">
+              <dt>Details</dt>
+              <dd>{{ b.description || '—' }}</dd>
+            </div>
+          </dl>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No bookings in this view.</h3>
+      <p>New requests appear here as clients book talent.</p>
+    </div>
+  }
+</div>

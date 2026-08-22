@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { catchError, of } from 'rxjs';
@@ -7,6 +7,7 @@ import { PricingService } from '../../core/services/pricing.service';
 import { CategoryService } from '../../core/services/category.service';
 import { PriceEstimate, Category } from '../../core/models';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
+import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 
 interface Plan {
   name: string;
@@ -69,7 +70,7 @@ const PLANS: Plan[] = [
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule, FormsModule, AnimatedButtonComponent],
+  imports: [CommonModule, FormsModule, AnimatedButtonComponent, SelectComponent],
   templateUrl: './pricing.component.html',
   styleUrl: './pricing.component.scss',
 })
@@ -89,11 +90,36 @@ export class PricingComponent {
     location: 'local' as const,
   };
 
+  categoryOptions = computed<SelectOption[]>(() =>
+    selectOptions(this.categories().map((c) => ({ value: c.slug, label: c.name })), 'General / Default'),
+  );
+
+  complexityOptions: SelectOption[] = [
+    { value: 'simple', label: 'Simple' },
+    { value: 'standard', label: 'Standard' },
+    { value: 'complex', label: 'Complex' },
+    { value: 'premium', label: 'Premium' },
+  ];
+
+  usageOptions: SelectOption[] = [
+    { value: 'social', label: 'Social' },
+    { value: 'web', label: 'Web' },
+    { value: 'print', label: 'Print' },
+    { value: 'campaign', label: 'Campaign' },
+    { value: 'broadcast', label: 'Broadcast' },
+  ];
+
+  locationOptions: SelectOption[] = [
+    { value: 'local', label: 'Local' },
+    { value: 'travel', label: 'Travel Required' },
+    { value: 'international', label: 'International' },
+  ];
+
   estimate = signal<PriceEstimate | null>(null);
   estimating = signal(false);
 
   constructor() {
-    this.categoryService.list().pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.categories.set(res.data));
+    this.categoryService.list({ searchable: true }).pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.categories.set(res.data));
   }
 
   runEstimate(): void {

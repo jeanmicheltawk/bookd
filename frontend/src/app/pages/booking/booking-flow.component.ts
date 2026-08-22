@@ -6,6 +6,7 @@ import { catchError, of } from 'rxjs';
 
 import { ProfileService } from '../../core/services/profile.service';
 import { BookingService } from '../../core/services/booking.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { Profile } from '../../core/models';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
@@ -23,30 +24,43 @@ export class BookingFlowComponent implements OnInit {
   private router = inject(Router);
   private profileService = inject(ProfileService);
   private bookingService = inject(BookingService);
+  private auth = inject(AuthService);
   api = inject(ApiService);
 
   profile = signal<Profile | null>(null);
   loading = signal(true);
   notFound = signal(false);
 
-  step = signal(1);
-  totalSteps = 3;
-
-  form = {
-    projectType: '',
-    projectDate: '',
-    location: '',
-    description: '',
-    budget: null as number | null,
-    moodboardUrl: '',
-    moodboardUrls: [] as string[],
-  };
-
   submitting = signal(false);
   error = signal('');
   success = signal(false);
 
+  form = {
+    date: '',
+    time: '',
+    hours: 2,
+    location: '',
+    details: '',
+  };
+
+  minDate = this.todayIso();
+
+  private todayIso(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
   ngOnInit(): void {
+    if (!this.auth.isAuthenticated()) {
+      this.router.navigate(['/auth/signup'], {
+        queryParams: { role: 'brand', redirect: this.router.url },
+      });
+      return;
+    }
+
     const profileId = this.route.snapshot.paramMap.get('profileId')!;
     this.profileService.getPublic(profileId)
       .pipe(catchError(() => of(null)))
@@ -57,45 +71,46 @@ export class BookingFlowComponent implements OnInit {
       });
   }
 
-  addMoodboardUrl(): void {
-    const url = this.form.moodboardUrl.trim();
-    if (url) {
-      this.form.moodboardUrls.push(url);
-      this.form.moodboardUrl = '';
-    }
-  }
-
-  removeMoodboardUrl(url: string): void {
-    this.form.moodboardUrls = this.form.moodboardUrls.filter((u) => u !== url);
-  }
-
-  nextStep(): void {
-    if (this.step() < this.totalSteps) this.step.update((s) => s + 1);
-  }
-
-  prevStep(): void {
-    if (this.step() > 1) this.step.update((s) => s - 1);
-  }
-
-  canProceedFromStep1(): boolean {
-    return !!this.form.projectType.trim();
-  }
-
   submit(): void {
     const p = this.profile();
     if (!p) return;
+
+    if (!this.form.date) {
+      this.error.set('Date is required.');
+      return;
+    }
+    if (this.form.date < this.minDate) {
+      this.error.set('Date must be today or later.');
+      return;
+    }
+    if (!this.form.time) {
+      this.error.set('Time is required.');
+      return;
+    }
+    if (!this.form.hours || this.form.hours <= 0) {
+      this.error.set('Hours are required.');
+      return;
+    }
+    if (!this.form.location.trim()) {
+      this.error.set('Location is required.');
+      return;
+    }
+    if (!this.form.details.trim()) {
+      this.error.set('Details are required.');
+      return;
+    }
 
     this.submitting.set(true);
     this.error.set('');
 
     this.bookingService.create({
       creativeId: p.id,
-      projectType: this.form.projectType,
-      projectDate: this.form.projectDate || undefined,
-      location: this.form.location || undefined,
-      description: this.form.description || undefined,
-      moodboardUrls: this.form.moodboardUrls.length ? this.form.moodboardUrls : undefined,
-      budget: this.form.budget ?? undefined,
+      projectType: 'Booking request',
+      projectDate: this.form.date,
+      projectTime: this.form.time,
+      durationHours: Number(this.form.hours),
+      location: this.form.location.trim(),
+      description: this.form.details.trim(),
     }).subscribe({
       next: () => {
         this.submitting.set(false);

@@ -20,8 +20,9 @@ function normalizeOptions(options, fieldType) {
     .slice(0, 50);
 }
 
-async function listCategories(_req, res, next) {
+async function listCategories(req, res, next) {
   try {
+    const searchableOnly = req.query.searchable === 'true';
     const result = await query(
       `SELECT c.id, c.slug, c.name, c.is_searchable, c.sort_order, c.created_at,
               COALESCE(
@@ -41,6 +42,7 @@ async function listCategories(_req, res, next) {
               ) AS fields
        FROM categories c
        LEFT JOIN category_fields f ON f.category_id = c.id
+       ${searchableOnly ? 'WHERE c.is_searchable = TRUE' : ''}
        GROUP BY c.id
        ORDER BY c.sort_order, c.name`
     );

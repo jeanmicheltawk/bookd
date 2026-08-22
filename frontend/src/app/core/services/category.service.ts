@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Category, CategoryField, CategoryFieldType } from '../models';
-import { ApiService } from './api.service';
+import { ApiService, QueryParams } from './api.service';
 
 export interface CategoryPayload {
   name: string;
@@ -23,8 +23,8 @@ export interface CategoryFieldPayload {
 export class CategoryService {
   private api = inject(ApiService);
 
-  list(): Observable<{ data: Category[] }> {
-    return this.api.get('/categories');
+  list(params?: QueryParams): Observable<{ data: Category[] }> {
+    return this.api.get('/categories', params);
   }
 
   create(payload: CategoryPayload): Observable<Category> {

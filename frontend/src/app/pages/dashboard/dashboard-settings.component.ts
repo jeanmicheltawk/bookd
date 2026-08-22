@@ -13,11 +13,12 @@ import { Category, CategoryField, Country } from '../../core/models';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 
 @Component({
   selector: 'app-dashboard-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, DashboardNavComponent, AnimatedButtonComponent, LoadingScreenComponent],
+  imports: [CommonModule, FormsModule, DashboardNavComponent, AnimatedButtonComponent, LoadingScreenComponent, SelectComponent],
   templateUrl: './dashboard-settings.component.html',
   styleUrl: './dashboard-settings.component.scss',
 })
@@ -56,6 +57,25 @@ export class DashboardSettingsComponent implements OnInit {
     profilePhotoUrl: '',
     categorySlug: '',
   };
+
+  categoryOptions = computed<SelectOption[]>(() =>
+    selectOptions(
+      this.categories()
+        .filter((c) => c.slug !== 'brand-client')
+        .map((c) => ({ value: c.slug, label: c.name })),
+      'Choose your category',
+    ),
+  );
+
+  countryOptions = computed<SelectOption[]>(() =>
+    selectOptions(this.countries().map((c) => ({ value: c.name, label: c.name })), 'Select country'),
+  );
+
+  availabilityOptions: SelectOption[] = [
+    { value: 'available', label: 'Available Now' },
+    { value: 'busy', label: 'Busy' },
+    { value: 'booked', label: 'Booked' },
+  ];
 
   selectedCategoryFields = computed<CategoryField[]>(() => {
     const slug = this.categorySlug();
@@ -114,6 +134,10 @@ export class DashboardSettingsComponent implements OnInit {
     this.customFields.set(next);
   }
 
+  fieldSelectOptions(field: CategoryField): SelectOption[] {
+    return selectOptions(field.options || [], `Select ${field.label}`);
+  }
+
   setCustomField(key: string, value: string): void {
     this.customFields.update((current) => ({ ...current, [key]: value }));
   }
@@ -134,10 +158,32 @@ export class DashboardSettingsComponent implements OnInit {
   }
 
   save(): void {
+    this.saving.set(true);
+    this.error.set('');
+    this.saved.set(false);
+
+    if (this.isBrand) {
+      this.profileService
+        .updateMine({
+          full_name: this.form.fullName,
+          professional_name: this.form.fullName,
+          phone: this.form.phone,
+          whatsapp: this.form.whatsapp,
+          profile_photo_url: this.form.profilePhotoUrl,
+          is_public: false,
+        } as any)
+        .subscribe({
+          next: () => this.onSaved(),
+          error: (err) => this.onSaveError(err),
+        });
+      return;
+    }
+
     for (const field of this.selectedCategoryFields()) {
       const value = (this.customFields()[field.field_key] || '').trim();
       if (field.is_required && !value) {
         this.error.set(`${field.label} is required.`);
+        this.saving.set(false);
         return;
       }
     }
@@ -150,12 +196,9 @@ export class DashboardSettingsComponent implements OnInit {
 
     if (ageNumber != null && (Number.isNaN(ageNumber) || ageNumber < 16 || ageNumber > 100)) {
       this.error.set('Age must be between 16 and 100.');
+      this.saving.set(false);
       return;
     }
-
-    this.saving.set(true);
-    this.error.set('');
-    this.saved.set(false);
 
     this.profileService
       .updateMine({
@@ -177,19 +220,23 @@ export class DashboardSettingsComponent implements OnInit {
         custom_fields: this.selectedCategoryFields().length ? this.customFields() : {},
       } as any)
       .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.saved.set(true);
-          this.auth.updateStoredUser({
-            full_name: this.form.fullName,
-            professional_name: this.form.professionalName,
-            profile_photo_url: this.form.profilePhotoUrl,
-          });
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.error.set(err?.error?.error || 'Could not save changes.');
-        },
+        next: () => this.onSaved(),
+        error: (err) => this.onSaveError(err),
       });
+  }
+
+  private onSaved(): void {
+    this.saving.set(false);
+    this.saved.set(true);
+    this.auth.updateStoredUser({
+      full_name: this.form.fullName,
+      professional_name: this.isBrand ? this.form.fullName : this.form.professionalName,
+      profile_photo_url: this.form.profilePhotoUrl,
+    });
+  }
+
+  private onSaveError(err: { error?: { error?: string } }): void {
+    this.saving.set(false);
+    this.error.set(err?.error?.error || 'Could not save changes.');
   }
 }

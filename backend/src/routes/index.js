@@ -102,6 +102,7 @@ router.patch('/admin/announcements/:id', ...admin, announcement.moderateAnnounce
 // Bookings
 router.post('/bookings', authenticate, booking.createBooking);
 router.get('/bookings/mine', authenticate, booking.listMine);
+router.get('/admin/bookings', ...admin, booking.listAllAdmin);
 router.get('/bookings/:id', authenticate, booking.getBooking);
 router.post('/bookings/:id/accept', authenticate, booking.acceptBooking);
 router.post('/bookings/:id/decline', authenticate, booking.declineBooking);
@@ -146,10 +147,14 @@ router.post('/pricing/estimate', pricing.estimatePrice);
 
 // Dashboard
 router.get('/dashboard/me', authenticate, dashboard.getMyDashboard);
+router.get('/dashboard/alerts', authenticate, dashboard.getAlerts);
+router.post('/dashboard/notifications/read', authenticate, dashboard.markNotificationsRead);
 
 // Admin users
+router.get('/admin/clients/export', ...admin, adminUsers.exportClientsExcel);
 router.get('/admin/users', ...admin, adminUsers.listUsers);
 router.get('/admin/users/:id', ...admin, adminUsers.getUser);
 router.patch('/admin/users/:id', ...admin, adminUsers.updateUser);
+router.delete('/admin/users/:id', ...admin, adminUsers.deleteUser);
 
 module.exports = router;

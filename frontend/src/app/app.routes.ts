@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { talentGuard } from './core/guards/talent.guard';
 
 export const routes: Routes = [
   {
@@ -146,6 +147,7 @@ export const routes: Routes = [
       },
       {
         path: 'portfolio',
+        canActivate: [talentGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-portfolio.component').then((m) => m.DashboardPortfolioComponent),
         title: 'My Portfolio',
@@ -175,8 +177,9 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./pages/admin/admin-overview.component').then((m) => m.AdminOverviewComponent),
-        title: 'Admin — Overview',
+        loadComponent: () =>
+          import('./pages/admin/admin-analytics.component').then((m) => m.AdminAnalyticsComponent),
+        title: 'Admin — Control Room',
       },
       // FUTURE: Content (CMS)
       // {
@@ -243,10 +246,19 @@ export const routes: Routes = [
         title: 'Admin — Users',
       },
       {
+        path: 'clients',
+        loadComponent: () => import('./pages/admin/admin-clients.component').then((m) => m.AdminClientsComponent),
+        title: 'Admin — Clients',
+      },
+      {
+        path: 'bookings',
+        loadComponent: () => import('./pages/admin/admin-bookings.component').then((m) => m.AdminBookingsComponent),
+        title: 'Admin — Bookings',
+      },
+      {
         path: 'analytics',
-        loadComponent: () =>
-          import('./pages/admin/admin-analytics.component').then((m) => m.AdminAnalyticsComponent),
-        title: 'Admin — Analytics',
+        redirectTo: '',
+        pathMatch: 'full',
       },
     ],
   },

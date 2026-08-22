@@ -15,19 +15,24 @@
 
 .booking-row {
   display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 18px 20px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: transparent;
+  border: 1px solid currentColor;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
 
   &__photo {
     width: 52px; height: 52px;
-    border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    border: 1px solid currentColor;
   }
 
   &__info {
@@ -36,9 +41,8 @@
     gap: 3px;
     flex: 1;
     min-width: 160px;
-    strong { font-size: 0.95rem; }
-    span { font-size: 0.8rem; color: var(--text-muted); }
-    .date { font-family: var(--font-editorial); color: var(--color-accent); }
+    strong { font-size: 0.95rem; text-transform: uppercase; }
+    span { font-size: 0.8rem; color: var(--text); }
   }
 
   &__actions {
@@ -48,19 +52,43 @@
   }
 }
 
+.booking-details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin: 0;
+  @media (max-width: 760px) { grid-template-columns: 1fr 1fr; }
+
+  div { min-width: 0; }
+  &__full { grid-column: 1 / -1; }
+
+  dt {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  dd {
+    margin: 0;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+  }
+}
+
 .status-badge {
   padding: 4px 12px;
-  border-radius: var(--radius-pill);
   font-size: 0.7rem;
   font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: var(--surface-2);
-  color: var(--text-secondary);
+  background: var(--laser-cyan);
+  color: var(--ink-black);
   white-space: nowrap;
 }
-.status-pending { color: var(--bkd-nuclear-yellow); }
-.status-accepted, .status-in_progress, .status-negotiating { color: var(--bkd-laser-cyan); }
-.status-completed, .status-reviewed { color: var(--bkd-acid-lime); }
-.status-cancelled { color: #ff6584; }
+.status-pending { background: var(--nuclear-yellow); color: var(--ink-black); }
+.status-accepted, .status-in_progress, .status-negotiating { background: var(--laser-cyan); color: var(--ink-black); }
+.status-completed, .status-reviewed { background: var(--acid-lime); color: var(--ink-black); }
+.status-cancelled { background: var(--hyper-pink); color: #ffffff; }
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px dashed var(--surface-border); border-radius: var(--radius-lg); }
+.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }

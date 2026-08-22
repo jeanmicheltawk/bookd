@@ -3,18 +3,29 @@ import { Observable, catchError, of, tap } from 'rxjs';
 import { ThemeSettings } from '../models';
 import { ApiService } from './api.service';
 
-const CSS_VAR_MAP: Record<keyof Omit<ThemeSettings, 'id' | 'name' | 'is_active' | 'updated_at'>, string> = {
-  primary_color: '--color-primary',
-  secondary_color: '--color-secondary',
-  accent_color: '--color-accent',
-  background_color: '--color-background',
-  text_color: '--color-text',
-  button_color: '--color-button',
-  button_text_color: '--color-button-text',
-  gradient_from: '--gradient-from',
-  gradient_to: '--gradient-to',
-  verified_badge_color: '--color-verified-badge',
-};
+const CSS_VAR_MAP: Array<{ key: keyof ThemeSettings; vars: string[] }> = [
+  { key: 'primary_color', vars: ['--color-primary', '--acid-lime'] },
+  { key: 'secondary_color', vars: ['--color-secondary', '--hyper-pink'] },
+  { key: 'accent_color', vars: ['--color-accent', '--laser-cyan', '--focus'] },
+  { key: 'background_color', vars: ['--color-background', '--toxic-orange'] },
+  { key: 'text_color', vars: ['--color-text', '--text', '--text-primary'] },
+  { key: 'button_color', vars: ['--color-button', '--cta'] },
+  { key: 'button_text_color', vars: ['--color-button-text'] },
+  { key: 'verified_badge_color', vars: ['--color-verified-badge'] },
+];
+
+export function cloneTheme(theme: ThemeSettings): ThemeSettings {
+  return { ...theme };
+}
+
+export function themesMatch(a: Partial<ThemeSettings> | null | undefined, b: Partial<ThemeSettings> | null | undefined): boolean {
+  if (!a || !b) return false;
+  const keys: Array<keyof ThemeSettings> = [
+    'primary_color', 'secondary_color', 'accent_color', 'background_color',
+    'text_color', 'button_color', 'button_text_color', 'verified_badge_color',
+  ];
+  return keys.every((key) => String(a[key] ?? '').toLowerCase() === String(b[key] ?? '').toLowerCase());
+}
 
 /**
  * Loads the active theme from the CMS and applies it as CSS custom properties
@@ -29,7 +40,7 @@ export class ThemeService {
   loadTheme(): Observable<ThemeSettings | null> {
     return this.api.get<ThemeSettings>('/cms/theme').pipe(
       tap((theme) => {
-        this.theme.set(theme);
+        this.theme.set(cloneTheme(theme));
         this.applyTheme(theme);
       }),
       catchError(() => {
@@ -40,15 +51,11 @@ export class ThemeService {
 
   applyTheme(theme: ThemeSettings): void {
     const root = document.documentElement;
-    for (const [key, cssVar] of Object.entries(CSS_VAR_MAP)) {
-      const value = (theme as any)[key];
-      if (value) root.style.setProperty(cssVar, value);
-    }
-    if (theme.gradient_from && theme.gradient_to) {
-      root.style.setProperty(
-        '--gradient-neon',
-        `linear-gradient(135deg, ${theme.gradient_from} 0%, ${theme.gradient_to} 100%)`,
-      );
+    for (const { key, vars } of CSS_VAR_MAP) {
+      const value = theme[key];
+      if (typeof value === 'string' && value) {
+        for (const cssVar of vars) root.style.setProperty(cssVar, value);
+      }
     }
   }
 
@@ -64,9 +71,23 @@ export class ThemeService {
   }
 
   updateTheme(payload: Partial<ThemeSettings>): Observable<ThemeSettings> {
-    return this.api.put<ThemeSettings>('/cms/theme', payload).pipe(
+    const body = {
+      id: payload.id,
+      name: payload.name,
+      primary_color: payload.primary_color,
+      secondary_color: payload.secondary_color,
+      accent_color: payload.accent_color,
+      background_color: payload.background_color,
+      text_color: payload.text_color,
+      button_color: payload.button_color,
+      button_text_color: payload.button_text_color,
+      gradient_from: payload.gradient_from,
+      gradient_to: payload.gradient_to,
+      verified_badge_color: payload.verified_badge_color,
+    };
+    return this.api.put<ThemeSettings>('/cms/theme', body).pipe(
       tap((theme) => {
-        this.theme.set(theme);
+        this.theme.set(cloneTheme(theme));
         this.applyTheme(theme);
       }),
     );

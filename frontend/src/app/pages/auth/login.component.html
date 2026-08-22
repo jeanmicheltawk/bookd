@@ -20,6 +20,11 @@
     </app-animated-button>
   </form>
 
-  <p class="auth-switch">New to BOOK'D HAUS? <a routerLink="/auth/signup">Apply to join</a></p>
+  <p class="auth-switch">
+    New to BOOK'D HAUS?
+    <a routerLink="/auth/signup">Apply to join</a>
+    or
+    <a routerLink="/auth/signup" [queryParams]="{ role: 'brand' }">create a free client account</a>
+  </p>
   <p class="auth-admin-hint">Admin demo: admin&#64;bookd.com / bookdadmin</p>
 </div>

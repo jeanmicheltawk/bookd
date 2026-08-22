@@ -1,15 +1,12 @@
-.admin-page__head {
-  margin-bottom: 20px;
-}
+.admin-page__head { margin-bottom: 20px; }
 
 .admin-page__hint {
   margin-top: 8px;
-  color: var(--text-muted);
+  color: var(--text);
   max-width: 640px;
 }
 
 .admin-error {
-  color: #ff6584;
   margin-bottom: 16px;
 }
 
@@ -22,25 +19,25 @@
   input {
     flex: 1;
     min-width: 160px;
-    padding: 12px 14px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--surface-border);
-    background: var(--surface-1);
-    color: var(--text-primary);
+    padding: 12px 0;
+    border: none;
+    border-bottom: 1px solid currentColor;
+    background: transparent;
+    color: var(--text);
   }
 }
 
 .primary-btn {
   padding: 12px 20px;
   border: none;
-  border-radius: var(--radius-pill);
-  background: var(--gradient-acid, linear-gradient(135deg, #c6ff00, #ff00a8));
-  color: #09000f;
+  background: var(--cta);
+  color: var(--ink-black);
   font-weight: 800;
   font-size: 0.8rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-
+  &:hover:not(:disabled) { transform: translateY(-1px); }
   &:disabled { opacity: 0.6; cursor: wait; }
 }
 
@@ -49,9 +46,8 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
+  background: transparent;
+  border: 1px solid currentColor;
   max-width: 640px;
 }
 
@@ -61,33 +57,35 @@
   align-items: center;
   gap: 10px;
   padding: 14px;
-  border-radius: var(--radius-md);
 
   strong {
     display: block;
     font-size: 0.95rem;
+    text-transform: uppercase;
   }
 
   span {
     display: block;
     margin-top: 2px;
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text);
   }
 }
 
 .delete-btn {
   background: none;
-  border: 1px solid var(--surface-border);
-  color: var(--text-muted);
+  border: 1px solid currentColor;
+  color: var(--text);
   padding: 8px 12px;
-  border-radius: var(--radius-pill);
   font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    color: #ff6584;
-    border-color: #ff6584;
+    color: #ffffff;
+    background: var(--hyper-pink);
+    border-color: var(--hyper-pink);
   }
 
   &:disabled { opacity: 0.5; cursor: wait; }
@@ -96,7 +94,6 @@
 .empty-state {
   padding: 48px 24px;
   text-align: center;
-  border: 1px dashed var(--surface-border);
-  border-radius: var(--radius-lg);
+  border: 1px solid currentColor;
   max-width: 640px;
 }

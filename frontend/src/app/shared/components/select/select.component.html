@@ -1,0 +1,30 @@
+<div class="bkd-select" [class.is-open]="open()">
+  <button
+    type="button"
+    class="bkd-select__trigger"
+    [class.is-placeholder]="isPlaceholder()"
+    [disabled]="disabled"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+    (click)="toggle()"
+  >
+    <span class="bkd-select__label">{{ displayLabel() }}</span>
+    <span class="bkd-select__chevron" aria-hidden="true"></span>
+  </button>
+
+  @if (open()) {
+    <ul class="bkd-select__panel" role="listbox">
+      @for (opt of options; track opt.value + opt.label) {
+        <li
+          role="option"
+          class="bkd-select__option"
+          [class.is-selected]="opt.value === value()"
+          [attr.aria-selected]="opt.value === value()"
+          (click)="choose(opt)"
+        >
+          {{ opt.label }}
+        </li>
+      }
+    </ul>
+  }
+</div>

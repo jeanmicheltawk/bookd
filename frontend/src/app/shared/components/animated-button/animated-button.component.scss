@@ -1,6 +1,6 @@
 .bkd-btn {
-  --btn-fg: var(--color-button-text);
-  --btn-bg: var(--color-button);
+  --btn-fg: var(--ink-black);
+  --btn-bg: var(--cta);
 
   position: relative;
   display: inline-flex;
@@ -8,26 +8,23 @@
   justify-content: center;
   gap: 8px;
   border: none;
-  border-radius: var(--radius-pill);
   font-family: var(--font-body);
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  overflow: hidden;
-  isolation: isolate;
   background: var(--btn-bg);
   color: var(--btn-fg);
-  transition: transform var(--dur-fast) var(--ease-bounce), box-shadow var(--dur-medium);
+  transition: transform var(--dur-fast);
   white-space: nowrap;
 
   &.full-width { width: 100%; }
 
   &:hover:not(.is-disabled) {
-    transform: translateY(-3px) scale(1.02);
+    transform: translateY(-1px);
   }
   &:active:not(.is-disabled) {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0);
   }
 
   &.is-disabled {
@@ -35,15 +32,7 @@
     cursor: not-allowed;
   }
 
-  &__glow {
-    position: absolute;
-    inset: -40%;
-    background: conic-gradient(from 0deg, var(--bkd-hyper-pink), var(--bkd-uv-purple), var(--bkd-electric-blue), var(--bkd-laser-cyan), var(--bkd-acid-lime), var(--bkd-hyper-pink));
-    opacity: 0;
-    transition: opacity var(--dur-medium) ease;
-    animation: spin-slow 4s linear infinite;
-    z-index: 0;
-  }
+  &__glow { display: none; }
 
   &__content {
     position: relative;
@@ -56,58 +45,48 @@
   &__spinner {
     width: 14px;
     height: 14px;
-    border-radius: 50%;
     border: 2px solid currentColor;
     border-top-color: transparent;
     animation: spin-slow 0.7s linear infinite;
   }
 
-  // Sizes
   &.size-sm { padding: 8px 20px; font-size: 0.75rem; }
   &.size-md { padding: 14px 30px; font-size: 0.85rem; }
   &.size-lg { padding: 18px 42px; font-size: 0.95rem; }
 
-  // Variants
   &.variant-primary {
-    --btn-bg: var(--color-button);
-    --btn-fg: var(--color-button-text);
-    box-shadow: 0 6px 24px rgba(198, 255, 0, 0.28);
+    --btn-bg: var(--cta);
+    --btn-fg: var(--ink-black);
   }
-  &.variant-primary:hover:not(.is-disabled) {
-    box-shadow: 0 10px 36px rgba(198, 255, 0, 0.5);
-  }
-  &.variant-primary:hover:not(.is-disabled) .bkd-btn__glow { opacity: 0.35; }
 
   &.variant-secondary {
-    --btn-bg: var(--color-secondary);
-    --btn-fg: #fff;
-    box-shadow: 0 6px 24px rgba(255, 0, 168, 0.28);
-  }
-  &.variant-secondary:hover:not(.is-disabled) {
-    box-shadow: 0 10px 36px rgba(255, 0, 168, 0.5);
+    --btn-bg: var(--hyper-pink);
+    --btn-fg: #ffffff;
   }
 
   &.variant-outline {
     background: transparent;
-    --btn-fg: var(--text-primary);
-    border: 1.5px solid var(--surface-border);
+    --btn-fg: var(--text);
+    border: 1px solid currentColor;
   }
   &.variant-outline:hover:not(.is-disabled) {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: var(--acid-lime);
+    color: var(--ink-black);
+    border-color: var(--acid-lime);
   }
 
   &.variant-ghost {
     background: transparent;
-    --btn-fg: var(--text-primary);
+    --btn-fg: var(--text);
     padding-inline: 12px;
+    border: none;
   }
   &.variant-ghost:hover:not(.is-disabled) {
-    color: var(--color-primary);
+    color: var(--acid-lime);
   }
 
   &.variant-danger {
-    --btn-bg: #ff2b4d;
-    --btn-fg: #fff;
+    --btn-bg: var(--hyper-pink);
+    --btn-fg: #ffffff;
   }
 }

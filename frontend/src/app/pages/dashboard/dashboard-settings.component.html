@@ -10,6 +10,42 @@
 
   @if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (isBrand) {
+    <div class="settings-grid">
+      <div class="settings-panel glass-panel">
+        <h3>Photo</h3>
+        <div class="photo-row">
+          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="Profile" />
+          <label class="upload-btn">
+            <input type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
+            {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-panel glass-panel">
+        <h3>Contact Details</h3>
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Full Name</label>
+            <input type="text" [(ngModel)]="form.fullName" name="clientFullName" />
+          </div>
+          <div class="form-field">
+            <label>Phone</label>
+            <input type="text" [(ngModel)]="form.phone" name="clientPhone" />
+          </div>
+          <div class="form-field">
+            <label>WhatsApp</label>
+            <input type="text" [(ngModel)]="form.whatsapp" name="clientWhatsapp" />
+          </div>
+        </div>
+
+        @if (error()) { <p class="form-error">{{ error() }}</p> }
+        @if (saved()) { <p class="form-success">Changes saved!</p> }
+
+        <app-animated-button variant="primary" size="lg" [loading]="saving()" (clicked)="save()">Save Changes</app-animated-button>
+      </div>
+    </div>
   } @else {
     <div class="settings-grid">
       <div class="settings-panel glass-panel">
@@ -34,37 +70,23 @@
             <label>Professional Name</label>
             <input type="text" [(ngModel)]="form.professionalName" name="professionalName" />
           </div>
-
-          @if (!isBrand) {
-            <div class="form-field">
-              <label>Category</label>
-              <select
-                name="categorySlug"
-                [(ngModel)]="form.categorySlug"
-                (ngModelChange)="onCategoryChange()"
-              >
-                <option value="">Choose your category</option>
-                @for (c of categories(); track c.id) {
-                  @if (c.slug !== 'brand-client') {
-                    <option [value]="c.slug">{{ c.name }}</option>
-                  }
-                }
-              </select>
-            </div>
-          }
-
+          <div class="form-field">
+            <label>Category</label>
+            <app-select
+              name="categorySlug"
+              [(ngModel)]="form.categorySlug"
+              placeholder="Choose your category"
+              [options]="categoryOptions()"
+              (ngModelChange)="onCategoryChange()"
+            />
+          </div>
           <div class="form-field">
             <label>City</label>
             <input type="text" [(ngModel)]="form.city" name="city" />
           </div>
           <div class="form-field">
             <label>Country</label>
-            <select [(ngModel)]="form.country" name="country">
-              <option value="">Select country</option>
-              @for (c of countries(); track c.id) {
-                <option [value]="c.name">{{ c.name }}</option>
-              }
-            </select>
+            <app-select [(ngModel)]="form.country" name="country" placeholder="Select country" [options]="countryOptions()" />
           </div>
           <div class="form-field">
             <label>Website</label>
@@ -82,25 +104,17 @@
             <label>WhatsApp</label>
             <input type="text" [(ngModel)]="form.whatsapp" name="whatsapp" />
           </div>
-
-          @if (!isBrand) {
-            <div class="form-field">
-              <label>Gender</label>
-              <input type="text" [(ngModel)]="form.gender" name="gender" />
-            </div>
-            <div class="form-field">
-              <label>Age</label>
-              <input type="number" [(ngModel)]="form.age" name="age" min="16" max="100" />
-            </div>
-          }
-
+          <div class="form-field">
+            <label>Gender</label>
+            <input type="text" [(ngModel)]="form.gender" name="gender" />
+          </div>
+          <div class="form-field">
+            <label>Age</label>
+            <input type="number" [(ngModel)]="form.age" name="age" min="16" max="100" />
+          </div>
           <div class="form-field">
             <label>Availability</label>
-            <select [(ngModel)]="form.availability" name="availability">
-              <option value="available">Available Now</option>
-              <option value="busy">Busy</option>
-              <option value="booked">Booked</option>
-            </select>
+            <app-select [(ngModel)]="form.availability" name="availability" [options]="availabilityOptions" />
           </div>
           <div class="form-field checkbox-field">
             <label><input type="checkbox" [(ngModel)]="form.isPublic" name="isPublic" /> Public Profile (visible in search)</label>
@@ -119,16 +133,13 @@
                   </label>
 
                   @if (field.field_type === 'dropdown') {
-                    <select
+                    <app-select
                       [name]="'cf-' + field.field_key"
                       [ngModel]="customFields()[field.field_key] || ''"
                       (ngModelChange)="setCustomField(field.field_key, $event)"
-                    >
-                      <option value="">Select {{ field.label }}</option>
-                      @for (opt of field.options; track opt) {
-                        <option [value]="opt">{{ opt }}</option>
-                      }
-                    </select>
+                      [placeholder]="'Select ' + field.label"
+                      [options]="fieldSelectOptions(field)"
+                    />
                   } @else if (field.field_type === 'textarea') {
                     <textarea
                       [name]="'cf-' + field.field_key"

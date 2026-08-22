@@ -6,9 +6,11 @@ import { ApiService, QueryParams } from './api.service';
 export interface CreateBookingPayload {
   creativeId: string;
   projectType?: string;
-  projectDate?: string;
-  location?: string;
-  description?: string;
+  projectDate: string;
+  projectTime: string;
+  durationHours: number;
+  location: string;
+  description: string;
   moodboardUrls?: string[];
   budget?: number;
 }
@@ -23,6 +25,14 @@ export class BookingService {
 
   listMine(params?: QueryParams): Observable<Paginated<Booking>> {
     return this.api.get('/bookings/mine', params);
+  }
+
+  listAdmin(params?: QueryParams) {
+    return this.api.get<{
+      data: Booking[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+      counts: { total: number; pending: number; booked: number; done: number; declined: number };
+    }>('/admin/bookings', params);
   }
 
   get(id: string): Observable<Booking> {

@@ -7,7 +7,7 @@
   </div>
 } @else {
 @if (event(); as e) {
-  <section class="cd-hero" [style.background-image]="e.cover_image ? 'linear-gradient(0deg, rgba(9,0,15,0.9), rgba(9,0,15,0.5)), url(' + e.cover_image + ')' : null">
+  <section class="cd-hero" [style.background-image]="e.cover_image ? 'url(' + e.cover_image + ')' : null">
     <div class="container">
       <a routerLink="/challenges" class="back-link">← All Challenges</a>
       <span class="cd-hero__type">{{ e.event_type }}</span>

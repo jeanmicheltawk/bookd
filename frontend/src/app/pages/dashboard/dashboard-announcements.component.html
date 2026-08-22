@@ -24,10 +24,7 @@
         </div>
         <div class="form-field">
           <label>Required Category</label>
-          <select name="requiredCategorySlug" [(ngModel)]="form.requiredCategorySlug">
-            <option value="">Any</option>
-            @for (c of categories(); track c.id) { <option [value]="c.slug">{{ c.name }}</option> }
-          </select>
+          <app-select name="requiredCategorySlug" [(ngModel)]="form.requiredCategorySlug" placeholder="Any" [options]="categoryOptions()" />
         </div>
         <div class="form-field">
           <label>Location</label>

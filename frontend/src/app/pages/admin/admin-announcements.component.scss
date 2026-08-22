@@ -9,16 +9,15 @@
   align-items: center;
   gap: 20px;
   padding: 20px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
+  background: transparent;
+  border: 1px solid currentColor;
   flex-wrap: wrap;
 
   &__info {
     flex: 1;
     min-width: 240px;
-    strong { font-size: 1rem; }
-    span { display: block; font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 8px; }
+    strong { font-size: 1rem; text-transform: uppercase; }
+    span { display: block; font-size: 0.78rem; color: var(--text); margin: 4px 0 8px; }
     p { font-size: 0.85rem; margin: 0; }
   }
 
@@ -27,15 +26,15 @@
 
 .approve-btn, .reject-btn, .close-btn {
   padding: 9px 18px;
-  border-radius: var(--radius-pill);
   font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   border: none;
   &:disabled { opacity: 0.5; }
 }
-.approve-btn { background: var(--bkd-acid-lime); color: var(--bkd-ink-black); }
-.reject-btn { background: transparent; border: 1px solid #ff2b4d; color: #ff2b4d; }
-.close-btn { background: var(--surface-2); border: 1px solid var(--surface-border); color: var(--text-secondary); }
+.approve-btn { background: var(--acid-lime); color: var(--ink-black); }
+.reject-btn { background: var(--hyper-pink); color: #ffffff; }
+.close-btn { background: transparent; border: 1px solid currentColor; color: var(--text); }
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px dashed var(--surface-border); border-radius: var(--radius-lg); }
+.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }

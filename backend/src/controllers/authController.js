@@ -104,9 +104,18 @@ async function register(req, res, next) {
       categoryFields = fieldsRes.rows;
     }
 
-    const membership = ALLOWED_MEMBERSHIPS.includes(requestedMembership)
-      ? requestedMembership
-      : 'basic';
+    const membership = userRole === 'brand'
+      ? 'free'
+      : (ALLOWED_MEMBERSHIPS.includes(requestedMembership) ? requestedMembership : 'basic');
+    const approvalStatus = userRole === 'brand' ? 'approved' : 'pending';
+
+    if (userRole === 'brand') {
+      if (!categoryId) {
+        const brandCat = await query(`SELECT id FROM categories WHERE slug = 'brand-client' LIMIT 1`);
+        categoryId = brandCat.rows[0]?.id || null;
+      }
+      categoryFields = [];
+    }
 
     const incomingCustom = customFields && typeof customFields === 'object' ? customFields : {};
     const normalizedCustom = {};
@@ -132,9 +141,9 @@ async function register(req, res, next) {
     const hash = await bcrypt.hash(password, 12);
     const userRes = await query(
       `INSERT INTO users (email, password_hash, role, membership, approval_status, is_active)
-       VALUES ($1, $2, $3, $4, 'pending', TRUE)
+       VALUES ($1, $2, $3, $4, $5, TRUE)
        RETURNING id, email, role, membership, is_verified, approval_status`,
-      [email.toLowerCase(), hash, userRole, membership]
+      [email.toLowerCase(), hash, userRole, membership, approvalStatus]
     );
     const user = userRes.rows[0];
 
@@ -162,16 +171,26 @@ async function register(req, res, next) {
       ]
     );
 
-    // No tokens — account must be approved before login / public listing
+    const payloadUser = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      membership: user.membership,
+      approval_status: user.approval_status,
+    };
+
+    if (userRole === 'brand') {
+      const tokens = signTokens(user);
+      return res.status(201).json({
+        message: 'Client account created.',
+        user: payloadUser,
+        ...tokens,
+      });
+    }
+
     res.status(201).json({
       message: 'Application submitted. An admin will review it before your profile goes live.',
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        membership: user.membership,
-        approval_status: user.approval_status,
-      },
+      user: payloadUser,
     });
   } catch (err) {
     next(err);

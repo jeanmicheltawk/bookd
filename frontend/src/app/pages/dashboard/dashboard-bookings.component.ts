@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { BookingService } from '../../core/services/booking.service';
+import { AlertService } from '../../core/services/alert.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { Booking, BookingStatus } from '../../core/models';
@@ -22,6 +23,7 @@ type FilterTab = 'all' | 'pending' | 'active' | 'completed';
 })
 export class DashboardBookingsComponent implements OnInit {
   private bookingService = inject(BookingService);
+  private alerts = inject(AlertService);
   auth = inject(AuthService);
   api = inject(ApiService);
 
@@ -40,6 +42,7 @@ export class DashboardBookingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.auth.isBrand()) this.alerts.markBookingNoticesRead();
     this.load();
   }
 
@@ -55,6 +58,23 @@ export class DashboardBookingsComponent implements OnInit {
 
   isCreative(booking: Booking): boolean {
     return booking.creative_id === this.auth.user()?.id;
+  }
+
+  formatTime(value?: string | null): string {
+    if (!value) return '—';
+    const match = String(value).match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return String(value);
+    const hour = Number(match[1]);
+    const minute = match[2];
+    const suffix = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minute} ${suffix}`;
+  }
+
+  formatHours(value?: number | string | null): string {
+    const hours = Number(value);
+    if (!hours) return '—';
+    return hours === 1 ? '1 hour' : `${hours} hours`;
   }
 
   accept(booking: Booking): void {
@@ -83,5 +103,6 @@ export class DashboardBookingsComponent implements OnInit {
 
   private patchBooking(updated: Booking): void {
     this.bookings.update((list) => list.map((b) => (b.id === updated.id ? { ...b, ...updated } : b)));
+    this.alerts.refresh();
   }
 }

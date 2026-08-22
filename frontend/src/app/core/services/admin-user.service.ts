@@ -76,4 +76,16 @@ export class AdminUserService {
   update(id: string, payload: AdminUserUpdatePayload) {
     return this.api.patch<AdminUser>(`/admin/users/${id}`, payload);
   }
+
+  delete(id: string) {
+    return this.api.delete<{ deleted: boolean; id: string; email: string }>(`/admin/users/${id}`);
+  }
+
+  listClients(params?: QueryParams) {
+    return this.list({ ...params, role: 'brand' });
+  }
+
+  exportClientsExcel() {
+    return this.api.getBlob('/admin/clients/export');
+  }
 }

@@ -2,10 +2,13 @@
   <div class="dash-head">
     <div>
       <span class="eyebrow">DASHBOARD</span>
-      <h1 class="display-lg">HEY, <span class="text-gradient">{{ (auth.user()?.professional_name || auth.user()?.full_name || 'CREATIVE').toUpperCase() }}</span></h1>
+      <h1 class="display-lg">HEY, <span class="text-gradient">{{ (auth.user()?.professional_name || auth.user()?.full_name || (auth.isBrand() ? 'CLIENT' : 'CREATIVE')).toUpperCase() }}</span></h1>
     </div>
-    @if (auth.user()?.profile_id) {
+    @if (!auth.isBrand() && auth.user()?.profile_id) {
       <app-animated-button [routerLink]="['/profile', auth.user()?.profile_id]" variant="outline">View Public Profile</app-animated-button>
+    }
+    @if (auth.isBrand()) {
+      <app-animated-button routerLink="/" variant="outline">Find Talent</app-animated-button>
     }
   </div>
 
@@ -16,35 +19,37 @@
   } @else {
   @if (summary(); as s) {
     <div class="stats-grid">
+      <a class="stat-card" routerLink="/dashboard/bookings" [class.has-alert]="!auth.isBrand() && s.alerts?.newBookings">
+        <span class="stat-card__label">Pending {{ auth.isBrand() ? 'Requests' : 'Bookings' }}</span>
+        <span class="stat-card__value" [class.text-gradient-acid]="!s.alerts?.newBookings || auth.isBrand()">{{ s.bookings.pending }}</span>
+      </a>
       <div class="stat-card">
-        <span class="stat-card__label">Pending Bookings</span>
-        <span class="stat-card__value text-gradient-acid">{{ s.bookings.pending }}</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-card__label">Active Bookings</span>
+        <span class="stat-card__label">Active</span>
         <span class="stat-card__value text-gradient">{{ s.bookings.active }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-card__label">Completed</span>
         <span class="stat-card__value">{{ s.bookings.completed }}</span>
       </div>
-      <div class="stat-card">
+      <a class="stat-card" routerLink="/dashboard/messages" [class.has-alert]="s.messages.unread">
         <span class="stat-card__label">Unread Messages</span>
         <span class="stat-card__value">{{ s.messages.unread }}</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-card__label">Profile Views (7d)</span>
-        <span class="stat-card__value">{{ s.analytics.views_7d }}</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-card__label">Profile Views (30d)</span>
-        <span class="stat-card__value">{{ s.analytics.views_30d }}</span>
-      </div>
+      </a>
+      @if (!auth.isBrand()) {
+        <div class="stat-card">
+          <span class="stat-card__label">Profile Views (7d)</span>
+          <span class="stat-card__value">{{ s.analytics.views_7d }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-card__label">Profile Views (30d)</span>
+          <span class="stat-card__value">{{ s.analytics.views_30d }}</span>
+        </div>
+      }
     </div>
 
     <div class="dash-section">
       <div class="dash-section__head">
-        <h3>Recent Bookings</h3>
+        <h3>{{ auth.isBrand() ? 'Recent History' : 'Recent Bookings' }}</h3>
         <a routerLink="/dashboard/bookings">View All →</a>
       </div>
 
@@ -60,6 +65,8 @@
             </div>
           }
         </div>
+      } @else if (auth.isBrand()) {
+        <p class="empty-hint">No booking history yet. Find talent and send a request — it will show up here.</p>
       } @else {
         <p class="empty-hint">No bookings yet. Once you start booking or getting booked, they'll show up here.</p>
       }

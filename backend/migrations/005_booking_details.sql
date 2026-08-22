@@ -1,0 +1,3 @@
+ALTER TABLE bookings
+  ADD COLUMN IF NOT EXISTS project_time TIME,
+  ADD COLUMN IF NOT EXISTS duration_hours NUMERIC(5,2);

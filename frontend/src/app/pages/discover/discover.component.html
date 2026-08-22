@@ -4,34 +4,12 @@
     <h1 class="display-lg">FIND YOUR <span class="text-gradient">CREATIVE MATCH</span></h1>
 
     <form class="filter-bar glass-panel" (ngSubmit)="applyFilters()">
-      <select [(ngModel)]="filters.category" name="category">
-        <option value="">All Categories</option>
-        @for (c of categories(); track c.id) {
-          <option [value]="c.slug">{{ c.name }}</option>
-        }
-      </select>
-
-      <select [(ngModel)]="filters.country" name="country">
-        <option value="">All Countries</option>
-        @for (c of countries(); track c.id) {
-          <option [value]="c.name">{{ c.name }}</option>
-        }
-      </select>
-
-      <select [(ngModel)]="filters.availability" name="availability">
-        <option value="">Any Availability</option>
-        <option value="available">Available Now</option>
-        <option value="busy">Busy</option>
-        <option value="booked">Booked</option>
-      </select>
+      <app-select [(ngModel)]="filters.category" name="category" placeholder="All Categories" [options]="categoryOptions()" />
+      <app-select [(ngModel)]="filters.country" name="country" placeholder="All Countries" [options]="countryOptions()" />
+      <app-select [(ngModel)]="filters.availability" name="availability" [options]="availabilityOptions" />
 
       @if (isModelsOrTalents) {
-        <select [(ngModel)]="filters.gender" name="gender">
-          <option value="">Any Gender</option>
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-          <option value="non-binary">Non-binary</option>
-        </select>
+        <app-select [(ngModel)]="filters.gender" name="gender" [options]="genderOptions" />
       }
 
       <label class="filter-bar__check">

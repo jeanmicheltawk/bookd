@@ -7,6 +7,7 @@ import { EventService } from '../../core/services/event.service';
 import { EventItem } from '../../core/models';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
+import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 
 const EMPTY_FORM = {
   title: '', slug: '', description: '', eventType: 'challenge',
@@ -16,12 +17,18 @@ const EMPTY_FORM = {
 @Component({
   selector: 'app-admin-events',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingScreenComponent, AnimatedButtonComponent],
+  imports: [CommonModule, FormsModule, LoadingScreenComponent, AnimatedButtonComponent, SelectComponent],
   templateUrl: './admin-events.component.html',
   styleUrl: './admin-events.component.scss',
 })
 export class AdminEventsComponent implements OnInit {
   private eventService = inject(EventService);
+
+  eventTypeOptions: SelectOption[] = [
+    { value: 'challenge', label: 'Challenge' },
+    { value: 'event', label: 'Event' },
+    { value: 'workshop', label: 'Workshop' },
+  ];
 
   events = signal<EventItem[]>([]);
   loading = signal(true);

@@ -14,6 +14,10 @@ async function listConversations(req, res, next) {
     const result = await query(
       `SELECT c.id, c.booking_id, c.created_at,
               b.status AS booking_status, b.project_type,
+              b.project_date AS booking_date,
+              b.project_time AS booking_time,
+              b.location AS booking_location,
+              b.duration_hours AS booking_hours,
               (
                 SELECT COUNT(*)::int FROM messages m
                 WHERE m.conversation_id = c.id AND m.read_at IS NULL AND m.sender_id != $1
@@ -54,8 +58,16 @@ async function listConversations(req, res, next) {
 
 async function getOrCreateConversation(req, res, next) {
   try {
-    const { participantId, bookingId } = req.body;
-    if (!participantId) return res.status(400).json({ error: 'participantId required' });
+    const { participantId: rawParticipantId, bookingId } = req.body;
+    if (!rawParticipantId) return res.status(400).json({ error: 'participantId required' });
+
+    const userMatch = await query(`SELECT id FROM users WHERE id::text = $1`, [rawParticipantId]);
+    let participantId = userMatch.rows[0]?.id;
+    if (!participantId) {
+      const profileMatch = await query(`SELECT user_id FROM profiles WHERE id::text = $1`, [rawParticipantId]);
+      participantId = profileMatch.rows[0]?.user_id;
+    }
+    if (!participantId) return res.status(404).json({ error: 'Participant not found' });
     if (participantId === req.user.id) return res.status(400).json({ error: 'Invalid participant' });
 
     if (bookingId) {

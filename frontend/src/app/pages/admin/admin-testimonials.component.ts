@@ -7,6 +7,7 @@ import { TestimonialService } from '../../core/services/testimonial.service';
 import { Testimonial } from '../../core/models';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
+import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 
 const EMPTY_FORM = {
   authorName: '', authorRole: '', authorPhoto: '', content: '', rating: 5, isPublished: true,
@@ -15,12 +16,17 @@ const EMPTY_FORM = {
 @Component({
   selector: 'app-admin-testimonials',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingScreenComponent, AnimatedButtonComponent],
+  imports: [CommonModule, FormsModule, LoadingScreenComponent, AnimatedButtonComponent, SelectComponent],
   templateUrl: './admin-testimonials.component.html',
   styleUrl: './admin-testimonials.component.scss',
 })
 export class AdminTestimonialsComponent implements OnInit {
   private testimonialService = inject(TestimonialService);
+
+  ratingOptions: SelectOption[] = [5, 4, 3, 2, 1].map((n) => ({
+    value: String(n),
+    label: `${n} stars`,
+  }));
 
   testimonials = signal<Testimonial[]>([]);
   loading = signal(true);
@@ -63,8 +69,9 @@ export class AdminTestimonialsComponent implements OnInit {
     this.saving.set(true);
     this.error.set('');
 
+    const payload = { ...this.form, rating: Number(this.form.rating) || 5 };
     const id = this.editingId();
-    const request = id ? this.testimonialService.update(id, this.form) : this.testimonialService.create(this.form);
+    const request = id ? this.testimonialService.update(id, payload) : this.testimonialService.create(payload);
     request.subscribe({
       next: (result) => {
         this.saving.set(false);

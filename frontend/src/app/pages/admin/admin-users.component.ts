@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { catchError, of } from 'rxjs';
@@ -18,6 +18,7 @@ import {
   phoneErrorWhileTyping,
 } from '../../core/utils/contact-validation';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 
 interface EditForm {
   email: string;
@@ -40,7 +41,7 @@ interface EditForm {
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingScreenComponent],
+  imports: [CommonModule, FormsModule, LoadingScreenComponent, SelectComponent],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss',
 })
@@ -62,6 +63,7 @@ export class AdminUsersComponent implements OnInit {
   editingUser = signal<AdminUser | null>(null);
   editSaving = signal(false);
   editError = signal('');
+  listError = signal('');
   fieldErrors = signal<ContactFieldErrors>({});
   editCategorySlug = signal('');
   editForm: EditForm = this.emptyEditForm();
@@ -69,6 +71,24 @@ export class AdminUsersComponent implements OnInit {
   statuses: Array<ApprovalStatus | 'all'> = ['pending', 'approved', 'rejected', 'all'];
   emailPattern = EMAIL_FORMAT_PATTERN;
   phonePattern = PHONE_CHAR_PATTERN;
+
+  membershipOptions: SelectOption[] = [
+    { value: 'basic', label: 'Normal ($7.99)' },
+    { value: 'premium', label: 'Premium ($14.99)' },
+    { value: 'free', label: 'Legacy free' },
+  ];
+
+  categoryOptions = computed<SelectOption[]>(() =>
+    selectOptions(this.categories().map((c) => ({ value: c.slug, label: c.name })), 'No category'),
+  );
+
+  countryOptions = computed<SelectOption[]>(() =>
+    selectOptions(this.countries().map((c) => ({ value: c.name, label: c.name })), 'Select country'),
+  );
+
+  fieldSelectOptions(field: CategoryField): SelectOption[] {
+    return selectOptions(field.options || [], `Select ${field.label}`);
+  }
 
   get selectedCategoryFields(): CategoryField[] {
     const slug = this.editCategorySlug();
@@ -94,12 +114,14 @@ export class AdminUsersComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
+    this.listError.set('');
     const status = this.activeStatus();
     this.usersApi
       .list({
         q: this.search || undefined,
         verified: this.verifiedOnly || undefined,
         approval_status: status === 'all' ? undefined : status,
+        role: 'member',
         limit: 60,
       })
       .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 60, total: 0, totalPages: 0 } })))
@@ -297,6 +319,26 @@ export class AdminUsersComponent implements OnInit {
         this.savingId.set(null);
       },
       error: () => this.savingId.set(null),
+    });
+  }
+
+  deleteUser(user: AdminUser): void {
+    if (user.role === 'admin') return;
+    const label = user.professional_name || user.full_name || user.email;
+    if (!confirm(`Delete ${label} and all related data? This cannot be undone.`)) return;
+
+    this.savingId.set(user.id);
+    this.listError.set('');
+    this.usersApi.delete(user.id).subscribe({
+      next: () => {
+        this.users.update((list) => list.filter((u) => u.id !== user.id));
+        if (this.editingUser()?.id === user.id) this.closeEdit();
+        this.savingId.set(null);
+      },
+      error: (err) => {
+        this.savingId.set(null);
+        this.listError.set(err?.error?.error || 'Could not delete user.');
+      },
     });
   }
 

@@ -17,9 +17,7 @@
         <div class="form-field"><label>Author Photo URL</label><input type="text" name="authorPhoto" [(ngModel)]="form.authorPhoto" /></div>
         <div class="form-field">
           <label>Rating</label>
-          <select name="rating" [(ngModel)]="form.rating">
-            @for (n of [5,4,3,2,1]; track n) { <option [value]="n">{{ n }} stars</option> }
-          </select>
+          <app-select name="rating" [(ngModel)]="form.rating" [options]="ratingOptions" />
         </div>
         <div class="form-field checkbox-field"><label><input type="checkbox" name="isPublished" [(ngModel)]="form.isPublished" /> Published</label></div>
       </div>

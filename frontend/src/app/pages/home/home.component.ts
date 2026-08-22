@@ -70,7 +70,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 3, total: 0, totalPages: 0 } })))
       .subscribe((res) => this.announcements.set(res.data));
 
-    this.categoryService.list()
+    this.categoryService.list({ searchable: true })
       .pipe(catchError(() => of({ data: [] })))
       .subscribe((res) => {
         this.categories.set(res.data);

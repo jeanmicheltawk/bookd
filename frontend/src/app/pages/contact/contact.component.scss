@@ -1,18 +1,9 @@
 .contact-page {
   position: relative;
   padding: 64px 0 100px;
-  overflow: hidden;
 }
 
-.hero__blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.35;
-  z-index: 0;
-}
-.blob-a { width: 420px; height: 420px; background: var(--bkd-hyper-pink); top: -100px; right: -80px; }
-.blob-b { width: 340px; height: 340px; background: var(--bkd-electric-blue); bottom: -100px; left: -60px; }
+.hero__blob { display: none; }
 
 .contact-grid {
   position: relative;
@@ -35,13 +26,17 @@
   gap: 20px;
 
   div { display: flex; flex-direction: column; gap: 4px; }
-  .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
-  a { color: var(--color-primary); font-weight: 700; }
+  .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text); }
+  a { color: var(--acid-lime); font-weight: 700; }
 }
 
-.contact-form-panel { padding: 36px; }
+.contact-form-panel {
+  padding: 36px;
+  background: transparent;
+  border: 1px solid currentColor;
+}
 
-.contact-error { color: #ff6584; font-size: 0.85rem; margin-bottom: 16px; }
+.contact-error { font-size: 0.85rem; margin-bottom: 16px; }
 
 .contact-success {
   display: flex;

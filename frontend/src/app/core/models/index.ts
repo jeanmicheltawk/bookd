@@ -73,6 +73,7 @@ export interface PortfolioItem {
 
 export interface Profile {
   id: string;
+  user_id?: string;
   full_name: string;
   professional_name?: string;
   age?: number;
@@ -294,6 +295,8 @@ export interface Booking {
   creative_id: string;
   project_type?: string;
   project_date?: string;
+  project_time?: string;
+  duration_hours?: number | string;
   location?: string;
   description?: string;
   moodboard_urls?: string[];
@@ -306,6 +309,10 @@ export interface Booking {
   creative_professional_name?: string;
   client_photo?: string;
   creative_photo?: string;
+  client_email?: string;
+  creative_email?: string;
+  client_phone?: string;
+  creative_phone?: string;
   conversationId?: string;
   created_at: string;
   updated_at?: string;
@@ -323,6 +330,10 @@ export interface Conversation {
   booking_id?: string;
   booking_status?: BookingStatus;
   project_type?: string;
+  booking_date?: string;
+  booking_time?: string;
+  booking_location?: string;
+  booking_hours?: number | string;
   unread_count: number;
   last_message?: string;
   last_message_at?: string;
@@ -342,6 +353,12 @@ export interface Message {
   created_at: string;
 }
 
+export interface DashboardAlerts {
+  unreadMessages: number;
+  newBookings: number;
+  bookingUpdates: number;
+}
+
 export interface DashboardSummary {
   profile: {
     id: string;
@@ -355,6 +372,7 @@ export interface DashboardSummary {
   messages: { unread: number };
   analytics: { views_7d: number; views_30d: number };
   notifications: { unread: number };
+  alerts?: DashboardAlerts;
   recentBookings: Array<{
     id: string;
     project_type?: string;
@@ -377,6 +395,22 @@ export interface AdminAnalytics {
     created_at: string;
     user_email?: string;
     profile_name?: string;
+  }>;
+  profiles: {
+    active: number;
+    total: number;
+    pending: number;
+    premium: number;
+    monthlyAmount: number;
+  };
+  topProfiles: Array<{
+    id: string;
+    professional_name?: string;
+    full_name?: string;
+    profile_photo_url?: string;
+    custom_url?: string;
+    category_name?: string;
+    views: number;
   }>;
 }
 

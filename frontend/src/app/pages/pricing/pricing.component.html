@@ -42,12 +42,7 @@
       <div class="estimator-form">
         <div class="form-field">
           <label>Category</label>
-          <select [(ngModel)]="estimatorForm.categorySlug" name="categorySlug">
-            <option value="">General / Default</option>
-            @for (c of categories(); track c.id) {
-              <option [value]="c.slug">{{ c.name }}</option>
-            }
-          </select>
+          <app-select [(ngModel)]="estimatorForm.categorySlug" name="categorySlug" placeholder="General / Default" [options]="categoryOptions()" />
         </div>
         <div class="form-field">
           <label>Duration (days)</label>
@@ -55,22 +50,11 @@
         </div>
         <div class="form-field">
           <label>Complexity</label>
-          <select [(ngModel)]="estimatorForm.complexity" name="complexity">
-            <option value="simple">Simple</option>
-            <option value="standard">Standard</option>
-            <option value="complex">Complex</option>
-            <option value="premium">Premium</option>
-          </select>
+          <app-select [(ngModel)]="estimatorForm.complexity" name="complexity" [options]="complexityOptions" />
         </div>
         <div class="form-field">
           <label>Usage Rights</label>
-          <select [(ngModel)]="estimatorForm.usage" name="usage">
-            <option value="social">Social</option>
-            <option value="web">Web</option>
-            <option value="print">Print</option>
-            <option value="campaign">Campaign</option>
-            <option value="broadcast">Broadcast</option>
-          </select>
+          <app-select [(ngModel)]="estimatorForm.usage" name="usage" [options]="usageOptions" />
         </div>
         <div class="form-field">
           <label>Team Size</label>
@@ -78,11 +62,7 @@
         </div>
         <div class="form-field">
           <label>Location</label>
-          <select [(ngModel)]="estimatorForm.location" name="location">
-            <option value="local">Local</option>
-            <option value="travel">Travel Required</option>
-            <option value="international">International</option>
-          </select>
+          <app-select [(ngModel)]="estimatorForm.location" name="location" [options]="locationOptions" />
         </div>
       </div>
 

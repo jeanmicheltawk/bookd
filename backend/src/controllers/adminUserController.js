@@ -1,4 +1,4 @@
-const { query } = require('../config/db');
+const { query, getClient } = require('../config/db');
 const { parsePageLimit } = require('../utils/pagination');
 
 const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
@@ -38,6 +38,8 @@ async function listUsers(req, res, next) {
     if (role) {
       params.push(role);
       where.push(`u.role = $${params.length}`);
+    } else {
+      where.push(`u.role = 'member'`);
     }
     if (membership) {
       params.push(membership);
@@ -203,7 +205,9 @@ async function updateUser(req, res, next) {
 
     if (approvalStatus === 'approved') {
       await query(
-        `UPDATE profiles SET is_public = TRUE, updated_at = NOW() WHERE user_id = $1`,
+        `UPDATE profiles SET is_public = TRUE, updated_at = NOW()
+         WHERE user_id = $1
+           AND EXISTS (SELECT 1 FROM users WHERE id = $1 AND role = 'member')`,
         [id]
       );
     } else if (approvalStatus === 'rejected' || approvalStatus === 'pending') {
@@ -321,4 +325,142 @@ async function updateUser(req, res, next) {
   }
 }
 
-module.exports = { listUsers, getUser, updateUser };
+async function deleteUser(req, res, next) {
+  const { id } = req.params;
+
+  if (req.user?.id === id) {
+    return res.status(400).json({ error: 'You cannot delete your own account' });
+  }
+
+  let client;
+  try {
+    client = await getClient();
+    const existing = await client.query('SELECT id, role, email FROM users WHERE id = $1', [id]);
+    if (!existing.rows[0]) return res.status(404).json({ error: 'User not found' });
+    if (existing.rows[0].role === 'admin') {
+      return res.status(400).json({ error: 'Admin accounts cannot be deleted' });
+    }
+
+    await client.query('BEGIN');
+
+    const conversations = await client.query(
+      `SELECT conversation_id FROM conversation_participants WHERE user_id = $1`,
+      [id]
+    );
+    const conversationIds = conversations.rows.map((row) => row.conversation_id);
+
+    await client.query(`DELETE FROM analytics_events WHERE user_id = $1`, [id]);
+    await client.query(`DELETE FROM users WHERE id = $1`, [id]);
+
+    if (conversationIds.length) {
+      await client.query(
+        `DELETE FROM conversations c
+         WHERE c.id = ANY($1::uuid[])
+           AND NOT EXISTS (
+             SELECT 1 FROM conversation_participants cp WHERE cp.conversation_id = c.id
+           )`,
+        [conversationIds]
+      );
+    }
+
+    await client.query('COMMIT');
+    res.json({ deleted: true, id, email: existing.rows[0].email });
+  } catch (err) {
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        /* ignore rollback errors */
+      }
+    }
+    next(err);
+  } finally {
+    client?.release();
+  }
+}
+
+function excelEscape(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function exportClientsExcel(_req, res, next) {
+  try {
+    const result = await query(
+      `SELECT
+         p.full_name,
+         p.professional_name,
+         u.email,
+         p.phone,
+         p.whatsapp,
+         u.membership,
+         u.approval_status,
+         u.is_active,
+         u.created_at,
+         u.last_login_at
+       FROM users u
+       LEFT JOIN profiles p ON p.user_id = u.id
+       WHERE u.role = 'brand'
+       ORDER BY u.created_at DESC`
+    );
+
+    const headers = [
+      'Name',
+      'Professional Name',
+      'Email',
+      'Phone',
+      'WhatsApp',
+      'Membership',
+      'Status',
+      'Active',
+      'Created',
+      'Last Login',
+    ];
+    const keys = [
+      'full_name',
+      'professional_name',
+      'email',
+      'phone',
+      'whatsapp',
+      'membership',
+      'approval_status',
+      'is_active',
+      'created_at',
+      'last_login_at',
+    ];
+
+    const headerCells = headers
+      .map((h) => `<Cell><Data ss:Type="String">${excelEscape(h)}</Data></Cell>`)
+      .join('');
+    const rowsXml = result.rows.map((row) => {
+      const cells = keys.map((key) => {
+        let value = row[key];
+        if (key === 'is_active') value = value ? 'Yes' : 'No';
+        if (value instanceof Date) value = value.toISOString();
+        return `<Cell><Data ss:Type="String">${excelEscape(value)}</Data></Cell>`;
+      }).join('');
+      return `<Row>${cells}</Row>`;
+    }).join('');
+
+    const xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Worksheet ss:Name="Clients"><Table>
+<Row>${headerCells}</Row>
+${rowsXml}
+</Table></Worksheet>
+</Workbook>`;
+
+    res.setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="bookd-clients.xls"');
+    res.send(xml);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listUsers, getUser, updateUser, deleteUser, exportClientsExcel };

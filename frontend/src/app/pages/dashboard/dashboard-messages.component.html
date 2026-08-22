@@ -8,6 +8,10 @@
 
   <app-dashboard-nav />
 
+  @if (error()) {
+    <p class="auth-error">{{ error() }}</p>
+  }
+
   <div class="messages-shell">
     <div class="conv-list">
       @if (loadingConversations()) {
@@ -23,6 +27,9 @@
             <img [src]="api.assetUrl(c.participants[0].profile_photo_url) || 'https://placehold.co/48x48/1a0f28/fff?text=BKD'" alt="" />
             <div class="conv-item__info">
               <strong>{{ otherParticipant(c) }}</strong>
+              @if (bookingLabel(c)) {
+                <span class="conv-item__booking">{{ bookingLabel(c) }}</span>
+              }
               <span>{{ c.last_message || 'No messages yet' }}</span>
             </div>
             @if (c.unread_count > 0) { <span class="unread-dot">{{ c.unread_count }}</span> }
@@ -36,7 +43,12 @@
     <div class="thread-panel">
       @if (activeConversation(); as conv) {
         <div class="thread-header">
-          <strong>{{ otherParticipant(conv) }}</strong>
+          <div class="thread-header__who">
+            <strong>{{ otherParticipant(conv) }}</strong>
+            @if (bookingLabel(conv)) {
+              <span>{{ bookingLabel(conv) }}</span>
+            }
+          </div>
           @if (conv.booking_status) { <span class="status-badge">{{ conv.booking_status }}</span> }
         </div>
 

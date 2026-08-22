@@ -1,0 +1,51 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">DIRECTORY</span>
+      <h1 class="display-lg">CLIENT <span class="text-gradient">ACCOUNTS</span></h1>
+      <p class="admin-page__hint">People who created a client account to book talent.</p>
+    </div>
+    <button type="button" class="export-btn" [disabled]="exporting()" (click)="exportExcel()">
+      {{ exporting() ? 'Exporting...' : '⬇ Export Excel' }}
+    </button>
+  </div>
+
+  <div class="users-toolbar">
+    <input type="text" placeholder="Search name, email..." [(ngModel)]="search" name="search" (keyup.enter)="load()" />
+    <button class="search-btn" type="button" (click)="load()">Search</button>
+    <span class="count">{{ total() }} client{{ total() === 1 ? '' : 's' }}</span>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING CLIENTS..." />
+  } @else if (clients().length) {
+    <div class="crud-table">
+      <div class="crud-table__row crud-table__row--head">
+        <span>Name</span>
+        <span>Email</span>
+        <span>Phone</span>
+        <span>WhatsApp</span>
+        <span>Joined</span>
+        <span>Last login</span>
+      </div>
+      @for (c of clients(); track c.id) {
+        <div class="crud-table__row">
+          <span>{{ c.full_name || c.professional_name || '—' }}</span>
+          <span>{{ c.email }}</span>
+          <span>{{ c.phone || '—' }}</span>
+          <span>{{ c.whatsapp || '—' }}</span>
+          <span>{{ c.created_at | date: 'mediumDate' }}</span>
+          <span>{{ c.last_login_at ? (c.last_login_at | date: 'mediumDate') : '—' }}</span>
+        </div>
+      }
+    </div>
+    @if (total() > clients().length) {
+      <p class="admin-page__hint">Showing {{ clients().length }} of {{ total() }}. Export Excel includes every client.</p>
+    }
+  } @else {
+    <div class="empty-state">
+      <h3>No clients yet.</h3>
+      <p>Client accounts appear here after someone signs up to book talent.</p>
+    </div>
+  }
+</div>

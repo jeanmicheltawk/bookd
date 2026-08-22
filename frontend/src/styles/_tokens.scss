@@ -1,84 +1,103 @@
 // BOOK'D HAUS — Design Tokens
-// Bold, neon, ink-black brand system. Overridable at runtime via ThemeService
-// (writes CSS custom properties onto :root to reflect the CMS theme settings).
+// Flat acid poster system. Product UI stays on toxic orange.
+// Overridable accents via ThemeService; page background is never overwritten.
 
 :root {
-  // ---- Brand core (raw values, from brand guide PDF) ----
-  --bkd-acid-lime: #C6FF00;
-  --bkd-nuclear-yellow: #FFF500;
-  --bkd-hyper-pink: #FF00A8;
-  --bkd-toxic-orange: #FF4D00;
-  --bkd-electric-blue: #0047FF;
-  --bkd-laser-cyan: #00F5FF;
-  --bkd-uv-purple: #8F00FF;
-  --bkd-ink-black: #09000F;
+  --acid-lime: #c6ff00;
+  --nuclear-yellow: #fff500;
+  --hyper-pink: #ff00a8;
+  --toxic-orange: #ff4d00;
+  --electric-blue: #0047ff;
+  --laser-cyan: #00f5ff;
+  --uv-purple: #8f00ff;
+  --ink-black: #09000f;
+  --text: #ffffff;
+  --cta: var(--acid-lime);
+  --focus: var(--laser-cyan);
 
-  // ---- Semantic tokens (these are the ones ThemeService overwrites) ----
-  --color-primary: var(--bkd-acid-lime);
-  --color-secondary: var(--bkd-hyper-pink);
-  --color-accent: var(--bkd-laser-cyan);
-  --color-background: var(--bkd-ink-black);
-  --color-text: #FFFFFF;
-  --color-button: var(--bkd-acid-lime);
-  --color-button-text: var(--bkd-ink-black);
-  --gradient-from: var(--bkd-hyper-pink);
-  --gradient-to: var(--bkd-electric-blue);
-  --color-verified-badge: var(--bkd-laser-cyan);
+  // ---- Legacy aliases (same palette, no second system) ----
+  --bkd-acid-lime: var(--acid-lime);
+  --bkd-nuclear-yellow: var(--nuclear-yellow);
+  --bkd-hyper-pink: var(--hyper-pink);
+  --bkd-toxic-orange: var(--toxic-orange);
+  --bkd-electric-blue: var(--electric-blue);
+  --bkd-laser-cyan: var(--laser-cyan);
+  --bkd-uv-purple: var(--uv-purple);
+  --bkd-ink-black: var(--ink-black);
 
-  // ---- Surfaces ----
-  --surface-0: #09000F;
-  --surface-1: #120a1c;
-  --surface-2: #1a0f28;
-  --surface-3: #241536;
-  --surface-glass: rgba(255, 255, 255, 0.05);
-  --surface-border: rgba(255, 255, 255, 0.1);
+  --color-primary: var(--cta);
+  --color-secondary: var(--hyper-pink);
+  --color-accent: var(--laser-cyan);
+  --color-background: var(--toxic-orange);
+  --color-text: var(--text);
+  --color-button: var(--cta);
+  --color-button-text: var(--ink-black);
+  --gradient-from: var(--hyper-pink);
+  --gradient-to: var(--electric-blue);
+  --color-verified-badge: var(--laser-cyan);
+  --color-error: var(--hyper-pink);
+  --color-success: var(--acid-lime);
 
-  // ---- Text ----
-  --text-primary: #FFFFFF;
-  --text-secondary: rgba(255, 255, 255, 0.68);
-  --text-muted: rgba(255, 255, 255, 0.42);
-  --text-inverse: var(--bkd-ink-black);
+  // Surfaces stay transparent so the orange page shows through.
+  --surface-0: transparent;
+  --surface-1: transparent;
+  --surface-2: transparent;
+  --surface-3: transparent;
+  --surface-glass: transparent;
+  --surface-border: currentColor;
 
-  // ---- Gradients ----
-  --gradient-neon: linear-gradient(135deg, var(--bkd-hyper-pink) 0%, var(--bkd-uv-purple) 45%, var(--bkd-electric-blue) 100%);
-  --gradient-acid: linear-gradient(120deg, var(--bkd-acid-lime) 0%, var(--bkd-laser-cyan) 100%);
-  --gradient-fire: linear-gradient(120deg, var(--bkd-toxic-orange) 0%, var(--bkd-hyper-pink) 100%);
-  --gradient-full: linear-gradient(115deg, var(--bkd-acid-lime), var(--bkd-laser-cyan), var(--bkd-electric-blue), var(--bkd-uv-purple), var(--bkd-hyper-pink), var(--bkd-toxic-orange), var(--bkd-nuclear-yellow));
-  --gradient-radial-glow: radial-gradient(circle at 50% 0%, rgba(198, 255, 0, 0.18), transparent 60%);
+  --text-primary: var(--text);
+  --text-secondary: color-mix(in srgb, var(--text) 80%, transparent);
+  --text-muted: color-mix(in srgb, var(--text) 62%, transparent);
+  --text-inverse: var(--ink-black);
 
-  // ---- Typography ----
-  // Manrope — main functional: body, booking info, prices, longer text
-  --font-body: 'Manrope', system-ui, sans-serif;
-  // League Spartan — announcements, promotional posts, offers, UI headings
-  --font-display: 'League Spartan', 'Manrope', system-ui, sans-serif;
-  // Barlow Condensed — campaign titles, social headlines, stories, vertical type
-  --font-campaign: 'Barlow Condensed', 'League Spartan', system-ui, sans-serif;
-  // Archivo Narrow — editorial, informative carousels, dates, schedules
-  --font-editorial: 'Archivo Narrow', 'Manrope', system-ui, sans-serif;
-  // Anton — rare, short high-impact words (posters, launches, promo moments)
-  --font-impact: 'Anton', 'League Spartan', system-ui, sans-serif;
+  // Gradients are deleted — aliases resolve to flat palette colors.
+  --gradient-neon: var(--nuclear-yellow);
+  --gradient-acid: var(--acid-lime);
+  --gradient-fire: var(--hyper-pink);
+  --gradient-full: var(--acid-lime);
+  --gradient-radial-glow: none;
 
-  // ---- Shape ----
-  --radius-sm: 10px;
-  --radius-md: 18px;
-  --radius-lg: 28px;
-  --radius-pill: 999px;
+  // Manrope — site body, booking info, prices, forms, longer text
+  --font-body: 'Manrope', sans-serif;
+  // League Spartan — announcements, promotional posts, offers
+  --font-display: 'League Spartan', 'Manrope', sans-serif;
+  // Barlow Condensed — campaign titles, social headlines, stories
+  --font-campaign: 'Barlow Condensed', var(--font-body);
+  // Archivo Narrow — editorial, dates, schedules, informative meta
+  --font-editorial: 'Archivo Narrow', 'Manrope', sans-serif;
+  --font-impact: 'Barlow Condensed', var(--font-body);
 
-  // ---- Shadows / glows ----
-  --shadow-glow-lime: 0 0 24px rgba(198, 255, 0, 0.45);
-  --shadow-glow-pink: 0 0 24px rgba(255, 0, 168, 0.45);
-  --shadow-glow-cyan: 0 0 24px rgba(0, 245, 255, 0.4);
-  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-pill: 0;
 
-  // ---- Motion ----
+  --shadow-glow-lime: none;
+  --shadow-glow-pink: none;
+  --shadow-glow-cyan: none;
+  --shadow-card: none;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-fast: 0.18s;
   --dur-medium: 0.4s;
   --dur-slow: 0.8s;
 
-  // ---- Layout ----
   --nav-height: 76px;
   --category-bar-height: 52px;
   --content-max: 1360px;
+}
+
+.bg-light {
+  --text: var(--ink-black);
+  --cta: var(--hyper-pink);
+  --text-primary: var(--ink-black);
+  --text-secondary: color-mix(in srgb, var(--ink-black) 80%, transparent);
+  --text-muted: color-mix(in srgb, var(--ink-black) 62%, transparent);
+  --text-inverse: #ffffff;
+  --color-text: var(--ink-black);
+  --color-button: var(--hyper-pink);
+  --color-button-text: #ffffff;
+  --color-success: var(--electric-blue);
 }

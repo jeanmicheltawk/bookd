@@ -7,7 +7,11 @@
   </div>
 } @else {
 @if (profile(); as p) {
-  <section class="p-hero" [style.background-image]="p.cover_photo_url ? 'url(' + photo(p.cover_photo_url) + ')' : null">
+  <section
+    class="p-hero"
+    [class.p-hero--cover]="!!p.cover_photo_url"
+    [style.background-image]="p.cover_photo_url ? 'url(' + photo(p.cover_photo_url) + ')' : null"
+  >
     <div class="p-hero__scrim"></div>
   </section>
 

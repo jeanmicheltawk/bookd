@@ -43,7 +43,10 @@ async function trackPageview(req, res, next) {
 
 async function getAdminDashboard(_req, res, next) {
   try {
-    const [visitors, contacts, popularPages, recentActivity] = await Promise.all([
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
+
+    const settled = await Promise.allSettled([
       query(
         `SELECT
            COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours')::int AS last_24h,
@@ -72,13 +75,100 @@ async function getAdminDashboard(_req, res, next) {
          LEFT JOIN profiles p ON p.id = ae.profile_id
          ORDER BY ae.created_at DESC LIMIT 25`
       ),
+      query(
+        `SELECT
+           COUNT(*) FILTER (
+             WHERE u.role = 'member'
+               AND COALESCE(u.approval_status, 'approved') = 'approved'
+               AND u.is_active = TRUE
+           )::int AS active,
+           COUNT(*) FILTER (WHERE u.role = 'member')::int AS total,
+           COUNT(*) FILTER (
+             WHERE u.role = 'member' AND u.approval_status = 'pending'
+           )::int AS pending,
+           COUNT(*) FILTER (
+             WHERE u.role = 'member'
+               AND COALESCE(u.approval_status, 'approved') = 'approved'
+               AND u.is_active = TRUE
+               AND u.membership = 'premium'
+           )::int AS premium,
+           COALESCE(SUM(
+             CASE
+               WHEN u.role = 'member'
+                 AND COALESCE(u.approval_status, 'approved') = 'approved'
+                 AND u.is_active = TRUE THEN
+                 CASE u.membership
+                   WHEN 'premium' THEN 14.99
+                   WHEN 'basic' THEN 7.99
+                   ELSE 0
+                 END
+               ELSE 0
+             END
+           ), 0)::float AS monthly_amount
+         FROM profiles p
+         JOIN users u ON u.id = p.user_id`
+      ),
+      query(
+        `SELECT
+           p.id,
+           p.professional_name,
+           p.full_name,
+           p.profile_photo_url,
+           p.custom_url,
+           c.name AS category_name,
+           COUNT(*)::int AS views
+         FROM analytics_events ae
+         JOIN profiles p ON (
+           p.id = ae.profile_id
+           OR ae.path = '/profile/' || p.id::text
+           OR (p.custom_url IS NOT NULL AND ae.path = '/profile/' || p.custom_url)
+         )
+         JOIN users u ON u.id = p.user_id
+         LEFT JOIN categories c ON c.id = p.category_id
+         WHERE ae.event_type = 'pageview'
+           AND u.role = 'member'
+           AND (
+             ae.profile_id IS NOT NULL
+             OR ae.path LIKE '/profile/%'
+           )
+         GROUP BY p.id, p.professional_name, p.full_name, p.profile_photo_url, p.custom_url, c.name
+         ORDER BY views DESC
+         LIMIT 20`
+      ),
     ]);
 
+    settled.forEach((result, i) => {
+      if (result.status === 'rejected') {
+        console.error(`admin analytics query ${i} failed`, result.reason);
+      }
+    });
+
+    const row = (index) =>
+      settled[index].status === 'fulfilled' ? settled[index].value.rows : [];
+    const first = (index) => row(index)[0] || {};
+    const stats = first(4);
+
     res.json({
-      visitors: visitors.rows[0],
-      contacts: contacts.rows[0],
-      popularPages: popularPages.rows,
-      recentActivity: recentActivity.rows,
+      visitors: {
+        last_24h: first(0).last_24h || 0,
+        last_7d: first(0).last_7d || 0,
+        last_30d: first(0).last_30d || 0,
+        unique_visitors_30d: first(0).unique_visitors_30d || 0,
+      },
+      contacts: {
+        new_count: first(1).new_count || 0,
+        total: first(1).total || 0,
+      },
+      popularPages: row(2),
+      recentActivity: row(3),
+      profiles: {
+        active: Number(stats.active) || 0,
+        total: Number(stats.total) || 0,
+        pending: Number(stats.pending) || 0,
+        premium: Number(stats.premium) || 0,
+        monthlyAmount: Number(stats.monthly_amount) || 0,
+      },
+      topProfiles: row(5),
     });
   } catch (err) {
     next(err);

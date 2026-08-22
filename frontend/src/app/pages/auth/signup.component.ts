@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { AuthService, RegisterPayload } from '../../core/services/auth.service';
@@ -18,6 +18,7 @@ import {
   phoneErrorWhileTyping,
 } from '../../core/utils/contact-validation';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
+import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 
 interface MembershipOption {
   value: Membership;
@@ -25,16 +26,43 @@ interface MembershipOption {
   description: string;
 }
 
+interface ClientFormModel {
+  fullName: string;
+  email: string;
+  password: string;
+  phone: string;
+  whatsapp: string;
+}
+
+interface TalentFormModel {
+  fullName: string;
+  professionalName: string;
+  email: string;
+  password: string;
+  categorySlug: string;
+  membership: Membership;
+  country: string;
+  city: string;
+  bio: string;
+  instagram: string;
+  phone: string;
+  whatsapp: string;
+  website: string;
+  gender: string;
+  age: number | undefined;
+}
+
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AnimatedButtonComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AnimatedButtonComponent, SelectComponent],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.scss',
 })
 export class SignupComponent implements OnInit {
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private categoryService = inject(CategoryService);
   private countryService = inject(CountryService);
 
@@ -42,7 +70,7 @@ export class SignupComponent implements OnInit {
   countries = signal<Country[]>([]);
   submitted = signal(false);
   customFields = signal<Record<string, string>>({});
-  role = signal<'member' | 'brand'>('member');
+  role = signal<'member' | 'brand'>(this.initialRole());
   categorySlug = signal('');
 
   membershipOptions: MembershipOption[] = [
@@ -50,13 +78,12 @@ export class SignupComponent implements OnInit {
     { value: 'premium', label: 'Premium', description: '$14.99 / month' },
   ];
 
-  form: RegisterPayload = {
+  talent: TalentFormModel = {
     fullName: '',
     professionalName: '',
     email: '',
     password: '',
     categorySlug: '',
-    role: 'member',
     membership: 'basic',
     country: '',
     city: '',
@@ -69,11 +96,37 @@ export class SignupComponent implements OnInit {
     age: undefined,
   };
 
+  client: ClientFormModel = {
+    fullName: '',
+    email: '',
+    password: '',
+    phone: '',
+    whatsapp: '',
+  };
+
+  talentConfirm = '';
+  clientConfirm = '';
   loading = signal(false);
   error = signal('');
   fieldErrors = signal<ContactFieldErrors>({});
+  passwordError = signal('');
   emailPattern = EMAIL_FORMAT_PATTERN;
   phonePattern = PHONE_CHAR_PATTERN;
+
+  categoryOptions = computed<SelectOption[]>(() =>
+    this.categories()
+      .filter((c) => c.slug !== 'brand-client')
+      .map((c) => ({ value: c.slug, label: c.name })),
+  );
+
+  countryOptions = computed<SelectOption[]>(() =>
+    selectOptions(this.countries().map((c) => ({ value: c.name, label: c.name })), 'Select country'),
+  );
+
+  membershipSelectOptions: SelectOption[] = this.membershipOptions.map((opt) => ({
+    value: opt.value,
+    label: `${opt.label} — ${opt.description}`,
+  }));
 
   selectedCategoryFields = computed<CategoryField[]>(() => {
     if (this.role() !== 'member') return [];
@@ -93,34 +146,30 @@ export class SignupComponent implements OnInit {
 
     const plan = (this.route.snapshot.queryParamMap.get('plan') || '').toLowerCase();
     if (plan === 'premium' || plan === 'basic') {
-      this.form.membership = plan as Membership;
+      this.talent.membership = plan as Membership;
     } else if (plan === 'free' || plan === 'normal') {
-      this.form.membership = 'basic';
+      this.talent.membership = 'basic';
     }
-    if (plan === 'brand') {
-      this.onRoleChange('brand');
-      this.form.membership = 'basic';
-    }
+  }
+
+  private initialRole(): 'member' | 'brand' {
+    const params = this.route.snapshot.queryParamMap;
+    return params.get('role') === 'brand' || params.get('plan') === 'brand' ? 'brand' : 'member';
   }
 
   onRoleChange(role: 'member' | 'brand'): void {
     this.role.set(role);
-    this.form.role = role;
-    if (role === 'brand') {
-      this.form.categorySlug = 'brand-client';
-      this.categorySlug.set('brand-client');
-      this.customFields.set({});
-    } else {
-      if (this.form.categorySlug === 'brand-client') {
-        this.form.categorySlug = '';
-      }
-      this.categorySlug.set(this.form.categorySlug || '');
+    this.error.set('');
+    this.fieldErrors.set({});
+    this.passwordError.set('');
+    if (role === 'member') {
+      this.categorySlug.set(this.talent.categorySlug || '');
       this.onCategoryChange();
     }
   }
 
   onCategoryChange(): void {
-    this.categorySlug.set(this.form.categorySlug || '');
+    this.categorySlug.set(this.talent.categorySlug || '');
     const next: Record<string, string> = {};
     for (const field of this.selectedCategoryFields()) {
       next[field.field_key] = this.customFields()[field.field_key] || '';
@@ -128,31 +177,76 @@ export class SignupComponent implements OnInit {
     this.customFields.set(next);
   }
 
+  fieldSelectOptions(field: CategoryField): SelectOption[] {
+    return selectOptions(field.options || [], `Select ${field.label}`);
+  }
+
   setCustomField(key: string, value: string): void {
     this.customFields.update((current) => ({ ...current, [key]: value }));
   }
 
-  onEmailChange(value: string): void {
-    this.form.email = value;
+  onTalentPasswordChange(value: string): void {
+    this.talent.password = value;
+    this.syncPasswordError(this.talent.password, this.talentConfirm);
+  }
+
+  onTalentConfirmChange(value: string): void {
+    this.talentConfirm = value;
+    this.syncPasswordError(this.talent.password, this.talentConfirm);
+  }
+
+  onClientPasswordChange(value: string): void {
+    this.client.password = value;
+    this.syncPasswordError(this.client.password, this.clientConfirm);
+  }
+
+  onClientConfirmChange(value: string): void {
+    this.clientConfirm = value;
+    this.syncPasswordError(this.client.password, this.clientConfirm);
+  }
+
+  private syncPasswordError(password: string, confirm: string): void {
+    if (!confirm) {
+      this.passwordError.set('');
+      return;
+    }
+    this.passwordError.set(password === confirm ? '' : 'Passwords do not match.');
+  }
+
+  onTalentEmailChange(value: string): void {
+    this.talent.email = value;
+    this.setEmailError(value);
+  }
+
+  onClientEmailChange(value: string): void {
+    this.client.email = value;
+    this.setEmailError(value);
+  }
+
+  onTalentPhoneChange(value: string): void {
+    this.talent.phone = value;
+    this.fieldErrors.update((current) => ({ ...current, phone: phoneErrorWhileTyping(value) }));
+  }
+
+  onTalentWhatsappChange(value: string): void {
+    this.talent.whatsapp = value;
+    this.fieldErrors.update((current) => ({ ...current, whatsapp: phoneErrorWhileTyping(value) }));
+  }
+
+  onClientPhoneChange(value: string): void {
+    this.client.phone = value;
+    this.fieldErrors.update((current) => ({ ...current, phone: phoneErrorWhileTyping(value) }));
+  }
+
+  onClientWhatsappChange(value: string): void {
+    this.client.whatsapp = value;
+    this.fieldErrors.update((current) => ({ ...current, whatsapp: phoneErrorWhileTyping(value) }));
+  }
+
+  private setEmailError(value: string): void {
     this.fieldErrors.update((current) => ({
       ...current,
       email: emailErrorWhileTyping(value),
-    }));
-  }
-
-  onPhoneChange(value: string): void {
-    this.form.phone = value;
-    this.fieldErrors.update((current) => ({
-      ...current,
-      phone: phoneErrorWhileTyping(value),
-    }));
-  }
-
-  onWhatsappChange(value: string): void {
-    this.form.whatsapp = value;
-    this.fieldErrors.update((current) => ({
-      ...current,
-      whatsapp: phoneErrorWhileTyping(value),
     }));
   }
 
@@ -166,11 +260,62 @@ export class SignupComponent implements OnInit {
     return null;
   }
 
-  submit(ngForm: NgForm): void {
-    const contactErrors = getContactFieldErrors(this.form.email, this.form.phone, this.form.whatsapp);
+  submitClient(ngForm: NgForm): void {
+    const contactErrors = getContactFieldErrors(this.client.email, this.client.phone, this.client.whatsapp);
     this.fieldErrors.set(contactErrors);
-
     if (hasContactFieldErrors(contactErrors)) {
+      this.error.set('');
+      return;
+    }
+
+    this.syncPasswordError(this.client.password, this.clientConfirm);
+    if (!this.clientConfirm || this.client.password !== this.clientConfirm) {
+      this.passwordError.set('Passwords do not match.');
+      this.error.set('');
+      return;
+    }
+
+    if (!this.client.fullName.trim() || this.client.fullName.trim().length < 2) {
+      this.error.set('Please enter your full name.');
+      return;
+    }
+    if (!this.client.password || this.client.password.length < 6) {
+      this.error.set('Password must be at least 6 characters.');
+      return;
+    }
+    if (!this.client.phone.trim() || !this.client.whatsapp.trim()) {
+      this.error.set('Phone and WhatsApp are required.');
+      return;
+    }
+    if (ngForm.invalid) {
+      this.error.set('Please fill in all required fields.');
+      return;
+    }
+
+    this.register({
+      fullName: this.client.fullName.trim(),
+      professionalName: this.client.fullName.trim(),
+      email: this.client.email.trim(),
+      password: this.client.password,
+      role: 'brand',
+      membership: 'free',
+      categorySlug: 'brand-client',
+      phone: this.client.phone.trim(),
+      whatsapp: this.client.whatsapp.trim(),
+    });
+  }
+
+  submitTalent(ngForm: NgForm): void {
+    const contactErrors = getContactFieldErrors(this.talent.email, this.talent.phone, this.talent.whatsapp);
+    this.fieldErrors.set(contactErrors);
+    if (hasContactFieldErrors(contactErrors)) {
+      this.error.set('');
+      return;
+    }
+
+    this.syncPasswordError(this.talent.password, this.talentConfirm);
+    if (!this.talentConfirm || this.talent.password !== this.talentConfirm) {
+      this.passwordError.set('Passwords do not match.');
       this.error.set('');
       return;
     }
@@ -180,7 +325,7 @@ export class SignupComponent implements OnInit {
       return;
     }
 
-    if (this.role() === 'member' && !this.form.categorySlug) {
+    if (!this.talent.categorySlug) {
       this.error.set('Please choose a category.');
       return;
     }
@@ -191,28 +336,36 @@ export class SignupComponent implements OnInit {
       return;
     }
 
-    this.loading.set(true);
-    this.error.set('');
-    this.fieldErrors.set({});
-
-    const ageValue = this.form.age;
+    const ageValue = this.talent.age;
     const ageNumber =
       ageValue === undefined || ageValue === null || String(ageValue).trim() === ''
         ? undefined
         : Number(ageValue);
 
-    const payload: RegisterPayload = {
-      ...this.form,
-      role: this.role(),
-      professionalName: this.form.professionalName || this.form.fullName,
-      categorySlug: this.form.categorySlug || undefined,
+    this.register({
+      ...this.talent,
+      role: 'member',
+      professionalName: this.talent.professionalName || this.talent.fullName,
+      categorySlug: this.talent.categorySlug,
+      membership: this.talent.membership,
       age: ageNumber != null && !Number.isNaN(ageNumber) ? ageNumber : undefined,
       customFields: this.selectedCategoryFields().length ? this.customFields() : undefined,
-    };
+    });
+  }
+
+  private register(payload: RegisterPayload): void {
+    this.loading.set(true);
+    this.error.set('');
+    this.fieldErrors.set({});
 
     this.auth.register(payload).subscribe({
-      next: () => {
+      next: (res) => {
         this.loading.set(false);
+        if (res.accessToken) {
+          const redirect = this.route.snapshot.queryParamMap.get('redirect');
+          this.router.navigateByUrl(redirect || '/dashboard');
+          return;
+        }
         this.submitted.set(true);
       },
       error: (err) => {

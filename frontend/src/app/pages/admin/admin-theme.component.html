@@ -2,22 +2,48 @@
   <div class="admin-page__head">
     <span class="eyebrow">LIVE PREVIEW</span>
     <h1 class="display-lg">THEME <span class="text-gradient">EDITOR</span></h1>
-    <p>Changes preview instantly across the whole site. Hit save to make them permanent.</p>
+    <p>Pick a preset or edit colors. The site updates instantly. Save to keep it for everyone.</p>
   </div>
 
   @if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING THEME..." />
-  } @else {
-  @if (theme(); as t) {
+  } @else if (draft) {
+    <div class="theme-status" [class.theme-status--dirty]="isDirty()">
+      <div>
+        <span class="theme-status__label">Now in use</span>
+        <strong>{{ currentName() }}</strong>
+      </div>
+      @if (isDirty()) {
+        <div>
+          <span class="theme-status__label">Previewing</span>
+          <strong>{{ previewName() }}</strong>
+          <span class="theme-status__hint">not saved yet</span>
+        </div>
+      } @else {
+        <span class="theme-status__live">Live for all visitors</span>
+      }
+    </div>
+
     <div class="presets">
       @for (p of presets; track p.name) {
-        <button class="preset-btn" (click)="applyPreset(p)">
+        <button
+          type="button"
+          class="preset-btn"
+          [class.is-live]="isActivePreset(p)"
+          [class.is-preview]="isPreviewPreset(p)"
+          (click)="applyPreset(p)"
+        >
           <span class="preset-btn__swatches">
             <span [style.background]="p.colors.primary_color"></span>
             <span [style.background]="p.colors.secondary_color"></span>
             <span [style.background]="p.colors.accent_color"></span>
           </span>
           {{ p.name }}
+          @if (isActivePreset(p) && !isDirty()) {
+            <span class="preset-btn__badge">In use</span>
+          } @else if (isPreviewPreset(p) && isDirty()) {
+            <span class="preset-btn__badge preset-btn__badge--preview">Preview</span>
+          }
         </button>
       }
     </div>
@@ -27,18 +53,20 @@
         <div class="color-field">
           <label>{{ field.label }}</label>
           <div class="color-field__row">
-            <input type="color" [(ngModel)]="t[field.key]" [name]="field.key" (input)="onColorChange()" />
-            <input type="text" [(ngModel)]="t[field.key]" [name]="field.key + '-text'" (change)="onColorChange()" />
+            <input type="color" [(ngModel)]="draft[field.key]" [name]="field.key" (ngModelChange)="onColorChange()" />
+            <input type="text" [(ngModel)]="draft[field.key]" [name]="field.key + '-text'" (ngModelChange)="onColorChange()" />
           </div>
         </div>
       }
     </div>
 
     <div class="theme-actions">
-      <app-animated-button variant="outline" (clicked)="resetPreview()">Reset Preview</app-animated-button>
-      <app-animated-button variant="primary" size="lg" [loading]="saving()" (clicked)="save()">Save Theme</app-animated-button>
+      <app-animated-button variant="outline" [disabled]="!isDirty()" (clicked)="resetPreview()">Reset Preview</app-animated-button>
+      <app-animated-button variant="primary" size="lg" [loading]="saving()" [disabled]="!isDirty()" (clicked)="save()">Save Theme</app-animated-button>
     </div>
-    @if (saved()) { <p class="save-success">✅ Theme saved and live for all visitors!</p> }
-  }
+    @if (saved()) { <p class="save-success">Theme saved. {{ currentName() }} is now live for all visitors.</p> }
+    @if (saveError()) { <p class="save-error">{{ saveError() }}</p> }
+  } @else {
+    <p class="save-error">No theme loaded. Check that the API and database are running, then refresh.</p>
   }
 </div>

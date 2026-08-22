@@ -54,7 +54,9 @@ export class ProfilePublicComponent implements OnInit {
     const p = this.profile();
     if (!p) return;
     if (!this.auth.isAuthenticated()) {
-      this.router.navigate(['/auth/login'], { queryParams: { redirect: `/book/${p.id}` } });
+      this.router.navigate(['/auth/signup'], {
+        queryParams: { role: 'brand', redirect: `/book/${p.id}` },
+      });
       return;
     }
     this.router.navigate(['/book', p.id]);
@@ -67,6 +69,6 @@ export class ProfilePublicComponent implements OnInit {
       this.router.navigate(['/auth/login'], { queryParams: { redirect: this.router.url } });
       return;
     }
-    this.router.navigate(['/dashboard/messages'], { queryParams: { with: p.id } });
+    this.router.navigate(['/dashboard/messages'], { queryParams: { with: p.user_id || p.id } });
   }
 }

@@ -91,11 +91,7 @@
               </div>
               <div class="form-field">
                 <label>Type</label>
-                <select [(ngModel)]="fieldDraft.field_type" name="fieldType">
-                  @for (t of fieldTypes; track t) {
-                    <option [value]="t">{{ t }}</option>
-                  }
-                </select>
+                <app-select [(ngModel)]="fieldDraft.field_type" name="fieldType" [options]="fieldTypeOptions" />
               </div>
               <div class="form-field">
                 <label>Required</label>

@@ -4,10 +4,14 @@
       <span class="eyebrow">DIRECTORY</span>
       <h1 class="display-lg">PLATFORM <span class="text-gradient">USERS</span></h1>
       <p class="admin-page__hint">
-        Review applications, approve or reject creatives, verify profiles, and manage membership.
+        Review applications, approve or reject creatives, verify profiles, and manage membership. Client accounts live under Clients.
       </p>
     </div>
   </div>
+
+  @if (listError()) {
+    <p class="form-error">{{ listError() }}</p>
+  }
 
   <div class="status-chips">
     @for (s of statuses; track s) {
@@ -69,11 +73,7 @@
             } @else if (u.approval_status === 'rejected') {
               <button type="button" class="approve-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'approved')">Approve</button>
             } @else if (u.role !== 'admin') {
-              <select [ngModel]="u.membership" (ngModelChange)="setMembership(u, $event)" [name]="'mem-' + u.id">
-                <option value="basic">Normal ($7.99)</option>
-                <option value="premium">Premium ($14.99)</option>
-                <option value="free">Legacy free</option>
-              </select>
+              <app-select [ngModel]="u.membership" (ngModelChange)="setMembership(u, $event)" [name]="'mem-' + u.id" [options]="membershipOptions" />
               <button type="button" class="chip-btn" [class.on]="u.is_verified" (click)="toggleVerified(u)">
                 {{ u.is_verified ? 'Verified' : 'Verify' }}
               </button>
@@ -81,6 +81,10 @@
                 {{ u.is_active ? 'Active' : 'Suspended' }}
               </button>
               <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
+            }
+
+            @if (u.role !== 'admin') {
+              <button type="button" class="delete-btn" [disabled]="savingId() === u.id" (click)="deleteUser(u)">Delete</button>
             }
           </div>
         </div>
@@ -130,29 +134,21 @@
           </div>
           <div class="form-field">
             <label>Membership</label>
-            <select name="membership" [(ngModel)]="editForm.membership">
-              <option value="basic">Normal ($7.99)</option>
-              <option value="premium">Premium ($14.99)</option>
-              <option value="free">Legacy free</option>
-            </select>
+            <app-select name="membership" [(ngModel)]="editForm.membership" [options]="membershipOptions" />
           </div>
           <div class="form-field">
             <label>Category</label>
-            <select name="categorySlug" [(ngModel)]="editForm.categorySlug" (ngModelChange)="onEditCategoryChange()">
-              <option value="">No category</option>
-              @for (c of categories(); track c.id) {
-                <option [value]="c.slug">{{ c.name }}</option>
-              }
-            </select>
+            <app-select
+              name="categorySlug"
+              [(ngModel)]="editForm.categorySlug"
+              placeholder="No category"
+              [options]="categoryOptions()"
+              (ngModelChange)="onEditCategoryChange()"
+            />
           </div>
           <div class="form-field">
             <label>Country</label>
-            <select name="country" [(ngModel)]="editForm.country">
-              <option value="">Select country</option>
-              @for (c of countries(); track c.id) {
-                <option [value]="c.name">{{ c.name }}</option>
-              }
-            </select>
+            <app-select name="country" [(ngModel)]="editForm.country" placeholder="Select country" [options]="countryOptions()" />
           </div>
           <div class="form-field">
             <label>City</label>
@@ -216,16 +212,13 @@
                   </label>
 
                   @if (field.field_type === 'dropdown') {
-                    <select
+                    <app-select
                       [name]="'cf-' + field.field_key"
                       [ngModel]="editForm.custom_fields[field.field_key] || ''"
                       (ngModelChange)="setCustomField(field.field_key, $event)"
-                    >
-                      <option value="">Select {{ field.label }}</option>
-                      @for (opt of field.options; track opt) {
-                        <option [value]="opt">{{ opt }}</option>
-                      }
-                    </select>
+                      [placeholder]="'Select ' + field.label"
+                      [options]="fieldSelectOptions(field)"
+                    />
                   } @else if (field.field_type === 'textarea') {
                     <textarea
                       [name]="'cf-' + field.field_key"

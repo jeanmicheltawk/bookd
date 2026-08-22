@@ -1,32 +1,25 @@
 .p-card {
   display: block;
-  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
-  animation: scale-in var(--dur-medium) var(--ease-bounce) both;
-  transition: transform var(--dur-medium) var(--ease-out-expo), border-color var(--dur-medium), box-shadow var(--dur-medium);
+  background: transparent;
+  border: 1px solid currentColor;
+  animation: scale-in var(--dur-medium) var(--ease-out-expo) both;
+  transition: transform var(--dur-fast);
 
-  &:hover {
-    transform: translateY(-8px) rotate(-0.5deg);
-    border-color: var(--color-primary);
-    box-shadow: var(--shadow-glow-lime);
-  }
+  &:hover { transform: translateY(-1px); }
 
   &__media {
     position: relative;
     aspect-ratio: 3 / 4;
-    background: var(--surface-2);
+    background: var(--electric-blue);
     overflow: hidden;
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.6s var(--ease-out-expo);
     }
   }
-  &:hover &__media img { transform: scale(1.08); }
 
   &__placeholder {
     width: 100%;
@@ -36,32 +29,34 @@
     justify-content: center;
     font-family: var(--font-display);
     font-size: 3rem;
-    font-weight: 800;
-    background: var(--gradient-neon);
-    color: rgba(255,255,255,0.85);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    background: var(--uv-purple);
+    color: #ffffff;
   }
 
   &__badge {
     position: absolute;
     top: 12px;
     padding: 4px 10px;
-    border-radius: var(--radius-pill);
     font-size: 0.65rem;
     font-weight: 800;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     z-index: 2;
   }
   &.badge-premium, .badge-premium {
     left: 12px;
-    background: var(--gradient-fire);
-    color: #fff;
+    background: var(--laser-cyan);
+    color: var(--ink-black);
   }
   .badge-verified {
     right: 12px;
     width: 22px; height: 22px; padding: 0;
     display: flex; align-items: center; justify-content: center;
     background: var(--color-verified-badge);
-    color: var(--bkd-ink-black);
+    color: var(--ink-black);
     font-weight: 900;
   }
 
@@ -72,20 +67,18 @@
     z-index: 2;
     font-size: 0.65rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     padding: 4px 10px;
-    border-radius: var(--radius-pill);
-    background: rgba(9,0,15,0.6);
-    backdrop-filter: blur(6px);
-    color: var(--color-primary);
-    border: 1px solid var(--surface-border);
+    background: var(--acid-lime);
+    color: var(--ink-black);
+    border: none;
   }
 
   &__scrim {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 40%, rgba(9,0,15,0.85) 100%);
+    background: transparent;
   }
 
   &__overlay {
@@ -103,12 +96,12 @@
   &__cta {
     font-size: 0.7rem;
     font-weight: 800;
-    letter-spacing: 0.08em;
-    color: var(--color-primary);
-    background: rgba(9,0,15,0.7);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-black);
+    background: var(--acid-lime);
     padding: 8px 16px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--color-primary);
+    border: none;
   }
 
   &__body { padding: 16px 18px 20px; }
@@ -116,8 +109,9 @@
   &__name {
     font-size: 1.05rem;
     margin-bottom: 6px;
-    text-transform: none;
-    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    font-weight: 800;
   }
 
   &__meta {
@@ -131,30 +125,25 @@
 
   .chip-sm {
     padding: 3px 10px;
-    border-radius: var(--radius-pill);
-    background: var(--surface-2);
-    color: var(--color-accent);
+    background: var(--laser-cyan);
+    color: var(--ink-black);
     font-weight: 700;
     font-size: 0.68rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  &__location { color: var(--text-muted); }
+  &__location { color: var(--text); }
 
   &__availability {
     display: inline-block;
     font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--text);
   }
   &__availability.is-open {
-    color: var(--bkd-acid-lime);
-  }
-  &__availability.is-open::before {
-    content: '●';
-    margin-right: 4px;
-    animation: pulse-glow 1.4s infinite;
+    color: var(--acid-lime);
   }
 }

@@ -7,17 +7,26 @@ import { MediaService } from '../../core/services/media.service';
 import { ApiService } from '../../core/services/api.service';
 import { MediaItem } from '../../core/models';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 
 @Component({
   selector: 'app-admin-media',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingScreenComponent],
+  imports: [CommonModule, FormsModule, LoadingScreenComponent, SelectComponent],
   templateUrl: './admin-media.component.html',
   styleUrl: './admin-media.component.scss',
 })
 export class AdminMediaComponent implements OnInit {
   private mediaService = inject(MediaService);
   api = inject(ApiService);
+
+  folderOptions: SelectOption[] = [
+    { value: 'general', label: 'general' },
+    { value: 'avatars', label: 'avatars' },
+    { value: 'portfolio', label: 'portfolio' },
+    { value: 'cms', label: 'cms' },
+    { value: 'events', label: 'events' },
+  ];
 
   items = signal<MediaItem[]>([]);
   folders = signal<Array<{ folder: string; count: number }>>([]);

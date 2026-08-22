@@ -8,7 +8,7 @@ const PUBLIC_PROFILE_FIELDS = `
   p.phone, p.whatsapp, p.availability, p.custom_url, p.is_public, p.performance_score,
   p.custom_fields, p.created_at, p.updated_at,
   c.slug AS category_slug, c.name AS category_name,
-  u.is_verified, u.membership
+  u.id AS user_id, u.is_verified, u.membership
 `;
 
 async function resolveProfileId(idOrSlug) {
@@ -29,6 +29,7 @@ async function getPublicProfile(req, res, next) {
        WHERE p.id = $1
          AND p.is_public = TRUE
          AND u.is_active = TRUE
+         AND u.role = 'member'
          AND u.approval_status = 'approved'`,
       [profileId]
     );
@@ -112,9 +113,14 @@ async function updateMyProfile(req, res, next) {
 
     if (req.body.is_public === true) {
       const statusRes = await query(
-        `SELECT approval_status FROM users WHERE id = $1`,
+        `SELECT approval_status, role FROM users WHERE id = $1`,
         [req.user.id]
       );
+      if (statusRes.rows[0]?.role === 'brand') {
+        return res.status(403).json({
+          error: 'Client accounts are not listed as public talent profiles.',
+        });
+      }
       if (statusRes.rows[0]?.approval_status !== 'approved') {
         return res.status(403).json({
           error: 'Your profile can only be made public after admin approval.',

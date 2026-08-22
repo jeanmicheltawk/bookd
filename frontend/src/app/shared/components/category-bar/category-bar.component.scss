@@ -5,8 +5,8 @@
   height: var(--category-bar-height);
   display: flex;
   align-items: center;
-  background: var(--surface-0);
-  border-bottom: 1px solid var(--surface-border);
+  background: var(--toxic-orange);
+  border-bottom: 1px solid currentColor;
 
   &__track {
     display: flex;
@@ -20,22 +20,21 @@
   &__chip {
     flex-shrink: 0;
     padding: 7px 16px;
-    border-radius: var(--radius-pill);
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--text-secondary);
+    letter-spacing: 0.12em;
+    color: var(--text);
     border: 1px solid transparent;
-    transition: all var(--dur-fast);
+    background: transparent;
     white-space: nowrap;
 
-    &:hover { color: var(--text-primary); border-color: var(--surface-border); }
+    &:hover { border-color: currentColor; }
 
     &.active {
-      color: var(--bkd-ink-black);
-      background: var(--gradient-acid);
-      border-color: transparent;
+      color: var(--ink-black);
+      background: var(--acid-lime);
+      border-color: var(--acid-lime);
     }
   }
 }

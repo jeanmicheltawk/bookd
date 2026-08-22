@@ -1,6 +1,6 @@
 .learn-hero {
   padding: 56px 0 36px;
-  background: var(--gradient-radial-glow);
+  background: transparent;
   &__sub { max-width: 580px; margin: 16px 0 28px; font-size: 1.05rem; }
 }
 
@@ -18,41 +18,37 @@
 
 .learn-card {
   display: block;
-  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--surface-1);
-  border: 1px solid var(--surface-border);
-  animation: scale-in var(--dur-medium) var(--ease-bounce) both;
-  transition: all var(--dur-medium);
+  background: transparent;
+  border: 1px solid currentColor;
 
-  &:hover { transform: translateY(-6px); border-color: var(--bkd-laser-cyan); box-shadow: var(--shadow-glow-cyan); }
+  &:hover { transform: translateY(-1px); }
 
   &__cover {
     position: relative;
     height: 140px;
-    background: var(--gradient-acid);
+    background: var(--electric-blue);
     background-size: cover;
     background-position: center;
     display: flex; align-items: center; justify-content: center;
   }
   &__play {
     width: 44px; height: 44px;
-    border-radius: 50%;
-    background: rgba(9,0,15,0.6);
-    color: #fff;
+    background: var(--acid-lime);
+    color: var(--ink-black);
     display: flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(4px);
+    font-weight: 900;
   }
 
   &__body { padding: 20px; }
   &__cat {
     display: inline-block;
-    font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
-    color: var(--bkd-laser-cyan);
+    font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--laser-cyan);
     margin-bottom: 8px;
   }
-  h3 { font-size: 1rem; margin-bottom: 12px; text-transform: none; }
-  &__cta { font-size: 0.75rem; font-weight: 800; color: var(--color-primary); }
+  h3 { font-size: 1rem; margin-bottom: 12px; text-transform: uppercase; }
+  &__cta { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--acid-lime); }
 }
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px dashed var(--surface-border); border-radius: var(--radius-lg); }
+.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }

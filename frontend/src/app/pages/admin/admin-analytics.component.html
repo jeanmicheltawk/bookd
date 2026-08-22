@@ -1,6 +1,6 @@
 <div class="admin-page">
   <div class="admin-page__head">
-    <span class="eyebrow">DEEP DIVE</span>
+    <span class="eyebrow">CONTROL ROOM</span>
     <h1 class="display-lg">SITE <span class="text-gradient">ANALYTICS</span></h1>
   </div>
 
@@ -9,59 +9,60 @@
   } @else {
   @if (data(); as d) {
     <div class="stats-row">
-      <div class="stat-card"><span class="label">Last 24h</span><span class="value text-gradient-acid">{{ d.visitors.last_24h }}</span></div>
-      <div class="stat-card"><span class="label">Last 7 Days</span><span class="value">{{ d.visitors.last_7d }}</span></div>
-      <div class="stat-card"><span class="label">Last 30 Days</span><span class="value">{{ d.visitors.last_30d }}</span></div>
-      <div class="stat-card"><span class="label">Unique (30d)</span><span class="value text-gradient">{{ d.visitors.unique_visitors_30d }}</span></div>
-      <div class="stat-card"><span class="label">Total Contacts</span><span class="value">{{ d.contacts.total }}</span></div>
-    </div>
-
-    <div class="admin-grid">
-      <div class="panel">
-        <h3>Top Pages (30 days)</h3>
-        @if (d.popularPages.length) {
-          <div class="bar-list">
-            @for (p of d.popularPages; track p.path) {
-              <div class="bar-row">
-                <span class="bar-row__path">{{ p.path }}</span>
-                <div class="bar-row__track"><div class="bar-row__fill" [style.width.%]="(p.views / maxViews()) * 100"></div></div>
-                <span class="bar-row__count">{{ p.views }}</span>
-              </div>
-            }
-          </div>
-        } @else { <p class="empty-hint">No data yet.</p> }
+      <div class="stat-card">
+        <span class="label">Unique Visitors</span>
+        <span class="value text-gradient">{{ d.visitors.unique_visitors_30d || 0 }}</span>
+        <span class="hint">Last 30 days</span>
       </div>
-
-      <div class="panel">
-        <h3>Event Types (recent)</h3>
-        @if (eventTypeCounts().length) {
-          <div class="type-grid">
-            @for (t of eventTypeCounts(); track t.type) {
-              <div class="type-chip">
-                <strong>{{ t.count }}</strong>
-                <span>{{ t.type }}</span>
-              </div>
-            }
-          </div>
-        } @else { <p class="empty-hint">No recent events.</p> }
+      <div class="stat-card">
+        <span class="label">Total Contacts</span>
+        <span class="value">{{ d.contacts.total || 0 }}</span>
       </div>
+      <div class="stat-card">
+        <span class="label">Active Profiles</span>
+        <span class="value text-gradient-acid">{{ profiles().active }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Total Profiles</span>
+        <span class="value">{{ profiles().total }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Monthly Amount</span>
+        <span class="value">{{ profiles().monthlyAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+        <span class="hint">Active memberships</span>
+      </div>
+      <a routerLink="/admin/users" class="stat-card stat-card--link">
+        <span class="label">Pending Applications</span>
+        <span class="value">{{ profiles().pending }}</span>
+        <span class="hint">Waiting for review</span>
+      </a>
     </div>
 
     <div class="panel">
-      <h3>Full Activity Log</h3>
-      <div class="activity-table">
-        <div class="activity-table__row activity-table__row--head">
-          <span>Event</span><span>User / Profile</span><span>Path</span><span>Time</span>
+      <h3>Most Visited Profiles</h3>
+      @if (topProfiles().length) {
+        <div class="rank-list">
+          @for (p of topProfiles(); track p.id; let i = $index) {
+            <a class="rank-row" [routerLink]="['/profile', profileLink(p)]">
+              <span class="rank-row__n">{{ i + 1 }}</span>
+              <img
+                [src]="p.profile_photo_url ? api.assetUrl(p.profile_photo_url) : 'assets/placeholder-avatar.svg'"
+                [alt]="profileName(p)"
+              />
+              <div class="rank-row__meta">
+                <strong>{{ profileName(p) }}</strong>
+                <span>{{ p.category_name || 'No category' }}</span>
+              </div>
+              <div class="rank-row__bar">
+                <div class="rank-row__fill" [style.width.%]="(p.views / maxViews()) * 100"></div>
+              </div>
+              <span class="rank-row__views">{{ p.views }}</span>
+            </a>
+          }
         </div>
-        @for (a of d.recentActivity; track a.id) {
-          <div class="activity-table__row">
-            <span class="activity-type">{{ a.event_type }}</span>
-            <span>{{ a.user_email || a.profile_name || '—' }}</span>
-            <span class="path">{{ a.path || '—' }}</span>
-            <span>{{ a.created_at | date: 'short' }}</span>
-          </div>
-        }
-      </div>
+      } @else {
+        <p class="empty-hint">No profile visits yet.</p>
+      }
     </div>
   }
   }

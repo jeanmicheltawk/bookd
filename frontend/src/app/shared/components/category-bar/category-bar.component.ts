@@ -17,7 +17,7 @@ export class CategoryBarComponent implements OnInit {
   categories = signal<Category[]>([]);
 
   ngOnInit(): void {
-    this.categoryService.list().subscribe({
+    this.categoryService.list({ searchable: true }).subscribe({
       next: (res) => this.categories.set(res.data),
       error: () => this.categories.set([]),
     });
