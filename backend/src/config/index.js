@@ -5,6 +5,7 @@ module.exports = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
   db: {
+    connectionString: process.env.DATABASE_URL || '',
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432', 10),
     database: process.env.DB_NAME || 'bookd_haus',
@@ -21,7 +22,10 @@ module.exports = {
     dir: process.env.UPLOAD_DIR || 'uploads',
     maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || '25', 10),
   },
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+  corsOrigin: (process.env.CORS_ORIGIN || 'http://localhost:4200')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   admin: {
     email: process.env.ADMIN_EMAIL || 'admin@bookd.com',
     password: process.env.ADMIN_PASSWORD || 'bookdadmin',

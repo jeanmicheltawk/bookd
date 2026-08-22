@@ -58,7 +58,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 if (require.main === module) {
-  app.listen(config.port, () => {
+  app.listen(config.port, '0.0.0.0', () => {
     console.log(`BOOK'D HAUS API listening on port ${config.port} (${config.env})`);
     console.log(`Uploads served from ${path.resolve(uploadRoot)}`);
   });
