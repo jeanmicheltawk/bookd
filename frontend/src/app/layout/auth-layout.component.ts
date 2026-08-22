@@ -9,7 +9,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     <div class="auth-shell">
       <div class="auth-shell__visual">
         <a routerLink="/" class="auth-shell__logo">
-          <img src="/assets/logo.svg" alt="BOOK'D" />
+          <img src="assets/logo.svg" alt="BOOK'D" />
         </a>
         <h1 class="auth-shell__headline">BOOK AND<br />GET <span class="text-gradient">BOOK'D</span></h1>
         <p class="auth-shell__sub">Where models, talents, photographers, stylists and brands find each other and get to work.</p>
