@@ -8,7 +8,10 @@
     "dev": "nodemon src/server.js",
     "migrate": "node migrations/run.js",
     "seed": "node seeds/run.js",
-    "setup": "npm run migrate && npm run seed"
+    "setup": "npm run migrate && npm run seed",
+    "db:ensure": "node scripts/ensure-local-db.js",
+    "db:backup": "node scripts/backup.js",
+    "db:restore": "node scripts/restore.js"
   },
   "engines": {
     "node": ">=18"

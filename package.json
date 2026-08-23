@@ -6,13 +6,16 @@
   "scripts": {
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
+    "db:ensure": "npm --prefix backend run db:ensure",
+    "db:backup": "npm --prefix backend run db:backup",
+    "db:restore": "npm --prefix backend run db:restore",
     "backend:install": "npm --prefix backend install",
     "backend:setup": "npm --prefix backend run setup",
     "backend:dev": "npm --prefix backend run dev",
     "frontend:install": "npm --prefix frontend install",
     "frontend:start": "npm --prefix frontend start",
     "frontend:build": "npm --prefix frontend run build",
-    "setup": "npm run backend:install && npm run frontend:install && npm run db:up && npm run backend:setup",
+    "setup": "npm run backend:install && npm run frontend:install && npm run db:ensure && npm run backend:setup",
     "dev": "echo Run backend:dev and frontend:start in two terminals"
   }
 }

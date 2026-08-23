@@ -1,3 +1,6 @@
+# Optional Docker Postgres. On this laptop the durable database is
+# the installed PostgreSQL 17 service on localhost:5432 (bookd_haus).
+# Do not run `docker compose down -v` — that only affects Docker volumes.
 services:
   db:
     image: postgres:16-alpine

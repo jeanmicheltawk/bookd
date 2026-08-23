@@ -52,7 +52,6 @@ async function seed() {
       `INSERT INTO users (email, password_hash, role, membership, is_verified, is_active, approval_status, reviewed_at)
        VALUES ($1, $2, 'admin', 'premium', TRUE, TRUE, 'approved', NOW())
        ON CONFLICT (email) DO UPDATE SET
-         password_hash = EXCLUDED.password_hash,
          role = 'admin',
          approval_status = 'approved',
          reviewed_at = COALESCE(users.reviewed_at, NOW())
@@ -118,7 +117,7 @@ async function seed() {
     for (const [key, value] of settings) {
       await client.query(
         `INSERT INTO website_settings (key, value) VALUES ($1, $2::jsonb)
-         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+         ON CONFLICT (key) DO NOTHING`,
         [key, JSON.stringify(value)]
       );
     }
@@ -126,10 +125,12 @@ async function seed() {
     const pageRes = await client.query(
       `INSERT INTO pages (slug, title, meta_title, meta_description, is_published)
        VALUES ('home', 'Home', 'BOOK''D — Book and Get Book''d', 'Creative networking and booking platform for fashion, beauty and content creation.', TRUE)
-       ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title
+       ON CONFLICT (slug) DO NOTHING
        RETURNING id`
     );
-    const homeId = pageRes.rows[0].id;
+    const homeId = pageRes.rows[0]
+      ? pageRes.rows[0].id
+      : (await client.query(`SELECT id FROM pages WHERE slug = 'home'`)).rows[0].id;
 
     const sections = [
       {
@@ -197,14 +198,7 @@ async function seed() {
       await client.query(
         `INSERT INTO sections (page_id, key, title, subtitle, content, cta_label, cta_url, sort_order, is_visible)
          VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, TRUE)
-         ON CONFLICT (page_id, key) DO UPDATE SET
-           title = EXCLUDED.title,
-           subtitle = EXCLUDED.subtitle,
-           content = EXCLUDED.content,
-           cta_label = EXCLUDED.cta_label,
-           cta_url = EXCLUDED.cta_url,
-           sort_order = EXCLUDED.sort_order,
-           updated_at = NOW()`,
+         ON CONFLICT (page_id, key) DO NOTHING`,
         [homeId, s.key, s.title, s.subtitle, JSON.stringify(s.content), s.cta_label || null, s.cta_url || null, s.sort]
       );
     }
@@ -224,22 +218,20 @@ async function seed() {
       const ur = await client.query(
         `INSERT INTO users (email, password_hash, role, membership, is_verified, is_active)
          VALUES ($1, $2, $3, $4, $5, TRUE)
-         ON CONFLICT (email) DO UPDATE SET membership = EXCLUDED.membership
+         ON CONFLICT (email) DO NOTHING
          RETURNING id`,
         [u.email, demoPass, u.role || 'member', u.membership, u.verified]
       );
+      const userId = ur.rows[0]
+        ? ur.rows[0].id
+        : (await client.query('SELECT id FROM users WHERE email = $1', [u.email])).rows[0].id;
       const isTalent = (u.role || 'member') !== 'brand';
       await client.query(
         `INSERT INTO profiles (user_id, category_id, full_name, professional_name, country, bio, is_public, years_experience, availability)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'available')
-         ON CONFLICT (user_id) DO UPDATE SET
-           category_id = EXCLUDED.category_id,
-           full_name = EXCLUDED.full_name,
-           professional_name = EXCLUDED.professional_name,
-           country = EXCLUDED.country,
-           is_public = EXCLUDED.is_public`,
+         ON CONFLICT (user_id) DO NOTHING`,
         [
-          ur.rows[0].id,
+          userId,
           cat.rows[0]?.id || null,
           u.name,
           u.pro,

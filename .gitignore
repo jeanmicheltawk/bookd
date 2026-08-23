@@ -8,3 +8,5 @@ uploads/*
 .DS_Store
 Thumbs.db
 coverage/
+backups/*.dump
+backups/*.sql
