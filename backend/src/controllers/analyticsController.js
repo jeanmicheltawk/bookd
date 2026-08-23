@@ -99,7 +99,7 @@ async function getAdminDashboard(_req, res, next) {
                  AND u.is_active = TRUE THEN
                  CASE u.membership
                    WHEN 'premium' THEN 14.99
-                   WHEN 'basic' THEN 7.99
+                   WHEN 'basic' THEN 6.99
                    ELSE 0
                  END
                ELSE 0

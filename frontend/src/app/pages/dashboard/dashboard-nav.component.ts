@@ -137,7 +137,7 @@ export class DashboardNavComponent implements OnInit {
         { label: 'Overview', path: '/dashboard', exact: true },
         { label: 'History', path: '/dashboard/bookings', badge: a.bookingUpdates },
         { label: 'Messages', path: '/dashboard/messages', badge: a.unreadMessages },
-        { label: 'Settings', path: '/dashboard/settings' },
+        { label: 'Profile', path: '/dashboard/settings' },
       ];
     }
 
@@ -147,7 +147,7 @@ export class DashboardNavComponent implements OnInit {
       { label: 'Messages', path: '/dashboard/messages', badge: a.unreadMessages },
       { label: 'Notifications', path: '/dashboard/notifications' },
       { label: 'Portfolio', path: '/dashboard/portfolio' },
-      { label: 'Settings', path: '/dashboard/settings' },
+      { label: 'Profile', path: '/dashboard/settings' },
     ];
   }
 }

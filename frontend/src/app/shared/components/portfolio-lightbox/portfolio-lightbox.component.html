@@ -1,0 +1,23 @@
+@if (current(); as item) {
+  <div class="lightbox" (click)="close()" role="dialog" aria-modal="true" [attr.aria-label]="item.title || 'Portfolio media'">
+    <button class="lightbox__close" type="button" (click)="close(); $event.stopPropagation()" aria-label="Close">✕</button>
+
+    @if (items().length > 1) {
+      <button class="lightbox__nav lightbox__nav--prev" type="button" (click)="prev($event)" aria-label="Previous">‹</button>
+      <button class="lightbox__nav lightbox__nav--next" type="button" (click)="next($event)" aria-label="Next">›</button>
+    }
+
+    <figure class="lightbox__stage" (click)="$event.stopPropagation()">
+      @if (item.media_type === 'video') {
+        <video [src]="src(item)" [poster]="item.thumbnail_url ? api.assetUrl(item.thumbnail_url) : ''" controls autoplay></video>
+      } @else {
+        <img [src]="src(item)" [alt]="item.title || 'Portfolio piece'" />
+      }
+      @if (items().length > 1) {
+        <figcaption>
+          <span class="lightbox__count">{{ (index() ?? 0) + 1 }} / {{ items().length }}</span>
+        </figcaption>
+      }
+    </figure>
+  </div>
+}

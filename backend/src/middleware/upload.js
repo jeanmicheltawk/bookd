@@ -26,18 +26,29 @@ const storage = multer.diskStorage({
   },
 });
 
-const fileFilter = (_req, file, cb) => {
-  const allowed = /jpeg|jpg|png|gif|webp|svg|mp4|webm|mov|pdf/;
-  const ok = allowed.test(path.extname(file.originalname).toLowerCase().replace('.', '')) ||
-    allowed.test(file.mimetype.split('/')[1] || '');
-  if (ok) cb(null, true);
-  else cb(new Error('Unsupported file type'));
-};
+function fileFilterFor(allowed) {
+  return (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+    const mimePart = (file.mimetype.split('/')[1] || '').toLowerCase();
+    const ok = allowed.test(ext) || allowed.test(mimePart);
+    if (ok) cb(null, true);
+    else cb(Object.assign(new Error('Unsupported file type'), { status: 400 }));
+  };
+}
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: config.upload.maxFileSizeMb * 1024 * 1024 },
-});
+const fileFilter = fileFilterFor(/jpeg|jpg|png|gif|webp|svg|mp4|webm|mov|pdf/);
+const imageFileFilter = fileFilterFor(/jpeg|jpg|png|gif|webp/);
 
-module.exports = { upload, uploadRoot };
+const limits = { fileSize: config.upload.maxFileSizeMb * 1024 * 1024 };
+
+const upload = multer({ storage, fileFilter, limits });
+const imageUpload = multer({ storage, fileFilter: imageFileFilter, limits });
+
+function forceUploadFolder(folder) {
+  return (req, _res, next) => {
+    req.query.folder = folder;
+    next();
+  };
+}
+
+module.exports = { upload, imageUpload, forceUploadFolder, uploadRoot };

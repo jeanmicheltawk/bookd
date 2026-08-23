@@ -1,6 +1,7 @@
 const { query } = require('../config/db');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
 const { notify, displayName } = require('../utils/notify');
+const { emailAdmin } = require('../utils/mailer');
 
 let bookingDetailColumnsReady = false;
 
@@ -84,6 +85,16 @@ async function createBooking(req, res, next) {
       'New booking request',
       `${clientName} sent a booking request for ${String(projectDate).trim()} at ${String(projectTime).trim()}.`,
       '/dashboard/bookings'
+    );
+    void emailAdmin(
+      'New booking request',
+      [
+        `${clientName} booked a creator.`,
+        `Date: ${String(projectDate).trim()} at ${String(projectTime).trim()}`,
+        `Location: ${String(location).trim()}`,
+        budget != null && budget !== '' ? `Budget: ${budget}` : null,
+        `Details: ${String(description).trim()}`,
+      ].filter(Boolean).join('\n')
     );
 
     res.status(201).json({ ...booking, conversationId: conv.rows[0].id });
@@ -199,6 +210,15 @@ async function negotiateBooking(req, res, next) {
       }
     }
 
+    const otherId = booking.creative_id === req.user.id ? booking.client_id : booking.creative_id;
+    const actorName = await displayName(req.user.id);
+    await notify(
+      otherId,
+      'Booking update',
+      `${actorName} sent a booking update.`,
+      '/dashboard/bookings'
+    );
+
     res.json(result.rows[0]);
   } catch (err) {
     next(err);
@@ -233,6 +253,18 @@ async function updateBookingStatus(req, res, next) {
       `UPDATE bookings SET ${updates.join(', ')} WHERE id = $${params.length} RETURNING *`,
       params
     );
+
+    const otherId = booking.creative_id === req.user.id ? booking.client_id : booking.creative_id;
+    if (otherId && req.user.role !== 'admin') {
+      const actorName = await displayName(req.user.id);
+      await notify(
+        otherId,
+        'Booking update',
+        `${actorName} updated a booking to ${status.replace('_', ' ')}.`,
+        '/dashboard/bookings'
+      );
+    }
+
     res.json(result.rows[0]);
   } catch (err) {
     next(err);

@@ -7,14 +7,15 @@ import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
-import { Profile } from '../../core/models';
+import { PortfolioItem, Profile } from '../../core/models';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
 
 @Component({
   selector: 'app-profile-public',
   standalone: true,
-  imports: [CommonModule, RouterLink, AnimatedButtonComponent, LoadingScreenComponent],
+  imports: [CommonModule, RouterLink, AnimatedButtonComponent, LoadingScreenComponent, PortfolioLightboxComponent],
   templateUrl: './profile-public.component.html',
   styleUrl: './profile-public.component.scss',
 })
@@ -29,7 +30,7 @@ export class ProfilePublicComponent implements OnInit {
   profile = signal<Profile | null>(null);
   loading = signal(true);
   notFound = signal(false);
-  activeMediaIndex = signal(0);
+  lightboxIndex = signal<number | null>(null);
 
   ngOnInit(): void {
     const idOrSlug = this.route.snapshot.paramMap.get('id')!;
@@ -48,6 +49,39 @@ export class ProfilePublicComponent implements OnInit {
 
   photo(url?: string): string {
     return this.api.assetUrl(url);
+  }
+
+  portfolioItems(): PortfolioItem[] {
+    return this.profile()?.portfolio || [];
+  }
+
+  openLightbox(index: number): void {
+    this.lightboxIndex.set(index);
+  }
+
+  phoneHref(phone: string): string {
+    return `tel:${String(phone).replace(/[^\d+]/g, '')}`;
+  }
+
+  whatsappHref(whatsapp: string): string {
+    const digits = String(whatsapp).replace(/\D/g, '');
+    return `https://wa.me/${digits}`;
+  }
+
+  instagramHref(handle: string): string {
+    const value = String(handle).trim();
+    if (/^https?:\/\//i.test(value)) return value;
+    const slug = value.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/.*$/, '');
+    return `https://instagram.com/${slug}`;
+  }
+
+  instagramHandle(handle: string): string {
+    const value = String(handle).trim();
+    if (/^https?:\/\//i.test(value)) {
+      const slug = value.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/.*$/, '');
+      return slug ? `@${slug}` : value;
+    }
+    return value.startsWith('@') ? value : `@${value}`;
   }
 
   bookNow(): void {

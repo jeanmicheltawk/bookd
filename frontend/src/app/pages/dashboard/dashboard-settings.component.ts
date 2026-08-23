@@ -5,7 +5,6 @@ import { catchError, of } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
-import { MediaService } from '../../core/services/media.service';
 import { CountryService } from '../../core/services/country.service';
 import { CategoryService } from '../../core/services/category.service';
 import { ApiService } from '../../core/services/api.service';
@@ -26,7 +25,6 @@ export class DashboardSettingsComponent implements OnInit {
   auth = inject(AuthService);
   api = inject(ApiService);
   private profileService = inject(ProfileService);
-  private mediaService = inject(MediaService);
   private countryService = inject(CountryService);
   private categoryService = inject(CategoryService);
 
@@ -147,13 +145,29 @@ export class DashboardSettingsComponent implements OnInit {
     const file = input.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      this.error.set('Please choose a JPEG, PNG, GIF, or WebP image.');
+      input.value = '';
+      return;
+    }
+
     this.uploadingPhoto.set(true);
-    this.mediaService.upload(file, 'avatars').subscribe({
+    this.error.set('');
+    this.saved.set(false);
+
+    this.profileService.uploadPhoto(file).subscribe({
       next: (media) => {
-        this.form.profilePhotoUrl = media.url;
+        this.form.profilePhotoUrl = media.profile_photo_url || media.url;
+        this.auth.updateStoredUser({ profile_photo_url: this.form.profilePhotoUrl });
         this.uploadingPhoto.set(false);
+        this.saved.set(true);
+        input.value = '';
       },
-      error: () => this.uploadingPhoto.set(false),
+      error: (err) => {
+        this.uploadingPhoto.set(false);
+        this.error.set(err?.error?.error || 'Could not upload photo. Try a smaller image.');
+        input.value = '';
+      },
     });
   }
 

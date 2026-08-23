@@ -128,8 +128,8 @@
             <input type="text" name="talentFullName" [(ngModel)]="talent.fullName" required minlength="2" autocomplete="name" />
           </div>
           <div class="form-field">
-            <label>Professional Name</label>
-            <input type="text" name="talentProfessionalName" [(ngModel)]="talent.professionalName" autocomplete="nickname" />
+            <label>Professional Name *</label>
+            <input type="text" name="talentProfessionalName" [(ngModel)]="talent.professionalName" required minlength="2" autocomplete="nickname" />
           </div>
           <div class="form-field">
             <label>Email *</label>
@@ -189,24 +189,25 @@
             <app-select name="talentMembership" [(ngModel)]="talent.membership" required [options]="membershipSelectOptions" />
           </div>
           <div class="form-field">
-            <label>Country</label>
-            <app-select name="talentCountry" [(ngModel)]="talent.country" placeholder="Select country" [options]="countryOptions()" />
+            <label>Country *</label>
+            <app-select name="talentCountry" [(ngModel)]="talent.country" required placeholder="Select country" [options]="countryOptions()" />
           </div>
           <div class="form-field">
-            <label>City</label>
-            <input type="text" name="talentCity" [(ngModel)]="talent.city" autocomplete="address-level2" />
+            <label>City *</label>
+            <input type="text" name="talentCity" [(ngModel)]="talent.city" required minlength="2" autocomplete="address-level2" />
           </div>
           <div class="form-field">
-            <label>Instagram</label>
-            <input type="text" name="talentInstagram" [(ngModel)]="talent.instagram" placeholder="@handle" />
+            <label>Instagram *</label>
+            <input type="text" name="talentInstagram" [(ngModel)]="talent.instagram" required placeholder="@handle" />
           </div>
           <div class="form-field">
-            <label>Phone</label>
+            <label>Phone *</label>
             <input
               type="tel"
               name="talentPhone"
               [ngModel]="talent.phone"
               (ngModelChange)="onTalentPhoneChange($event)"
+              required
               [pattern]="phonePattern"
               autocomplete="tel"
               placeholder="+1234567890"
@@ -216,12 +217,13 @@
             }
           </div>
           <div class="form-field">
-            <label>WhatsApp</label>
+            <label>WhatsApp *</label>
             <input
               type="tel"
               name="talentWhatsapp"
               [ngModel]="talent.whatsapp"
               (ngModelChange)="onTalentWhatsappChange($event)"
+              required
               [pattern]="phonePattern"
               placeholder="+1234567890"
             />
@@ -234,8 +236,8 @@
             <input type="url" name="talentWebsite" [(ngModel)]="talent.website" placeholder="https://" />
           </div>
           <div class="form-field">
-            <label>Gender</label>
-            <input type="text" name="talentGender" [(ngModel)]="talent.gender" />
+            <label>Gender *</label>
+            <input type="text" name="talentGender" [(ngModel)]="talent.gender" required />
           </div>
           <div class="form-field">
             <label>Age</label>
@@ -249,17 +251,14 @@
             <div class="form-grid">
               @for (field of selectedCategoryFields(); track field.id) {
                 <div class="form-field" [class.form-field--full]="field.field_type === 'textarea'">
-                  <label>
-                    {{ field.label }}
-                    @if (field.is_required) { * }
-                  </label>
+                  <label>{{ field.label }} *</label>
 
                   @if (field.field_type === 'dropdown') {
                     <app-select
                       [name]="'cf-' + field.field_key"
                       [ngModel]="customFields()[field.field_key] || ''"
                       (ngModelChange)="setCustomField(field.field_key, $event)"
-                      [required]="field.is_required"
+                      required
                       [placeholder]="'Select ' + field.label"
                       [options]="fieldSelectOptions(field)"
                     />
@@ -269,7 +268,7 @@
                       rows="3"
                       [ngModel]="customFields()[field.field_key] || ''"
                       (ngModelChange)="setCustomField(field.field_key, $event)"
-                      [required]="field.is_required"
+                      required
                     ></textarea>
                   } @else {
                     <input
@@ -277,7 +276,7 @@
                       [name]="'cf-' + field.field_key"
                       [ngModel]="customFields()[field.field_key] || ''"
                       (ngModelChange)="setCustomField(field.field_key, $event)"
-                      [required]="field.is_required"
+                      required
                     />
                   }
                 </div>
@@ -287,8 +286,8 @@
         }
 
         <div class="form-field">
-          <label>Bio / About you</label>
-          <textarea name="talentBio" [(ngModel)]="talent.bio" rows="4" placeholder="Tell brands and creatives who you are..."></textarea>
+          <label>Bio / About you *</label>
+          <textarea name="talentBio" [(ngModel)]="talent.bio" required rows="4" placeholder="Tell brands and creatives who you are..."></textarea>
         </div>
 
         @if (error()) { <p class="auth-error">{{ error() }}</p> }

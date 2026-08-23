@@ -165,7 +165,7 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () =>
           import('./pages/dashboard/dashboard-settings.component').then((m) => m.DashboardSettingsComponent),
-        title: 'Settings',
+        title: 'Profile',
       },
     ],
   },

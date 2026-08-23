@@ -186,8 +186,8 @@ async function seed() {
         content: {
           plans: [
             { id: 'free', name: 'Free', price: 0, trial: null, blurb: 'Create a profile. Save favourites. Browse announcements.' },
-            { id: 'basic', name: 'Basic', price: 19, trial: '7-day free trial', blurb: 'Messaging, calendar, reviews & better visibility.' },
-            { id: 'premium', name: 'Premium', price: 49, trial: '2-week free trial', blurb: 'Priority search, unlimited portfolio & business tools.' },
+            { id: 'basic', name: 'Starter plan', price: 6.99, trial: '7-day free trial', blurb: 'Messaging, calendar, reviews & better visibility.' },
+            { id: 'premium', name: 'Premium plan', price: 49, trial: '2-week free trial', blurb: 'Priority search, unlimited portfolio & business tools.' },
           ],
         },
         sort: 4,

@@ -1,5 +1,7 @@
 const { query } = require('../config/db');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
+const { notify, displayName } = require('../utils/notify');
+const { emailAdmin } = require('../utils/mailer');
 
 async function listApproved(req, res, next) {
   try {
@@ -110,6 +112,10 @@ async function createAnnouncement(req, res, next) {
         moodboardUrls || null,
       ]
     );
+    void emailAdmin(
+      'New announcement submitted',
+      `"${title.trim()}" was submitted and is waiting for review.`
+    );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     next(err);
@@ -138,6 +144,13 @@ async function applyToAnnouncement(req, res, next) {
        ON CONFLICT (announcement_id, applicant_id) DO UPDATE SET message = EXCLUDED.message
        RETURNING *`,
       [id, req.user.id, message || null]
+    );
+    const applicantName = await displayName(req.user.id);
+    await notify(
+      ann.rows[0].author_id,
+      'New announcement application',
+      `${applicantName} applied to your announcement.`,
+      '/dashboard'
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {

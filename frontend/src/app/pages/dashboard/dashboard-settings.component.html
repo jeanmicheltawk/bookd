@@ -2,7 +2,7 @@
   <div class="dash-head">
     <div>
       <span class="eyebrow">YOUR ACCOUNT</span>
-      <h1 class="display-lg">SETTINGS</h1>
+      <h1 class="display-lg">PROFILE</h1>
     </div>
   </div>
 
@@ -17,7 +17,7 @@
         <div class="photo-row">
           <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="Profile" />
           <label class="upload-btn">
-            <input type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
             {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
           </label>
         </div>
@@ -53,7 +53,7 @@
         <div class="photo-row">
           <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="Profile" />
           <label class="upload-btn">
-            <input type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
             {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
           </label>
         </div>

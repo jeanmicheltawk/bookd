@@ -73,8 +73,8 @@ export class AdminUsersComponent implements OnInit {
   phonePattern = PHONE_CHAR_PATTERN;
 
   membershipOptions: SelectOption[] = [
-    { value: 'basic', label: 'Normal ($7.99)' },
-    { value: 'premium', label: 'Premium ($14.99)' },
+    { value: 'basic', label: 'Starter plan ($6.99)' },
+    { value: 'premium', label: 'Premium plan ($14.99)' },
     { value: 'free', label: 'Legacy free' },
   ];
 

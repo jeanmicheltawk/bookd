@@ -30,4 +30,13 @@ module.exports = {
     email: process.env.ADMIN_EMAIL || 'admin@bookd.com',
     password: process.env.ADMIN_PASSWORD || 'bookdadmin',
   },
+  appUrl: (process.env.APP_URL || 'http://localhost:4200').replace(/\/$/, ''),
+  mail: {
+    host: process.env.SMTP_HOST || 'smtp.office365.com',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || process.env.SMTP_USER || 'info@bookdhaus.com',
+    notifyTo: process.env.NOTIFY_EMAIL || 'info@bookdhaus.com',
+  },
 };

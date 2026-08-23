@@ -19,12 +19,25 @@ export class ProfileService {
     return this.api.patch<Profile>('/profiles/me', payload);
   }
 
+  uploadPhoto(file: File): Observable<{ url: string; profile_photo_url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.postForm('/profiles/me/photo', formData);
+  }
+
   listMyPortfolio(): Observable<{ data: PortfolioItem[] }> {
     return this.api.get('/profiles/me/portfolio');
   }
 
   addPortfolioItem(payload: Partial<PortfolioItem> & { url: string; mediaType?: string }): Observable<PortfolioItem> {
     return this.api.post('/profiles/me/portfolio', payload);
+  }
+
+  uploadPortfolio(file: File, title?: string): Observable<PortfolioItem> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (title) formData.append('title', title);
+    return this.api.postForm('/profiles/me/portfolio/upload', formData);
   }
 
   updatePortfolioItem(id: string, payload: Partial<PortfolioItem>): Observable<PortfolioItem> {

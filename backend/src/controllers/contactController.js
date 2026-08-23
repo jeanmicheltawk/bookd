@@ -1,5 +1,6 @@
 const { query } = require('../config/db');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
+const { emailAdmin } = require('../utils/mailer');
 
 async function createContact(req, res, next) {
   try {
@@ -13,6 +14,16 @@ async function createContact(req, res, next) {
        VALUES ($1, $2, $3, $4)
        RETURNING id, name, email, subject, status, created_at`,
       [name.trim(), email.trim().toLowerCase(), subject?.trim() || null, message.trim()]
+    );
+    void emailAdmin(
+      'New Contact Us message',
+      [
+        `${name.trim()} sent a message from the Contact page.`,
+        `Email: ${email.trim().toLowerCase()}`,
+        subject?.trim() ? `Subject: ${subject.trim()}` : null,
+        '',
+        message.trim(),
+      ].filter((line) => line !== null).join('\n')
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {

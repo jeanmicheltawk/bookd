@@ -43,7 +43,7 @@
             </div>
             <span>
               {{ u.category_name || 'No category' }}
-              · {{ u.membership === 'basic' ? 'Normal' : (u.membership === 'premium' ? 'Premium' : u.membership) }}
+              · {{ u.membership === 'basic' ? 'Starter plan' : (u.membership === 'premium' ? 'Premium plan' : u.membership) }}
               · {{ u.role }}
               @if (u.country) { · {{ u.city ? u.city + ', ' : '' }}{{ u.country }} }
             </span>

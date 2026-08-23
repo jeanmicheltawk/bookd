@@ -1,5 +1,6 @@
 const { query } = require('../config/db');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
+const { notify, displayName } = require('../utils/notify');
 
 async function userInConversation(conversationId, userId) {
   const result = await query(
@@ -146,6 +147,23 @@ async function sendMessage(req, res, next) {
        VALUES ($1, $2, $3) RETURNING *`,
       [id, req.user.id, body.trim()]
     );
+
+    const others = await query(
+      `SELECT user_id FROM conversation_participants
+       WHERE conversation_id = $1 AND user_id != $2`,
+      [id, req.user.id]
+    );
+    const senderName = await displayName(req.user.id);
+    const preview = body.trim().length > 140 ? `${body.trim().slice(0, 137)}...` : body.trim();
+    for (const row of others.rows) {
+      await notify(
+        row.user_id,
+        'New message',
+        `${senderName}: ${preview}`,
+        '/dashboard/messages'
+      );
+    }
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     next(err);

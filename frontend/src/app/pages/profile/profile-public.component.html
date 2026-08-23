@@ -29,7 +29,7 @@
         <div class="p-header__name-row">
           <h1>{{ p.professional_name || p.full_name }}</h1>
           @if (p.is_verified) { <span class="verified-badge" title="Verified">✓</span> }
-          @if (p.membership === 'premium') { <span class="premium-badge">PREMIUM</span> }
+          @if (p.membership === 'premium') { <span class="premium-badge">PREMIUM PLAN</span> }
         </div>
         <p class="p-header__meta">
           @if (p.category_name) { <span class="chip">{{ p.category_name }}</span> }
@@ -44,8 +44,24 @@
       </div>
 
       <div class="p-header__actions">
-        <app-animated-button variant="primary" size="lg" (clicked)="bookNow()">BOOK NOW →</app-animated-button>
-        <app-animated-button variant="outline" size="lg" (clicked)="messageNow()">Message</app-animated-button>
+        <div class="p-header__buttons">
+          <app-animated-button variant="primary" size="lg" (clicked)="bookNow()">BOOK NOW →</app-animated-button>
+          <app-animated-button variant="outline" size="lg" (clicked)="messageNow()">Message</app-animated-button>
+        </div>
+        @if (p.phone || p.whatsapp || p.instagram) {
+          <div class="p-header__contact">
+            <span class="p-header__contact-label">Contact</span>
+            @if (p.phone) {
+              <a [href]="phoneHref(p.phone)">{{ p.phone }}</a>
+            }
+            @if (p.whatsapp) {
+              <a [href]="whatsappHref(p.whatsapp)" target="_blank" rel="noopener">WhatsApp {{ p.whatsapp }}</a>
+            }
+            @if (p.instagram) {
+              <a [href]="instagramHref(p.instagram)" target="_blank" rel="noopener">{{ instagramHandle(p.instagram) }}</a>
+            }
+          </div>
+        }
       </div>
     </div>
 
@@ -62,14 +78,14 @@
           <div class="p-section">
             <h3>Portfolio</h3>
             <div class="portfolio-grid">
-              @for (item of p.portfolio; track item.id) {
-                <div class="portfolio-item">
+              @for (item of p.portfolio; track item.id; let i = $index) {
+                <button type="button" class="portfolio-item" (click)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
                   @if (item.media_type === 'video') {
-                    <video [src]="item.url" [poster]="item.thumbnail_url || ''" controls></video>
+                    <video [src]="photo(item.url)" [poster]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" muted playsinline></video>
                   } @else {
-                    <img [src]="item.url" [alt]="item.title || 'Portfolio piece'" loading="lazy" />
+                    <img [src]="photo(item.url)" [alt]="item.title || 'Portfolio piece'" loading="lazy" />
                   }
-                </div>
+                </button>
               }
             </div>
           </div>
@@ -106,5 +122,7 @@
       </aside>
     </div>
   </section>
+
+  <app-portfolio-lightbox [items]="portfolioItems()" [(index)]="lightboxIndex" />
 }
 }

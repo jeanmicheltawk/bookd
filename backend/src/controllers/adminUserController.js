@@ -1,5 +1,6 @@
 const { query, getClient } = require('../config/db');
 const { parsePageLimit } = require('../utils/pagination');
+const { emailUser } = require('../utils/mailer');
 
 const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
 
@@ -122,7 +123,7 @@ async function updateUser(req, res, next) {
       availability,
     } = req.body;
 
-    const existing = await query('SELECT id, role FROM users WHERE id = $1', [id]);
+    const existing = await query('SELECT id, role, email, approval_status FROM users WHERE id = $1', [id]);
     if (!existing.rows[0]) return res.status(404).json({ error: 'User not found' });
 
     const userUpdates = [];
@@ -210,11 +211,27 @@ async function updateUser(req, res, next) {
            AND EXISTS (SELECT 1 FROM users WHERE id = $1 AND role = 'member')`,
         [id]
       );
+      if (existing.rows[0].approval_status !== 'approved' && existing.rows[0].role === 'member') {
+        void emailUser(
+          id,
+          'Your profile is live',
+          'Your BOOK\'D HAUS application was approved. Your profile is now public and you can log in.',
+          '/dashboard'
+        );
+      }
     } else if (approvalStatus === 'rejected' || approvalStatus === 'pending') {
       await query(
         `UPDATE profiles SET is_public = FALSE, updated_at = NOW() WHERE user_id = $1`,
         [id]
       );
+      if (approvalStatus === 'rejected' && existing.rows[0].approval_status !== 'rejected') {
+        void emailUser(
+          id,
+          'Application update',
+          'Your BOOK\'D HAUS application was not approved. You can contact us if you have questions.',
+          '/contact'
+        );
+      }
     }
 
     const profileUpdates = [];

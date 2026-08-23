@@ -1,30 +1,41 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { ProfileService } from '../../core/services/profile.service';
-import { MediaService } from '../../core/services/media.service';
+import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { PortfolioItem } from '../../core/models';
+import { portfolioLimitFor, PREMIUM_PORTFOLIO_LIMIT } from '../../core/utils/portfolio-limit';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
 
 @Component({
   selector: 'app-dashboard-portfolio',
   standalone: true,
-  imports: [CommonModule, FormsModule, DashboardNavComponent, LoadingScreenComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DashboardNavComponent, LoadingScreenComponent, PortfolioLightboxComponent],
   templateUrl: './dashboard-portfolio.component.html',
   styleUrl: './dashboard-portfolio.component.scss',
 })
 export class DashboardPortfolioComponent implements OnInit {
   private profileService = inject(ProfileService);
-  private mediaService = inject(MediaService);
+  api = inject(ApiService);
+  auth = inject(AuthService);
 
   items = signal<PortfolioItem[]>([]);
   loading = signal(true);
   uploading = signal(false);
   uploadError = signal('');
+  lightboxIndex = signal<number | null>(null);
   newTitle = '';
+
+  limit = computed(() => portfolioLimitFor(this.auth.user()?.membership));
+  atLimit = computed(() => this.items().length >= this.limit());
+  isPremium = computed(() => this.auth.user()?.membership === 'premium');
+  premiumLimit = PREMIUM_PORTFOLIO_LIMIT;
 
   ngOnInit(): void {
     this.load();
@@ -45,29 +56,45 @@ export class DashboardPortfolioComponent implements OnInit {
     const file = input.files?.[0];
     if (!file) return;
 
+    if (this.atLimit()) {
+      this.uploadError.set(this.limitError());
+      input.value = '';
+      return;
+    }
+
     this.uploading.set(true);
     this.uploadError.set('');
 
-    this.mediaService.upload(file, 'portfolio', this.newTitle).subscribe({
-      next: (media) => {
-        const mediaType = media.mime_type.startsWith('video') ? 'video' : 'image';
-        this.profileService.addPortfolioItem({ url: media.url, mediaType, title: this.newTitle || media.original_name }).subscribe({
-          next: (item) => {
-            this.items.update((list) => [item, ...list]);
-            this.newTitle = '';
-            this.uploading.set(false);
-            input.value = '';
-          },
-          error: () => { this.uploading.set(false); this.uploadError.set('Could not save portfolio item.'); },
-        });
+    this.profileService.uploadPortfolio(file, this.newTitle).subscribe({
+      next: (item) => {
+        this.items.update((list) => [item, ...list]);
+        this.newTitle = '';
+        this.uploading.set(false);
+        input.value = '';
       },
-      error: () => { this.uploading.set(false); this.uploadError.set('Upload failed. Try a smaller file.'); },
+      error: (err) => {
+        this.uploading.set(false);
+        input.value = '';
+        this.uploadError.set(err?.error?.error || 'Could not upload. Try an image or video under 25MB.');
+      },
     });
+  }
+
+  limitError(): string {
+    if (this.isPremium()) {
+      return `Premium plan allows up to ${this.limit()} portfolio images.`;
+    }
+    return `Starter plan allows ${this.limit()} portfolio images. Upgrade to Premium plan for ${PREMIUM_PORTFOLIO_LIMIT}.`;
+  }
+
+  openLightbox(index: number): void {
+    this.lightboxIndex.set(index);
   }
 
   remove(item: PortfolioItem): void {
     this.profileService.deletePortfolioItem(item.id).subscribe(() => {
       this.items.update((list) => list.filter((i) => i.id !== item.id));
+      this.lightboxIndex.set(null);
     });
   }
 }

@@ -9,26 +9,35 @@
   <app-dashboard-nav />
 
   <div class="upload-panel glass-panel">
-    <input type="text" placeholder="Title (optional)" [(ngModel)]="newTitle" name="newTitle" />
-    <label class="upload-btn">
-      <input type="file" accept="image/*,video/*" (change)="onFileSelected($event)" hidden [disabled]="uploading()" />
+    <input type="text" placeholder="Title (optional)" [(ngModel)]="newTitle" name="newTitle" [disabled]="atLimit()" />
+    <label class="upload-btn" [class.upload-btn--disabled]="atLimit() || uploading()">
+      <input type="file" accept="image/*,video/*" (change)="onFileSelected($event)" hidden [disabled]="uploading() || atLimit()" />
       {{ uploading() ? 'Uploading...' : '+ Upload Media' }}
     </label>
   </div>
+  <p class="upload-meta">
+    {{ items().length }} / {{ limit() }} images
+    @if (!isPremium()) {
+      <span> · Starter plan</span>
+      @if (atLimit()) {
+        <a routerLink="/pricing">Upgrade to Premium plan for {{ premiumLimit }} images</a>
+      }
+    }
+  </p>
   @if (uploadError()) { <p class="upload-error">{{ uploadError() }}</p> }
 
   @if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING PORTFOLIO..." />
   } @else if (items().length) {
     <div class="portfolio-grid">
-      @for (item of items(); track item.id) {
-        <div class="portfolio-tile">
+      @for (item of items(); track item.id; let i = $index) {
+        <div class="portfolio-tile" (click)="openLightbox(i)" role="button" tabindex="0" (keydown.enter)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
           @if (item.media_type === 'video') {
-            <video [src]="item.url" controls></video>
+            <video [src]="api.assetUrl(item.url)" muted playsinline></video>
           } @else {
-            <img [src]="item.url" [alt]="item.title || 'Portfolio piece'" />
+            <img [src]="api.assetUrl(item.url)" [alt]="item.title || 'Portfolio piece'" />
           }
-          <button class="portfolio-tile__remove" (click)="remove(item)" aria-label="Remove">✕</button>
+          <button type="button" class="portfolio-tile__remove" (click)="remove(item); $event.stopPropagation()" aria-label="Remove">✕</button>
           @if (item.title) { <span class="portfolio-tile__title">{{ item.title }}</span> }
         </div>
       }
@@ -39,4 +48,6 @@
       <p>Upload your best work to start getting noticed by brands and clients.</p>
     </div>
   }
+
+  <app-portfolio-lightbox [items]="items()" [(index)]="lightboxIndex" />
 </section>

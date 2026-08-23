@@ -1,4 +1,5 @@
 const { query } = require('../config/db');
+const { emailUser } = require('./mailer');
 
 async function notify(userId, title, body, link) {
   if (!userId) return;
@@ -7,6 +8,7 @@ async function notify(userId, title, body, link) {
      VALUES ($1, $2, $3, $4)`,
     [userId, title, body || null, link || null]
   );
+  await emailUser(userId, title, body || title, link || '/dashboard');
 }
 
 async function displayName(userId) {

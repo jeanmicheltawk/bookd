@@ -1,4 +1,6 @@
 const { query } = require('../config/db');
+const { mediaUrl } = require('./mediaController');
+const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
 
 const PUBLIC_PROFILE_FIELDS = `
   p.id, p.full_name, p.professional_name, p.age, p.country, p.city, p.gender,
@@ -142,6 +144,48 @@ async function updateMyProfile(req, res, next) {
   }
 }
 
+async function uploadProfilePhoto(req, res, next) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'File required' });
+
+    const profileRes = await query('SELECT id FROM profiles WHERE user_id = $1', [req.user.id]);
+    const profile = profileRes.rows[0];
+    if (!profile) return res.status(404).json({ error: 'Profile not found' });
+
+    const folder = req.uploadFolder || 'avatars';
+    const url = mediaUrl(folder, req.file.filename);
+
+    await query(
+      `INSERT INTO media (filename, original_name, mime_type, size_bytes, url, folder, alt_text, uploaded_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        req.file.filename,
+        req.file.originalname,
+        req.file.mimetype,
+        req.file.size,
+        url,
+        folder,
+        'Profile photo',
+        req.user.id,
+      ]
+    );
+
+    const updated = await query(
+      `UPDATE profiles SET profile_photo_url = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING profile_photo_url`,
+      [url, profile.id]
+    );
+
+    res.status(201).json({
+      url,
+      profile_photo_url: updated.rows[0].profile_photo_url,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function listPortfolio(req, res, next) {
   try {
     const profileRes = await query('SELECT id FROM profiles WHERE user_id = $1', [req.user.id]);
@@ -162,15 +206,17 @@ async function addPortfolioItem(req, res, next) {
     const { mediaType, url, thumbnailUrl, title, sortOrder } = req.body;
     if (!url) return res.status(400).json({ error: 'url required' });
 
-    const profileRes = await query('SELECT id FROM profiles WHERE user_id = $1', [req.user.id]);
-    if (!profileRes.rows[0]) return res.status(404).json({ error: 'Profile not found' });
+    const capacity = await assertPortfolioCapacity(req.user.id);
+    if (capacity.error) {
+      return res.status(capacity.error.status).json({ error: capacity.error.message });
+    }
 
     const result = await query(
       `INSERT INTO portfolio_items (profile_id, media_type, url, thumbnail_url, title, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
-        profileRes.rows[0].id,
+        capacity.profile.id,
         mediaType || 'image',
         url,
         thumbnailUrl || null,
@@ -237,12 +283,56 @@ async function deletePortfolioItem(req, res, next) {
   }
 }
 
+async function uploadPortfolioMedia(req, res, next) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'File required' });
+
+    const capacity = await assertPortfolioCapacity(req.user.id, req.file);
+    if (capacity.error) {
+      return res.status(capacity.error.status).json({ error: capacity.error.message });
+    }
+
+    const folder = req.uploadFolder || 'portfolio';
+    const url = mediaUrl(folder, req.file.filename);
+    const mediaType = (req.file.mimetype || '').startsWith('video') ? 'video' : 'image';
+    const title = (req.body.title || '').trim() || req.file.originalname || null;
+
+    await query(
+      `INSERT INTO media (filename, original_name, mime_type, size_bytes, url, folder, alt_text, uploaded_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        req.file.filename,
+        req.file.originalname,
+        req.file.mimetype,
+        req.file.size,
+        url,
+        folder,
+        title,
+        req.user.id,
+      ]
+    );
+
+    const result = await query(
+      `INSERT INTO portfolio_items (profile_id, media_type, url, thumbnail_url, title, sort_order)
+       VALUES ($1, $2, $3, NULL, $4, 0)
+       RETURNING *`,
+       [capacity.profile.id, mediaType, url, title]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getPublicProfile,
   getMyProfile,
   updateMyProfile,
+  uploadProfilePhoto,
   listPortfolio,
   addPortfolioItem,
+  uploadPortfolioMedia,
   updatePortfolioItem,
   deletePortfolioItem,
 };

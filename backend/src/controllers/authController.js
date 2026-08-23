@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const config = require('../config');
 const { query } = require('../config/db');
+const { emailAdmin, emailUser } = require('../utils/mailer');
 
 const ALLOWED_MEMBERSHIPS = ['free', 'basic', 'premium'];
 
@@ -29,27 +30,51 @@ function validate(req) {
   }
 }
 
+function isTalentSignup(_value, { req }) {
+  return req.body?.role !== 'brand';
+}
+
+function isBrandSignup(_value, { req }) {
+  return req.body?.role === 'brand';
+}
+
 const registerValidators = [
   body('email').isEmail().withMessage('Valid email required'),
   body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
   body('fullName').trim().notEmpty().withMessage('Full name required'),
-  body('categorySlug').optional({ nullable: true }).isString(),
+  body('categorySlug').if(isTalentSignup).trim().notEmpty().withMessage('Category required'),
   body('membership').optional().isIn(ALLOWED_MEMBERSHIPS).withMessage('Invalid membership program'),
-  body('professionalName').optional().isString(),
-  body('country').optional().isString(),
-  body('city').optional().isString(),
-  body('bio').optional().isString(),
-  body('instagram').optional().isString(),
+  body('professionalName').if(isTalentSignup).trim().notEmpty().withMessage('Professional name required'),
+  body('country').if(isTalentSignup).trim().notEmpty().withMessage('Country required'),
+  body('city').if(isTalentSignup).trim().notEmpty().withMessage('City required'),
+  body('bio').if(isTalentSignup).trim().notEmpty().withMessage('Bio is required'),
+  body('instagram').if(isTalentSignup).trim().notEmpty().withMessage('Instagram required'),
   body('phone')
+    .if(isTalentSignup)
+    .trim()
+    .notEmpty()
+    .withMessage('Phone required')
+    .matches(/^[0-9+()]+$/)
+    .withMessage('Phone may only contain numbers, +, (, and )'),
+  body('whatsapp')
+    .if(isTalentSignup)
+    .trim()
+    .notEmpty()
+    .withMessage('WhatsApp required')
+    .matches(/^[0-9+()]+$/)
+    .withMessage('WhatsApp may only contain numbers, +, (, and )'),
+  body('phone')
+    .if(isBrandSignup)
     .optional({ values: 'falsy' })
     .matches(/^[0-9+()]+$/)
     .withMessage('Phone may only contain numbers, +, (, and )'),
   body('whatsapp')
+    .if(isBrandSignup)
     .optional({ values: 'falsy' })
     .matches(/^[0-9+()]+$/)
     .withMessage('WhatsApp may only contain numbers, +, (, and )'),
-  body('website').optional().isString(),
-  body('gender').optional().isString(),
+  body('website').optional({ values: 'falsy' }).isString(),
+  body('gender').if(isTalentSignup).trim().notEmpty().withMessage('Gender required'),
   body('age').optional({ values: 'falsy' }).isInt({ min: 16, max: 100 }).withMessage('Age must be 16–100'),
   body('customFields').optional({ nullable: true }).isObject(),
 ];
@@ -122,7 +147,7 @@ async function register(req, res, next) {
     for (const field of categoryFields) {
       const raw = incomingCustom[field.field_key];
       const value = raw == null ? '' : String(raw).trim();
-      if (field.is_required && !value) {
+      if (!value) {
         return res.status(400).json({ error: `${field.label} is required` });
       }
       if (!value) continue;
@@ -181,12 +206,47 @@ async function register(req, res, next) {
 
     if (userRole === 'brand') {
       const tokens = signTokens(user);
+      void emailAdmin(
+        'New client signup',
+        [
+          `${fullName} created a client account.`,
+          `Email: ${user.email}`,
+          phone ? `Phone: ${phone}` : null,
+          whatsapp ? `WhatsApp: ${whatsapp}` : null,
+        ].filter(Boolean).join('\n')
+      );
+      void emailUser(
+        user.id,
+        'Welcome to BOOK\'D HAUS',
+        'Your client account is ready. You can start booking talent right away.',
+        '/dashboard'
+      );
       return res.status(201).json({
         message: 'Client account created.',
         user: payloadUser,
         ...tokens,
       });
     }
+
+    void emailAdmin(
+      'New creator application',
+      [
+        `${professionalName || fullName} applied as a creator.`,
+        `Email: ${user.email}`,
+        `Membership: ${membership}`,
+        categorySlug ? `Category: ${categorySlug}` : null,
+        country ? `Country: ${country}` : null,
+        city ? `City: ${city}` : null,
+        phone ? `Phone: ${phone}` : null,
+        instagram ? `Instagram: ${instagram}` : null,
+      ].filter(Boolean).join('\n')
+    );
+    void emailUser(
+      user.id,
+      'Application received',
+      'Thanks for applying to BOOK\'D HAUS. An admin will review your profile. We will email you when it is approved.',
+      '/auth/login'
+    );
 
     res.status(201).json({
       message: 'Application submitted. An admin will review it before your profile goes live.',

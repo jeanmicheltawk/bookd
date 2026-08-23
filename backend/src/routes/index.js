@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticate, optionalAuth, requireRole } = require('../middleware/auth');
-const { upload } = require('../middleware/upload');
+const { upload, imageUpload, forceUploadFolder } = require('../middleware/upload');
 
 const auth = require('../controllers/authController');
 const category = require('../controllers/categoryController');
@@ -82,7 +82,21 @@ router.get('/admin/analytics', ...admin, analytics.getAdminDashboard);
 
 // Profiles
 router.get('/profiles/me', authenticate, profile.getMyProfile);
+router.post(
+  '/profiles/me/photo',
+  authenticate,
+  forceUploadFolder('avatars'),
+  imageUpload.single('file'),
+  profile.uploadProfilePhoto
+);
 router.get('/profiles/me/portfolio', authenticate, profile.listPortfolio);
+router.post(
+  '/profiles/me/portfolio/upload',
+  authenticate,
+  forceUploadFolder('portfolio'),
+  upload.single('file'),
+  profile.uploadPortfolioMedia
+);
 router.post('/profiles/me/portfolio', authenticate, profile.addPortfolioItem);
 router.patch('/profiles/me/portfolio/:id', authenticate, profile.updatePortfolioItem);
 router.delete('/profiles/me/portfolio/:id', authenticate, profile.deletePortfolioItem);

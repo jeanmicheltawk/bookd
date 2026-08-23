@@ -74,8 +74,8 @@ export class SignupComponent implements OnInit {
   categorySlug = signal('');
 
   membershipOptions: MembershipOption[] = [
-    { value: 'basic', label: 'Normal', description: '$7.99 / month' },
-    { value: 'premium', label: 'Premium', description: '$14.99 / month' },
+    { value: 'basic', label: 'Starter plan', description: '$6.99 / month' },
+    { value: 'premium', label: 'Premium plan', description: '$14.99 / month' },
   ];
 
   talent: TalentFormModel = {
@@ -253,8 +253,8 @@ export class SignupComponent implements OnInit {
   private validateCustomFields(): string | null {
     for (const field of this.selectedCategoryFields()) {
       const value = (this.customFields()[field.field_key] || '').trim();
-      if (field.is_required && !value) {
-        return `${field.label} is required`;
+      if (!value) {
+        return `${field.label} is required.`;
       }
     }
     return null;
@@ -320,13 +320,49 @@ export class SignupComponent implements OnInit {
       return;
     }
 
-    if (ngForm.invalid) {
-      this.error.set('Please fill in all required fields.');
+    if (!this.talent.fullName.trim() || this.talent.fullName.trim().length < 2) {
+      this.error.set('Please enter your full name.');
+      return;
+    }
+    if (!this.talent.professionalName.trim() || this.talent.professionalName.trim().length < 2) {
+      this.error.set('Please enter your professional name.');
+      return;
+    }
+    if (!this.talent.password || this.talent.password.length < 6) {
+      this.error.set('Password must be at least 6 characters.');
+      return;
+    }
+    if (!this.talent.categorySlug) {
+      this.error.set('Please choose a category.');
+      return;
+    }
+    if (!this.talent.country.trim()) {
+      this.error.set('Please select a country.');
+      return;
+    }
+    if (!this.talent.city.trim()) {
+      this.error.set('Please enter your city.');
+      return;
+    }
+    if (!this.talent.instagram.trim()) {
+      this.error.set('Please enter your Instagram handle.');
+      return;
+    }
+    if (!this.talent.phone.trim() || !this.talent.whatsapp.trim()) {
+      this.error.set('Phone and WhatsApp are required.');
+      return;
+    }
+    if (!this.talent.gender.trim()) {
+      this.error.set('Please enter your gender.');
+      return;
+    }
+    if (!this.talent.bio.trim()) {
+      this.error.set('Please write a short bio.');
       return;
     }
 
-    if (!this.talent.categorySlug) {
-      this.error.set('Please choose a category.');
+    if (ngForm.invalid) {
+      this.error.set('Please fill in all required fields.');
       return;
     }
 
