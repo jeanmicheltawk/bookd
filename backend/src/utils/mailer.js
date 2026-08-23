@@ -1,6 +1,12 @@
+const fs = require('fs');
+const path = require('path');
 const nodemailer = require('nodemailer');
 const config = require('../config');
 const { query } = require('../config/db');
+
+const LOGO_CID = 'bookdhaus-logo';
+const logoPath = path.join(__dirname, '../assets/logo-email.png');
+const logoExists = fs.existsSync(logoPath);
 
 function createTransport() {
   if (!config.mail.user || !config.mail.pass) {
@@ -40,15 +46,39 @@ if (transport) {
   });
 }
 
+function logoHtml() {
+  const src = logoExists ? `cid:${LOGO_CID}` : `${config.appUrl}/assets/logo-full-ink.svg`;
+  return `<img src="${src}" alt="BOOK'D" width="168" style="display:block;width:168px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;" />`;
+}
+
 function wrapHtml(title, inner) {
   return `<!DOCTYPE html>
-<html>
-<body style="margin:0;padding:24px;background:#FF4D00;color:#ffffff;font-family:Arial,sans-serif;">
-  <div style="max-width:560px;margin:0 auto;border:1px solid #ffffff;padding:28px;">
-    <p style="letter-spacing:0.16em;font-size:12px;margin:0 0 12px;">BOOK'D HAUS</p>
-    <h1 style="margin:0 0 16px;font-size:22px;text-transform:uppercase;">${escapeHtml(title)}</h1>
-    <div style="font-size:15px;line-height:1.55;">${inner}</div>
-  </div>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(title)}</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;color:#111111;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;">
+    <tr>
+      <td align="center" style="padding:40px 24px 48px;">
+        <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;width:100%;">
+          <tr>
+            <td style="padding:0 0 32px;">
+              ${logoHtml()}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0;font-size:15px;line-height:1.65;color:#222222;">
+              <h1 style="margin:0 0 16px;font-size:20px;line-height:1.35;font-weight:400;color:#111111;">${escapeHtml(title)}</h1>
+              ${inner}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 }
@@ -66,7 +96,18 @@ function paragraph(text) {
 }
 
 function cta(href, label) {
-  return `<p style="margin:20px 0 0;"><a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 18px;background:#C6FF00;color:#09000F;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;">${escapeHtml(label)}</a></p>`;
+  return `<p style="margin:24px 0 0;"><a href="${escapeHtml(href)}" style="color:#111111;text-decoration:underline;">${escapeHtml(label)}</a></p>`;
+}
+
+function logoAttachment() {
+  if (!logoExists) return [];
+  return [{
+    filename: 'logo.png',
+    path: logoPath,
+    cid: LOGO_CID,
+    contentDisposition: 'inline',
+    contentType: 'image/png',
+  }];
 }
 
 function dashboardUrl(path) {
@@ -85,6 +126,7 @@ async function sendEmail({ to, subject, text, html }) {
       subject,
       text,
       html: html || wrapHtml(subject, paragraph(text)),
+      attachments: logoAttachment(),
     });
     return true;
   } catch (err) {
