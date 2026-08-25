@@ -30,7 +30,6 @@ export class AdminLayoutComponent {
     // FUTURE: { label: 'Announcements', path: '/admin/announcements', icon: '📣' },
     // FUTURE: { label: 'Events & Challenges', path: '/admin/events', icon: '★' },
     // FUTURE: { label: 'Learning Hub', path: '/admin/learn', icon: '▤' },
-    { label: 'Testimonials', path: '/admin/testimonials', icon: '❝' },
     { label: 'Users', path: '/admin/users', icon: '⌘' },
     { label: 'Payments', path: '/admin/payments', icon: '$' },
     { label: 'Cancellations', path: '/admin/cancellations', icon: '⊘' },

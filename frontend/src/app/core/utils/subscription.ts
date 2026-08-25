@@ -4,6 +4,17 @@ export function effectiveMembership(user?: { membership?: Membership | string; e
   return (user?.effective_membership || user?.membership || 'free') as Membership;
 }
 
+export function membershipLabel(membership?: string | null): string {
+  if (membership === 'premium') return 'Premium plan';
+  if (membership === 'basic') return 'Starter plan';
+  if (membership === 'free') return 'Complimentary';
+  return membership || 'plan';
+}
+
+export function isComplimentaryMember(user?: { is_complimentary?: boolean; membership?: string | null } | null): boolean {
+  return !!user?.is_complimentary || user?.membership === 'free';
+}
+
 export function subscriptionStatusLabel(status?: SubscriptionStatus | string | null): string {
   switch (status) {
     case 'trial':
@@ -14,6 +25,8 @@ export function subscriptionStatusLabel(status?: SubscriptionStatus | string | n
       return 'Ending soon';
     case 'expired':
       return 'Ended';
+    case 'complimentary':
+      return 'Complimentary';
     default:
       return 'No plan';
   }

@@ -13,7 +13,13 @@
 
   <app-dashboard-nav />
 
-  @if (loading()) {
+  @if (auth.isComplimentary()) {
+    <div class="pay-status pay-status--confirmed">
+      <span class="pay-status__pill">COMPLIMENTARY</span>
+      <h2>No payment needed</h2>
+      <p>Your profile is complimentary. You do not need to pay with Whish to stay public.</p>
+    </div>
+  } @else if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING PAYMENT..." />
   } @else {
     @if (info(); as whish) {

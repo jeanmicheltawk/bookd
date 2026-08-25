@@ -16,7 +16,6 @@ const booking = require('../controllers/bookingController');
 const message = require('../controllers/messageController');
 const event = require('../controllers/eventController');
 const learning = require('../controllers/learningController');
-const testimonial = require('../controllers/testimonialController');
 const dashboard = require('../controllers/dashboardController');
 const pricing = require('../controllers/pricingController');
 const adminUsers = require('../controllers/adminUserController');
@@ -152,13 +151,6 @@ router.post('/admin/learn', ...admin, learning.createArticle);
 router.patch('/admin/learn/:id', ...admin, learning.updateArticle);
 router.delete('/admin/learn/:id', ...admin, learning.deleteArticle);
 
-// Testimonials
-router.get('/testimonials', testimonial.listPublished);
-router.get('/admin/testimonials', ...admin, testimonial.listAllAdmin);
-router.post('/admin/testimonials', ...admin, testimonial.createTestimonial);
-router.patch('/admin/testimonials/:id', ...admin, testimonial.updateTestimonial);
-router.delete('/admin/testimonials/:id', ...admin, testimonial.deleteTestimonial);
-
 // Pricing
 router.post('/pricing/estimate', pricing.estimatePrice);
 
@@ -173,6 +165,7 @@ router.post('/payments/whish', authenticate, payments.submitMyWhishPayment);
 // Admin users
 router.get('/admin/clients/export', ...admin, adminUsers.exportClientsExcel);
 router.get('/admin/users', ...admin, adminUsers.listUsers);
+router.post('/admin/users', ...admin, adminUsers.createComplimentaryUser);
 router.get('/admin/users/:id', ...admin, adminUsers.getUser);
 router.patch('/admin/users/:id', ...admin, adminUsers.updateUser);
 router.post('/admin/users/:id/subscription/remind', ...admin, adminUsers.remindUserSubscription);

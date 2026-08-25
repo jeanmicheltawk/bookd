@@ -137,12 +137,15 @@ export class DashboardNavComponent implements OnInit {
   }
 
   get items(): DashNavItem[] {
+    const complimentary = this.auth.isComplimentary();
+
     if (this.auth.isPending()) {
-      return [
+      const pending: DashNavItem[] = [
         { label: 'Status', path: '/dashboard', exact: true },
-        { label: 'Pay', path: '/dashboard/pay' },
-        { label: 'Profile', path: '/dashboard/settings' },
       ];
+      if (!complimentary) pending.push({ label: 'Pay', path: '/dashboard/pay' });
+      pending.push({ label: 'Profile', path: '/dashboard/settings' });
+      return pending;
     }
 
     const a = this.alerts.alerts();
@@ -155,14 +158,21 @@ export class DashboardNavComponent implements OnInit {
       ];
     }
 
-    return [
+    const items: DashNavItem[] = [
       { label: 'Overview', path: '/dashboard', exact: true },
       { label: 'Bookings', path: '/dashboard/bookings', badge: a.newBookings },
       { label: 'Messages', path: '/dashboard/messages', badge: a.unreadMessages },
       { label: 'Notifications', path: '/dashboard/notifications' },
       { label: 'Portfolio', path: '/dashboard/portfolio' },
-      { label: 'Pay', path: '/dashboard/pay', badge: (a.subscription?.status === 'ending_soon' || a.subscription?.status === 'expired') ? 1 : 0 },
-      { label: 'Profile', path: '/dashboard/settings' },
     ];
+    if (!complimentary) {
+      items.push({
+        label: 'Pay',
+        path: '/dashboard/pay',
+        badge: (a.subscription?.status === 'ending_soon' || a.subscription?.status === 'expired') ? 1 : 0,
+      });
+    }
+    items.push({ label: 'Profile', path: '/dashboard/settings' });
+    return items;
   }
 }

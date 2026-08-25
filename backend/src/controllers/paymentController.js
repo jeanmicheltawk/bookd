@@ -3,6 +3,7 @@ const { notify } = require('../utils/notify');
 const { emailAdmin, dashboardUrl, cta } = require('../utils/mailer');
 const {
   isPaidPlan,
+  isComplimentary,
   planLabel,
   extendPaidPeriod,
   startPaidPeriod,
@@ -27,7 +28,7 @@ function normalizeWhishNumber(value) {
 
 async function loadMember(userId) {
   const result = await query(
-    `SELECT u.id, u.email, u.role, u.membership, u.approval_status,
+    `SELECT u.id, u.email, u.role, u.membership, u.approval_status, u.is_complimentary,
             p.full_name, p.professional_name, p.phone
      FROM users u
      LEFT JOIN profiles p ON p.user_id = u.id
@@ -40,7 +41,7 @@ async function loadMember(userId) {
 async function getMyWhishPayment(req, res, next) {
   try {
     const user = await loadMember(req.user.id);
-    if (!user || user.role !== 'member' || !isPaidPlan(user.membership)) {
+    if (!user || user.role !== 'member' || !isPaidPlan(user.membership) || isComplimentary(user)) {
       return res.status(400).json({ error: 'Only Starter and Premium members can pay with Whish.' });
     }
 
@@ -65,7 +66,7 @@ async function getMyWhishPayment(req, res, next) {
 async function submitMyWhishPayment(req, res, next) {
   try {
     const user = await loadMember(req.user.id);
-    if (!user || user.role !== 'member' || !isPaidPlan(user.membership)) {
+    if (!user || user.role !== 'member' || !isPaidPlan(user.membership) || isComplimentary(user)) {
       return res.status(400).json({ error: 'Only Starter and Premium members can pay with Whish.' });
     }
 

@@ -19,10 +19,12 @@ import {
 } from '../../core/utils/contact-validation';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
-import { subscriptionStatusLabel } from '../../core/utils/subscription';
+import { subscriptionStatusLabel, membershipLabel, isComplimentaryMember } from '../../core/utils/subscription';
 
 interface EditForm {
   email: string;
+  password: string;
+  confirmPassword: string;
   full_name: string;
   professional_name: string;
   categorySlug: string;
@@ -62,6 +64,7 @@ export class AdminUsersComponent implements OnInit {
   savingId = signal<string | null>(null);
 
   editingUser = signal<AdminUser | null>(null);
+  creating = signal(false);
   editSaving = signal(false);
   editError = signal('');
   listError = signal('');
@@ -77,7 +80,12 @@ export class AdminUsersComponent implements OnInit {
   membershipOptions: SelectOption[] = [
     { value: 'basic', label: 'Starter plan ($6.99)' },
     { value: 'premium', label: 'Premium plan ($14.99)' },
-    { value: 'free', label: 'Legacy free' },
+    { value: 'free', label: 'Complimentary (no payment)' },
+  ];
+
+  createPlanOptions: SelectOption[] = [
+    { value: 'basic', label: 'Starter plan' },
+    { value: 'premium', label: 'Premium plan' },
   ];
 
   categoryOptions = computed<SelectOption[]>(() =>
@@ -134,13 +142,26 @@ export class AdminUsersComponent implements OnInit {
       });
   }
 
+  openCreate(): void {
+    this.editError.set('');
+    this.fieldErrors.set({});
+    this.editingUser.set(null);
+    this.creating.set(true);
+    this.editCategorySlug.set('');
+    this.editForm = this.emptyEditForm();
+    this.editForm.membership = '';
+  }
+
   openEdit(user: AdminUser): void {
+    this.creating.set(false);
     this.editError.set('');
     this.fieldErrors.set({});
     this.editingUser.set(user);
     this.editCategorySlug.set(user.category_slug || '');
     this.editForm = {
       email: user.email || '',
+      password: '',
+      confirmPassword: '',
       full_name: user.full_name || '',
       professional_name: user.professional_name || '',
       categorySlug: user.category_slug || '',
@@ -160,6 +181,7 @@ export class AdminUsersComponent implements OnInit {
 
   closeEdit(): void {
     this.editingUser.set(null);
+    this.creating.set(false);
     this.editCategorySlug.set('');
     this.editError.set('');
     this.fieldErrors.set({});
@@ -204,6 +226,11 @@ export class AdminUsersComponent implements OnInit {
   }
 
   saveEdit(): void {
+    if (this.creating()) {
+      this.saveCreate();
+      return;
+    }
+
     const user = this.editingUser();
     if (!user) return;
 
@@ -277,10 +304,113 @@ export class AdminUsersComponent implements OnInit {
       });
   }
 
+  private saveCreate(): void {
+    if (!this.editForm.full_name.trim()) {
+      this.editError.set('Full name is required.');
+      return;
+    }
+    if (!this.editForm.password || this.editForm.password.length < 6) {
+      this.editError.set('Password must be at least 6 characters.');
+      return;
+    }
+    if (this.editForm.password !== this.editForm.confirmPassword) {
+      this.editError.set('Passwords do not match.');
+      return;
+    }
+    if (this.editForm.membership !== 'basic' && this.editForm.membership !== 'premium') {
+      this.editError.set('Choose Starter or Premium plan.');
+      return;
+    }
+
+    const contactErrors = getContactFieldErrors(
+      this.editForm.email,
+      this.editForm.phone,
+      this.editForm.whatsapp,
+    );
+    this.fieldErrors.set(contactErrors);
+    if (hasContactFieldErrors(contactErrors)) {
+      this.editError.set('');
+      return;
+    }
+
+    for (const field of this.selectedCategoryFields) {
+      const value = (this.editForm.custom_fields[field.field_key] || '').trim();
+      if (field.is_required && !value) {
+        this.editError.set(`${field.label} is required.`);
+        return;
+      }
+    }
+
+    const ageValue = this.editForm.age;
+    const ageNumber =
+      ageValue === undefined || ageValue === null || String(ageValue).trim() === ''
+        ? null
+        : Number(ageValue);
+
+    if (ageNumber != null && (Number.isNaN(ageNumber) || ageNumber < 16 || ageNumber > 100)) {
+      this.editError.set('Age must be between 16 and 100.');
+      return;
+    }
+
+    this.editSaving.set(true);
+    this.editError.set('');
+    this.fieldErrors.set({});
+    this.listError.set('');
+    this.listNotice.set('');
+
+    this.usersApi
+      .createComplimentary({
+        email: this.editForm.email.trim(),
+        password: this.editForm.password,
+        full_name: this.editForm.full_name.trim(),
+        professional_name: this.editForm.professional_name.trim() || this.editForm.full_name.trim(),
+        membership: this.editForm.membership as 'basic' | 'premium',
+        categorySlug: this.editForm.categorySlug || null,
+        country: this.editForm.country || null,
+        city: this.editForm.city || null,
+        instagram: this.editForm.instagram || null,
+        phone: this.editForm.phone || null,
+        whatsapp: this.editForm.whatsapp || null,
+        website: this.editForm.website || null,
+        gender: this.editForm.gender || null,
+        age: ageNumber,
+        bio: this.editForm.bio || null,
+        custom_fields: this.editForm.custom_fields,
+      })
+      .subscribe({
+        next: (created) => {
+          this.editSaving.set(false);
+          this.users.update((list) => [created, ...list.filter((u) => u.id !== created.id)]);
+          this.listNotice.set(
+            `${created.professional_name || created.full_name} is live on ${this.planName(created.membership)} with no payment. Share the login email and password.`,
+          );
+          this.closeEdit();
+        },
+        error: (err) => {
+          this.editSaving.set(false);
+          this.editError.set(err?.error?.error || 'Could not create the free profile.');
+        },
+      });
+  }
+
   canApprove(user: AdminUser): boolean {
     if (user.role !== 'member') return true;
+    if (this.isComplimentary(user)) return true;
     if (user.membership !== 'basic' && user.membership !== 'premium') return true;
     return !!user.payment_confirmed;
+  }
+
+  isComplimentary(user: AdminUser): boolean {
+    return isComplimentaryMember(user);
+  }
+
+  planName(membership?: string | null): string {
+    return membershipLabel(membership);
+  }
+
+  showSubscriptionActions(user: AdminUser): boolean {
+    const status = user.subscription?.status;
+    return !!status && status !== 'none' && status !== 'complimentary';
   }
 
   setApproval(user: AdminUser, approval_status: ApprovalStatus): void {
@@ -403,6 +533,8 @@ export class AdminUsersComponent implements OnInit {
   private emptyEditForm(): EditForm {
     return {
       email: '',
+      password: '',
+      confirmPassword: '',
       full_name: '',
       professional_name: '',
       categorySlug: '',

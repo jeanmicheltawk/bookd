@@ -56,6 +56,10 @@ export class AuthService {
     const user = this.userSignal();
     return !!user && user.role !== 'admin' && user.role !== 'brand' && user.approval_status === 'pending';
   });
+  readonly isComplimentary = computed(() => {
+    const user = this.userSignal();
+    return !!user && user.role === 'member' && (!!user.is_complimentary || user.membership === 'free');
+  });
 
   private readUserFromStorage(): User | null {
     try {

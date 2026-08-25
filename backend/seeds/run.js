@@ -206,16 +206,6 @@ async function seed() {
     await client.query(`DELETE FROM users WHERE email ILIKE '%@bookd.demo'`);
 
     await client.query(
-      `INSERT INTO testimonials (author_name, author_role, content, rating, is_published, sort_order)
-       SELECT * FROM (VALUES
-         ('Maya Chen', 'Photographer', 'BOOK''D got me three campaign bookings in a month. The energy is unmatched.', 5, TRUE, 1),
-         ('Leo Santos', 'Model', 'Finally a platform that feels like the industry — bold, fast, and fair.', 5, TRUE, 2),
-         ('Neon Label', 'Brand', 'Finding verified creatives has never been this smooth.', 5, TRUE, 3)
-       ) AS v(author_name, author_role, content, rating, is_published, sort_order)
-       WHERE NOT EXISTS (SELECT 1 FROM testimonials LIMIT 1)`
-    );
-
-    await client.query(
       `INSERT INTO events (title, slug, description, event_type, prize, is_published, starts_at, ends_at)
        SELECT 'Best Editorial Challenge', 'best-editorial', 'Submit your strongest editorial frame.', 'challenge',
               'Premium Membership + Featured Homepage', TRUE, NOW(), NOW() + INTERVAL '30 days'

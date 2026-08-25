@@ -6,9 +6,8 @@ import { catchError, of } from 'rxjs';
 import { CmsService } from '../../core/services/cms.service';
 import { AnnouncementService } from '../../core/services/announcement.service';
 import { CategoryService } from '../../core/services/category.service';
-import { TestimonialService } from '../../core/services/testimonial.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
-import { Announcement, Category, HeroSlide, Testimonial } from '../../core/models';
+import { Announcement, Category, HeroSlide } from '../../core/models';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { ProfileCardComponent, ProfileCardData } from '../../shared/components/profile-card/profile-card.component';
 
@@ -36,7 +35,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   private cms = inject(CmsService);
   private announcementService = inject(AnnouncementService);
   private categoryService = inject(CategoryService);
-  private testimonialService = inject(TestimonialService);
   private analytics = inject(AnalyticsService);
 
   values = VALUES;
@@ -48,7 +46,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   spotlight = signal<ProfileCardData[]>([]);
   announcements = signal<Announcement[]>([]);
   categories = signal<Category[]>([]);
-  testimonials = signal<Testimonial[]>([]);
   loading = signal(true);
 
   ngOnInit(): void {
@@ -76,10 +73,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.categories.set(res.data);
         this.loading.set(false);
       });
-
-    this.testimonialService.listPublished()
-      .pipe(catchError(() => of({ data: [] })))
-      .subscribe((res) => this.testimonials.set(res.data));
   }
 
   ngOnDestroy(): void {

@@ -5,7 +5,8 @@
       <h1 class="display-lg">PLATFORM <span class="text-gradient">USERS</span></h1>
       <p class="admin-page__hint">
         Review applications, approve or reject creatives, verify profiles, and manage membership.
-        Confirm the Whish payment first — then approve the profile to start the 7-day free trial (first period is 1 month + 7 days). Client accounts live under Clients.
+        Confirm the Whish payment first — then approve the profile to start the 7-day free trial (first period is 1 month + 7 days).
+        You can also add a free profile: pick Starter or Premium, and it goes live immediately with no payment and no approval. Client accounts live under Clients.
       </p>
     </div>
   </div>
@@ -29,6 +30,7 @@
       <input type="checkbox" [(ngModel)]="verifiedOnly" name="verifiedOnly" (change)="load()" /> Verified only
     </label>
     <button class="search-btn" type="button" (click)="load()">Search</button>
+    <button class="search-btn create-btn" type="button" (click)="openCreate()">Add free profile</button>
   </div>
 
   @if (loading()) {
@@ -47,12 +49,12 @@
             </div>
             <span>
               {{ u.category_name || 'No category' }}
-              · {{ u.membership === 'basic' ? 'Starter plan' : (u.membership === 'premium' ? 'Premium plan' : u.membership) }}
+              · {{ planName(u.membership) }}
               · {{ u.role }}
               @if (u.country) { · {{ u.city ? u.city + ', ' : '' }}{{ u.country }} }
             </span>
             <p>{{ u.bio || 'No bio provided.' }}</p>
-            @if (u.subscription && u.subscription.status !== 'none') {
+            @if (u.subscription && u.subscription.status !== 'none' && u.subscription.status !== 'complimentary') {
               <div class="sub-line">
                 <span class="sub-badge" [attr.data-status]="u.subscription.status">{{ subStatus(u.subscription) }}</span>
                 @if (u.subscription.in_trial && u.subscription.trial_ends_at) {
@@ -63,7 +65,11 @@
                 }
               </div>
             }
-            @if (u.role === 'member') {
+            @if (u.role === 'member' && isComplimentary(u)) {
+              <div class="sub-line">
+                <span class="sub-badge" data-status="complimentary">Complimentary — no payment</span>
+              </div>
+            } @else if (u.role === 'member') {
               <div class="sub-line">
                 <span class="sub-badge" [attr.data-status]="u.payment_confirmed ? 'active' : 'expired'">
                   {{ u.payment_confirmed ? 'Whish paid' : 'Whish not confirmed' }}
@@ -92,7 +98,7 @@
           <div class="mod-row__actions">
             <button type="button" class="edit-btn" (click)="openEdit(u)">Edit</button>
 
-            @if (u.approval_status === 'pending') {
+            @if (u.approval_status === 'pending' && !isComplimentary(u)) {
               <button
                 type="button"
                 class="approve-btn"
@@ -105,7 +111,7 @@
                 <span class="pay-wait">Confirm Whish first</span>
               }
               <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
-            } @else if (u.approval_status === 'rejected') {
+            } @else if (u.approval_status === 'rejected' && !isComplimentary(u)) {
               <button
                 type="button"
                 class="approve-btn"
@@ -125,12 +131,14 @@
               <button type="button" class="chip-btn" [class.off]="!u.is_active" (click)="toggleActive(u)">
                 {{ u.is_active ? 'Active' : 'Suspended' }}
               </button>
-              <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
+              @if (!isComplimentary(u)) {
+                <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
+              }
             }
 
-            @if (u.role !== 'admin' && u.subscription && u.subscription.status !== 'none') {
+            @if (u.role !== 'admin' && showSubscriptionActions(u)) {
               <button type="button" class="chip-btn" [disabled]="savingId() === u.id" (click)="remindSubscription(u)">Remind</button>
-              @if (u.subscription.can_end) {
+              @if (u.subscription?.can_end) {
                 <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="endSubscription(u)">End subscription</button>
               }
             }
@@ -149,13 +157,22 @@
   }
 </div>
 
-@if (editingUser(); as user) {
+@if (creating() || editingUser()) {
   <div class="edit-overlay" (click)="closeEdit()">
     <div class="edit-panel glass-panel" (click)="$event.stopPropagation()">
       <div class="edit-panel__head">
         <div>
-          <span class="eyebrow">APPLICATION DETAILS</span>
-          <h2>Edit {{ user.professional_name || user.full_name || user.email }}</h2>
+          <span class="eyebrow">{{ creating() ? 'COMPLIMENTARY PROFILE' : 'APPLICATION DETAILS' }}</span>
+          <h2>
+            @if (creating()) {
+              Add free profile
+            } @else {
+              Edit {{ editingUser()?.professional_name || editingUser()?.full_name || editingUser()?.email }}
+            }
+          </h2>
+          @if (creating()) {
+            <p class="edit-panel__hint">Pick Starter or Premium. The profile goes live immediately — no payment, no approval.</p>
+          }
         </div>
         <button type="button" class="close-btn" (click)="closeEdit()">Close</button>
       </div>
@@ -184,9 +201,28 @@
               <p class="field-error">{{ fieldErrors().email }}</p>
             }
           </div>
+          @if (creating()) {
+            <div class="form-field">
+              <label>Password *</label>
+              <input type="password" name="password" [(ngModel)]="editForm.password" required minlength="6" autocomplete="new-password" />
+            </div>
+            <div class="form-field">
+              <label>Confirm password *</label>
+              <input type="password" name="confirmPassword" [(ngModel)]="editForm.confirmPassword" required minlength="6" autocomplete="new-password" />
+            </div>
+          }
           <div class="form-field">
-            <label>Membership</label>
-            <app-select name="membership" [(ngModel)]="editForm.membership" [options]="membershipOptions" />
+            <label>Plan *</label>
+            @if (creating()) {
+              <app-select
+                name="membership"
+                [(ngModel)]="editForm.membership"
+                placeholder="Select plan"
+                [options]="createPlanOptions"
+              />
+            } @else {
+              <app-select name="membership" [(ngModel)]="editForm.membership" [options]="membershipOptions" />
+            }
           </div>
           <div class="form-field">
             <label>Category</label>
@@ -304,7 +340,7 @@
         <div class="edit-actions">
           <button type="button" class="cancel-btn" (click)="closeEdit()" [disabled]="editSaving()">Cancel</button>
           <button type="submit" class="save-btn" [disabled]="editSaving()">
-            {{ editSaving() ? 'Saving...' : 'Save Changes' }}
+            {{ editSaving() ? (creating() ? 'Creating...' : 'Saving...') : (creating() ? 'Create free profile' : 'Save Changes') }}
           </button>
         </div>
       </form>

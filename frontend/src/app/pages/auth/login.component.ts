@@ -20,6 +20,11 @@ export class LoginComponent {
   form = { email: '', password: '' };
   loading = signal(false);
   error = signal('');
+  showPassword = signal(false);
+
+  togglePassword(): void {
+    this.showPassword.update((visible) => !visible);
+  }
 
   submit(ngForm: NgForm): void {
     if (ngForm.invalid) return;

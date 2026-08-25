@@ -35,7 +35,11 @@
           <li>Portfolio to showcase your work</li>
           <li>Booking requests from brands and clients</li>
           <li>Direct messages</li>
-          <li>A 7-day free trial on your {{ pendingPlanLabel() }} plan — it starts when you're approved, after payment is confirmed</li>
+          @if (auth.isComplimentary()) {
+            <li>A complimentary public profile — no payment is required</li>
+          } @else {
+            <li>A 7-day free trial on your {{ pendingPlanLabel() }} plan — it starts when you're approved, after payment is confirmed</li>
+          }
         </ul>
       </div>
     </div>
@@ -67,7 +71,15 @@
     <app-loading-screen [fullscreen]="false" label="LOADING DASHBOARD..." />
   } @else {
   @if (!auth.isBrand() && subscription(); as sub) {
-    @if (sub.status !== 'none') {
+    @if (sub.status === 'complimentary' || auth.isComplimentary()) {
+      <div class="sub-card">
+        <div>
+          <span class="sub-card__label">Subscription</span>
+          <strong>Complimentary · no payment</strong>
+          <p>Your profile is free. You do not need to pay to stay public.</p>
+        </div>
+      </div>
+    } @else if (sub.status !== 'none') {
       <div class="sub-card" [class.sub-card--alert]="sub.needs_reminder || sub.status === 'expired'">
         <div>
           <span class="sub-card__label">Subscription</span>

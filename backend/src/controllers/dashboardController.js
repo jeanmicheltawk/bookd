@@ -4,6 +4,7 @@ const {
   loadUserSubscription,
   endSubscription,
   isPaidPlan,
+  isComplimentary,
 } = require('../utils/subscription');
 const { ensureOpenPayment, instructionsFor } = require('../utils/payment');
 
@@ -133,7 +134,9 @@ async function getMyDashboard(req, res, next) {
       [userId]
     );
 
-    const payment = subscriptionUser?.role === 'member' && isPaidPlan(subscriptionUser.membership)
+    const payment = subscriptionUser?.role === 'member'
+      && isPaidPlan(subscriptionUser.membership)
+      && !isComplimentary(subscriptionUser)
       ? instructionsFor(subscriptionUser, await ensureOpenPayment(subscriptionUser))
       : null;
 

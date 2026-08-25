@@ -184,32 +184,3 @@
     </div>
   </div>
 </section>
-
-<!-- ============ TESTIMONIALS ============ -->
-@if (testimonials().length) {
-  <section class="section testimonials">
-    <div class="container">
-      <div class="section-head centered">
-        <span class="eyebrow">REAL TALK</span>
-        <h2 class="display-lg">THE HAUS <span class="text-gradient-acid">SPEAKS</span></h2>
-      </div>
-
-      <div class="testimonials-grid">
-        @for (t of testimonials(); track t.id; let i = $index) {
-          <div class="testimonial-card" [style.animation-delay.ms]="i * 90">
-            <p class="testimonial-card__stars">
-              @for (s of [1,2,3,4,5]; track s) {
-                <span [class.filled]="s <= (t.rating || 5)">★</span>
-              }
-            </p>
-            <p class="testimonial-card__content">"{{ t.content }}"</p>
-            <div class="testimonial-card__author">
-              <strong>{{ t.author_name }}</strong>
-              @if (t.author_role) { <span>{{ t.author_role }}</span> }
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  </section>
-}

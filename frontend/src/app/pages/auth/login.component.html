@@ -10,7 +10,36 @@
     </div>
     <div class="form-field">
       <label>Password</label>
-      <input type="password" name="password" [(ngModel)]="form.password" required minlength="6" autocomplete="current-password" />
+      <div class="password-field">
+        <input
+          [type]="showPassword() ? 'text' : 'password'"
+          name="password"
+          [(ngModel)]="form.password"
+          required
+          minlength="6"
+          autocomplete="current-password"
+        />
+        <button
+          type="button"
+          class="password-toggle"
+          (click)="togglePassword()"
+          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="showPassword()"
+        >
+          @if (showPassword()) {
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3l18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path d="M10.6 10.7a2.5 2.5 0 0 0 3.5 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path d="M9.9 5.2A10.5 10.5 0 0 1 12 5c5.5 0 9.5 4.5 10.5 7-.4 1-1.2 2.4-2.4 3.7M6.1 6.2C4.2 7.6 2.9 9.4 2 12c1 2.5 5 7 10 7 1.5 0 2.9-.3 4.1-.9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2" />
+              <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+            </svg>
+          }
+        </button>
+      </div>
     </div>
 
     @if (error()) { <p class="auth-error">{{ error() }}</p> }

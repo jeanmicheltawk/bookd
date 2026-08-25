@@ -18,6 +18,43 @@
   a { color: var(--acid-lime); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 }
 
+.password-field {
+  position: relative;
+
+  input {
+    width: 100%;
+    padding-right: 40px !important;
+  }
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0;
+  bottom: 6px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--acid-lime);
+    outline: none;
+  }
+}
+
 .auth-admin-hint {
   margin-top: 12px;
   text-align: center;

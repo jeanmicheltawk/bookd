@@ -5,7 +5,7 @@ export type UserRole = 'member' | 'brand' | 'admin';
 export type Membership = 'free' | 'basic' | 'premium' | 'visitor';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
-export type SubscriptionStatus = 'none' | 'trial' | 'active' | 'ending_soon' | 'expired';
+export type SubscriptionStatus = 'none' | 'trial' | 'active' | 'ending_soon' | 'expired' | 'complimentary';
 
 export interface SubscriptionInfo {
   plan: string;
@@ -26,6 +26,7 @@ export interface User {
   role: UserRole;
   membership: Membership;
   effective_membership?: Membership;
+  is_complimentary?: boolean;
   is_verified?: boolean;
   approval_status?: ApprovalStatus;
   created_at?: string;
@@ -349,18 +350,6 @@ export interface LearningArticle {
   is_published?: boolean;
   created_at: string;
   updated_at?: string;
-}
-
-export interface Testimonial {
-  id: string;
-  author_name: string;
-  author_role?: string;
-  author_photo?: string;
-  content: string;
-  rating?: number;
-  is_published?: boolean;
-  sort_order?: number;
-  created_at?: string;
 }
 
 export type BookingStatus =

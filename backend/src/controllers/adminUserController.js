@@ -1,8 +1,10 @@
+const bcrypt = require('bcryptjs');
 const { query, getClient } = require('../config/db');
 const { parsePageLimit } = require('../utils/pagination');
 const { emailUser } = require('../utils/mailer');
 const {
   isPaidPlan,
+  isComplimentary,
   withSubscription,
   startPaidPeriod,
   clearPaidPeriod,
@@ -10,12 +12,12 @@ const {
   endSubscription,
   remindSubscription,
 } = require('../utils/subscription');
-const { hasConfirmedPayment, markPaymentsApplied } = require('../utils/payment');
+const { hasConfirmedPayment, markPaymentsApplied, closeOpenPayments } = require('../utils/payment');
 
 const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
 
 const USER_SELECT = `
-  u.id, u.email, u.role, u.membership, u.is_verified, u.is_active,
+  u.id, u.email, u.role, u.membership, u.is_complimentary, u.is_verified, u.is_active,
   u.approval_status, u.approval_note, u.reviewed_at, u.created_at, u.last_login_at,
   u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
   EXISTS (
@@ -156,7 +158,7 @@ async function updateUser(req, res, next) {
     } = req.body;
 
     const existing = await query(
-      'SELECT id, role, email, approval_status, membership FROM users WHERE id = $1',
+      'SELECT id, role, email, approval_status, membership, is_complimentary FROM users WHERE id = $1',
       [id]
     );
     if (!existing.rows[0]) return res.status(404).json({ error: 'User not found' });
@@ -167,7 +169,7 @@ async function updateUser(req, res, next) {
       && existing.rows[0].role === 'member'
     ) {
       const nextPlan = membership !== undefined ? membership : existing.rows[0].membership;
-      if (isPaidPlan(nextPlan) && !(await hasConfirmedPayment(id))) {
+      if (isPaidPlan(nextPlan) && !isComplimentary(existing.rows[0]) && !(await hasConfirmedPayment(id))) {
         return res.status(400).json({
           error: 'Confirm this member\'s Whish payment before approving their profile.',
         });
@@ -258,8 +260,17 @@ async function updateUser(req, res, next) {
     const willBeApproved =
       approvalStatus === 'approved'
       || (approvalStatus === undefined && existing.rows[0].approval_status === 'approved');
+    const nextComplimentary = isComplimentary({
+      ...existing.rows[0],
+      membership: nextMembership,
+    });
 
-    if (existing.rows[0].role === 'member' && isPaidPlan(nextMembership) && (becameApproved || (paidPlanChanged && willBeApproved))) {
+    if (
+      existing.rows[0].role === 'member'
+      && !nextComplimentary
+      && isPaidPlan(nextMembership)
+      && (becameApproved || (paidPlanChanged && willBeApproved))
+    ) {
       await startPaidPeriod(id);
       if (becameApproved) {
         await markPaymentsApplied(id);
@@ -267,9 +278,12 @@ async function updateUser(req, res, next) {
       if (willBeApproved) {
         await query(`UPDATE profiles SET is_public = TRUE, updated_at = NOW() WHERE user_id = $1`, [id]);
       }
-    } else if (existing.rows[0].role === 'member' && membership !== undefined && !isPaidPlan(membership)) {
+    } else if (existing.rows[0].role === 'member' && nextComplimentary) {
       await clearPaidPeriod(id);
-      await query(`UPDATE profiles SET is_public = FALSE, updated_at = NOW() WHERE user_id = $1`, [id]);
+      await closeOpenPayments(id);
+      if (willBeApproved) {
+        await query(`UPDATE profiles SET is_public = TRUE, updated_at = NOW() WHERE user_id = $1`, [id]);
+      }
     }
 
     if (approvalStatus === 'approved') {
@@ -280,12 +294,10 @@ async function updateUser(req, res, next) {
         [id]
       );
       if (existing.rows[0].approval_status !== 'approved' && existing.rows[0].role === 'member') {
-        void emailUser(
-          id,
-          'Your profile is live',
-          'Your BOOK\'D HAUS application was approved. Your 7-day free trial has started — the full period is 1 month + 7 days from today. Your profile is now public.',
-          '/dashboard'
-        );
+        const liveMessage = isComplimentary({ ...existing.rows[0], membership: nextMembership })
+          ? 'Your BOOK\'D HAUS profile is live. It is complimentary — no payment is required.'
+          : 'Your BOOK\'D HAUS application was approved. Your 7-day free trial has started — the full period is 1 month + 7 days from today. Your profile is now public.';
+        void emailUser(id, 'Your profile is live', liveMessage, '/dashboard');
       }
     } else if (approvalStatus === 'rejected' || approvalStatus === 'pending') {
       await query(
@@ -407,6 +419,179 @@ async function updateUser(req, res, next) {
     res.json(withSubscription(updated));
   } catch (err) {
     next(err);
+  }
+}
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isValidEmail(value) {
+  return !!value && value.includes('@') && value.includes('.') && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+async function createComplimentaryUser(req, res, next) {
+  const {
+    email,
+    password,
+    full_name: fullName,
+    professional_name: professionalName,
+    membership: requestedMembership,
+    country,
+    city,
+    bio,
+    instagram,
+    phone,
+    whatsapp,
+    website,
+    gender,
+    age,
+    categorySlug,
+    custom_fields: customFields,
+  } = req.body || {};
+
+  const nextEmail = normalizeEmail(email);
+  const nextName = String(fullName || '').trim();
+  const nextPassword = String(password || '');
+
+  if (!isValidEmail(nextEmail)) {
+    return res.status(400).json({ error: 'Valid email is required (must include @ and .)' });
+  }
+  if (!nextName) {
+    return res.status(400).json({ error: 'Full name is required' });
+  }
+  if (nextPassword.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
+  const membership = requestedMembership === 'premium' ? 'premium' : requestedMembership === 'basic' ? 'basic' : null;
+  if (!membership) {
+    return res.status(400).json({ error: 'Choose Starter or Premium plan' });
+  }
+
+  const nextPhone = phone ? String(phone).trim() : '';
+  if (nextPhone && !/^[0-9+()]+$/.test(nextPhone)) {
+    return res.status(400).json({ error: 'Phone may only contain numbers, +, (, and )' });
+  }
+  const nextWhatsapp = whatsapp ? String(whatsapp).trim() : '';
+  if (nextWhatsapp && !/^[0-9+()]+$/.test(nextWhatsapp)) {
+    return res.status(400).json({ error: 'WhatsApp may only contain numbers, +, (, and )' });
+  }
+
+  let ageNum = null;
+  if (age !== undefined && age !== null && age !== '') {
+    ageNum = Number(age);
+    if (Number.isNaN(ageNum) || ageNum < 16 || ageNum > 100) {
+      return res.status(400).json({ error: 'Age must be 16–100' });
+    }
+  }
+
+  let client;
+  try {
+    const existing = await query('SELECT id FROM users WHERE email = $1', [nextEmail]);
+    if (existing.rows[0]) {
+      return res.status(409).json({ error: 'Email already in use' });
+    }
+
+    let categoryId = null;
+    let categoryFields = [];
+    if (categorySlug) {
+      const cat = await query(
+        `SELECT id FROM categories WHERE slug = $1 AND slug != 'brand-client'`,
+        [categorySlug]
+      );
+      if (!cat.rows[0]) return res.status(400).json({ error: 'Invalid category' });
+      categoryId = cat.rows[0].id;
+      const fieldsRes = await query(
+        `SELECT field_key, label, field_type, options, is_required
+         FROM category_fields WHERE category_id = $1 ORDER BY sort_order, label`,
+        [categoryId]
+      );
+      categoryFields = fieldsRes.rows;
+    }
+
+    const incomingCustom = customFields && typeof customFields === 'object' && !Array.isArray(customFields)
+      ? customFields
+      : {};
+    const normalizedCustom = {};
+    for (const field of categoryFields) {
+      const raw = incomingCustom[field.field_key];
+      const value = raw == null ? '' : String(raw).trim();
+      if (field.is_required && !value) {
+        return res.status(400).json({ error: `${field.label} is required` });
+      }
+      if (!value) continue;
+      if (field.field_type === 'dropdown') {
+        const opts = Array.isArray(field.options) ? field.options.map(String) : [];
+        if (opts.length && !opts.includes(value)) {
+          return res.status(400).json({ error: `Invalid value for ${field.label}` });
+        }
+      }
+      if (field.field_type === 'number' && Number.isNaN(Number(value))) {
+        return res.status(400).json({ error: `${field.label} must be a number` });
+      }
+      normalizedCustom[field.field_key] = value;
+    }
+
+    const hash = await bcrypt.hash(nextPassword, 12);
+    client = await getClient();
+    await client.query('BEGIN');
+
+    const userRes = await client.query(
+      `INSERT INTO users (email, password_hash, role, membership, is_complimentary, approval_status, is_active, is_verified, reviewed_at)
+       VALUES ($1, $2, 'member', $3, TRUE, 'approved', TRUE, FALSE, NOW())
+       RETURNING id`,
+      [nextEmail, hash, membership]
+    );
+    const userId = userRes.rows[0].id;
+
+    await client.query(
+      `INSERT INTO profiles (
+         user_id, category_id, full_name, professional_name, is_public,
+         country, city, bio, instagram, phone, whatsapp, website, gender, age, custom_fields
+       )
+       VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)`,
+      [
+        userId,
+        categoryId,
+        nextName,
+        String(professionalName || '').trim() || nextName,
+        country ? String(country).trim() : null,
+        city ? String(city).trim() : null,
+        bio ? String(bio).trim() : null,
+        instagram ? String(instagram).trim() : null,
+        nextPhone || null,
+        nextWhatsapp || null,
+        website ? String(website).trim() : null,
+        gender ? String(gender).trim() : null,
+        ageNum,
+        JSON.stringify(normalizedCustom),
+      ]
+    );
+
+    await client.query('COMMIT');
+
+    void emailUser(
+      userId,
+      'Your complimentary profile is live',
+      `A complimentary BOOK'D HAUS ${membership === 'premium' ? 'Premium' : 'Starter'} profile was created for you. Your profile is public and you do not need to pay. Log in with this email and the password you were given.`,
+      '/dashboard'
+    );
+
+    const created = await fetchAdminUser(userId);
+    res.status(201).json(withSubscription(created));
+  } catch (err) {
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        /* ignore rollback errors */
+      }
+    }
+    if (err.code === '23505') return res.status(409).json({ error: 'Email already in use' });
+    next(err);
+  } finally {
+    client?.release();
   }
 }
 
@@ -574,6 +759,7 @@ module.exports = {
   listUsers,
   getUser,
   updateUser,
+  createComplimentaryUser,
   deleteUser,
   exportClientsExcel,
   remindUserSubscription,

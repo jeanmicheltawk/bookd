@@ -57,6 +57,10 @@
   &:hover { transform: translateY(-1px); }
 }
 
+.create-btn {
+  background: var(--acid-lime);
+}
+
 .mod-list { display: flex; flex-direction: column; gap: 12px; }
 
 .mod-row {
@@ -142,6 +146,7 @@
   &[data-status='trial'] { background: var(--acid-lime); }
   &[data-status='ending_soon'] { background: var(--nuclear-yellow); }
   &[data-status='expired'] { background: var(--hyper-pink); color: #fff; }
+  &[data-status='complimentary'] { background: var(--acid-lime); }
 }
 
 .edit-btn, .approve-btn, .reject-btn, .delete-btn {
@@ -209,6 +214,13 @@
   }
 }
 
+.edit-panel__hint {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #ffffff;
+  max-width: 520px;
+}
+
 .close-btn, .cancel-btn {
   background: none;
   border: 1px solid currentColor;
@@ -249,6 +261,7 @@
       color: #ffffff;
       font-family: var(--font-body);
       &:focus { outline: none; border-bottom-color: var(--focus); }
+      &:disabled { opacity: 0.7; cursor: default; }
     }
   }
 

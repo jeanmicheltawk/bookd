@@ -7,6 +7,7 @@ export interface AdminUser {
   email: string;
   role: string;
   membership: string;
+  is_complimentary?: boolean;
   effective_membership?: string;
   membership_started_at?: string | null;
   membership_trial_ends_at?: string | null;
@@ -66,6 +67,25 @@ export type AdminUserUpdatePayload = Partial<{
   availability: string | null;
 }>;
 
+export type AdminUserCreatePayload = {
+  email: string;
+  password: string;
+  full_name: string;
+  professional_name?: string;
+  country?: string | null;
+  city?: string | null;
+  bio?: string | null;
+  instagram?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  website?: string | null;
+  gender?: string | null;
+  age?: number | null;
+  categorySlug?: string | null;
+  membership: 'basic' | 'premium';
+  custom_fields?: Record<string, string>;
+};
+
 @Injectable({ providedIn: 'root' })
 export class AdminUserService {
   private api = inject(ApiService);
@@ -83,6 +103,10 @@ export class AdminUserService {
 
   update(id: string, payload: AdminUserUpdatePayload) {
     return this.api.patch<AdminUser>(`/admin/users/${id}`, payload);
+  }
+
+  createComplimentary(payload: AdminUserCreatePayload) {
+    return this.api.post<AdminUser>('/admin/users', payload);
   }
 
   delete(id: string) {

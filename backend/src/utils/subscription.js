@@ -12,9 +12,19 @@ function isPaidPlan(membership) {
   return PAID_MEMBERSHIPS.includes(membership);
 }
 
+function isComplimentaryPlan(membership) {
+  return membership === 'free';
+}
+
+function isComplimentary(user) {
+  if (!user) return false;
+  return user.is_complimentary === true || user.is_complimentary === 't' || isComplimentaryPlan(user.membership);
+}
+
 function planLabel(membership) {
   if (membership === 'premium') return 'Premium plan';
   if (membership === 'basic') return 'Starter plan';
+  if (membership === 'free') return 'Complimentary';
   return membership || 'plan';
 }
 
@@ -32,8 +42,11 @@ function daysFromNow(value) {
 
 function isPaidActive(user) {
   if (user?.role && user.role !== 'member') return false;
-  if (!isPaidPlan(user?.membership)) return false;
   if (user.approval_status && user.approval_status !== 'approved') return false;
+  if (isComplimentary(user)) {
+    return isPaidPlan(user.membership) || isComplimentaryPlan(user.membership);
+  }
+  if (!isPaidPlan(user?.membership)) return false;
   const ends = toTime(user.membership_ends_at);
   if (ends == null) return false;
   return ends > Date.now();
@@ -45,6 +58,10 @@ function effectiveMembership(user) {
 
 function subscriptionStatus(user) {
   if (user?.role && user.role !== 'member') return 'none';
+  if (isComplimentary(user)) {
+    if (user.approval_status && user.approval_status !== 'approved') return 'none';
+    return 'complimentary';
+  }
   if (!isPaidPlan(user?.membership)) return 'none';
   const ends = toTime(user.membership_ends_at);
   if (ends == null) return 'none';
@@ -157,6 +174,7 @@ async function sendDuePaymentReminders() {
      SET membership_reminder_sent_at = NOW(), updated_at = NOW()
      WHERE role = 'member'
        AND membership IN ('basic', 'premium')
+       AND COALESCE(is_complimentary, FALSE) = FALSE
        AND is_active = TRUE
        AND COALESCE(approval_status, 'approved') = 'approved'
        AND membership_ends_at IS NOT NULL
@@ -190,6 +208,7 @@ async function expireOverdueSubscriptions() {
      WHERE p.user_id = u.id
        AND u.role = 'member'
        AND u.membership IN ('basic', 'premium')
+       AND COALESCE(u.is_complimentary, FALSE) = FALSE
        AND u.membership_ends_at IS NOT NULL
        AND u.membership_ends_at <= NOW()
        AND p.is_public = TRUE
@@ -378,7 +397,7 @@ async function remindSubscription(userId) {
 
 async function loadUserSubscription(userId) {
   const result = await query(
-    `SELECT id, role, membership, approval_status, membership_started_at, membership_trial_ends_at, membership_ends_at
+    `SELECT id, role, membership, approval_status, is_complimentary, membership_started_at, membership_trial_ends_at, membership_ends_at
      FROM users WHERE id = $1`,
     [userId]
   );
@@ -392,6 +411,8 @@ module.exports = {
   PERIOD_SQL,
   TRIAL_SQL,
   isPaidPlan,
+  isComplimentaryPlan,
+  isComplimentary,
   isPaidActive,
   planLabel,
   effectiveMembership,

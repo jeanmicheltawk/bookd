@@ -33,6 +33,10 @@ export class DashboardPayComponent implements OnInit {
   phoneError = '';
 
   ngOnInit(): void {
+    if (this.auth.isComplimentary()) {
+      this.loading.set(false);
+      return;
+    }
     this.load();
   }
 

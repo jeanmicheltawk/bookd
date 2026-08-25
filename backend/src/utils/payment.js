@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { query } = require('../config/db');
-const { isPaidPlan, planLabel } = require('./subscription');
+const { isPaidPlan, planLabel, isComplimentary } = require('./subscription');
 
 const PLAN_AMOUNTS = {
   basic: 6.99,
@@ -83,8 +83,20 @@ async function markPaymentsApplied(userId, exec = query) {
   );
 }
 
+async function closeOpenPayments(userId, exec = query) {
+  await exec(
+    `UPDATE subscription_payments
+     SET status = 'rejected',
+         review_note = COALESCE(review_note, 'Closed: complimentary profile — payment not required'),
+         reviewed_at = COALESCE(reviewed_at, NOW()),
+         updated_at = NOW()
+     WHERE user_id = $1 AND status IN ('awaiting', 'pending')`,
+    [userId]
+  );
+}
+
 async function ensureOpenPayment(user) {
-  if (!user?.id || !isPaidPlan(user.membership)) return null;
+  if (!user?.id || !isPaidPlan(user.membership) || isComplimentary(user)) return null;
 
   const confirmed = await latestConfirmedPayment(user.id);
   if (confirmed && user.approval_status !== 'approved') {
@@ -129,6 +141,7 @@ module.exports = {
   latestConfirmedPayment,
   hasConfirmedPayment,
   markPaymentsApplied,
+  closeOpenPayments,
   ensureOpenPayment,
   paymentEmailLines,
 };

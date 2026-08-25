@@ -246,12 +246,6 @@ export const routes: Routes = [
       //   title: 'Admin — Learning Hub',
       // },
       {
-        path: 'testimonials',
-        loadComponent: () =>
-          import('./pages/admin/admin-testimonials.component').then((m) => m.AdminTestimonialsComponent),
-        title: 'Admin — Testimonials',
-      },
-      {
         path: 'users',
         loadComponent: () => import('./pages/admin/admin-users.component').then((m) => m.AdminUsersComponent),
         title: 'Admin — Users',

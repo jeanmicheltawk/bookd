@@ -7,7 +7,7 @@ const { emailAdmin, emailUser } = require('../utils/mailer');
 const { expireOverdueSubscriptions, withSubscription, isPaidPlan } = require('../utils/subscription');
 const { ensureOpenPayment, instructionsFor, paymentEmailLines } = require('../utils/payment');
 
-const ALLOWED_MEMBERSHIPS = ['free', 'basic', 'premium'];
+const PUBLIC_TALENT_MEMBERSHIPS = ['basic', 'premium'];
 
 function signTokens(user) {
   const payload = {
@@ -45,7 +45,7 @@ const registerValidators = [
   body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
   body('fullName').trim().notEmpty().withMessage('Full name required'),
   body('categorySlug').if(isTalentSignup).trim().notEmpty().withMessage('Category required'),
-  body('membership').optional().isIn(ALLOWED_MEMBERSHIPS).withMessage('Invalid membership program'),
+  body('membership').optional().isIn(PUBLIC_TALENT_MEMBERSHIPS).withMessage('Invalid membership program'),
   body('professionalName').if(isTalentSignup).trim().notEmpty().withMessage('Professional name required'),
   body('country').if(isTalentSignup).trim().notEmpty().withMessage('Country required'),
   body('city').if(isTalentSignup).trim().notEmpty().withMessage('City required'),
@@ -133,7 +133,7 @@ async function register(req, res, next) {
 
     const membership = userRole === 'brand'
       ? 'free'
-      : (ALLOWED_MEMBERSHIPS.includes(requestedMembership) ? requestedMembership : 'basic');
+      : (PUBLIC_TALENT_MEMBERSHIPS.includes(requestedMembership) ? requestedMembership : 'basic');
     const approvalStatus = userRole === 'brand' ? 'approved' : 'pending';
 
     if (userRole === 'brand') {
@@ -275,7 +275,7 @@ async function login(req, res, next) {
     await expireOverdueSubscriptions();
     const result = await query(
       `SELECT id, email, password_hash, role, membership, is_verified, is_active, approval_status,
-              membership_started_at, membership_trial_ends_at, membership_ends_at
+              is_complimentary, membership_started_at, membership_trial_ends_at, membership_ends_at
        FROM users WHERE email = $1`,
       [email.toLowerCase()]
     );
@@ -312,7 +312,7 @@ async function me(req, res, next) {
     await expireOverdueSubscriptions();
     const result = await query(
       `SELECT u.id, u.email, u.role, u.membership, u.is_verified, u.approval_status, u.created_at,
-              u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
+              u.is_complimentary, u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
               p.id AS profile_id, p.full_name, p.professional_name, p.profile_photo_url,
               p.custom_url, c.slug AS category_slug, c.name AS category_name
        FROM users u
@@ -336,7 +336,7 @@ async function refresh(req, res, next) {
     await expireOverdueSubscriptions();
     const result = await query(
       `SELECT id, email, role, membership, is_verified, is_active, approval_status,
-              membership_started_at, membership_trial_ends_at, membership_ends_at
+              is_complimentary, membership_started_at, membership_trial_ends_at, membership_ends_at
        FROM users WHERE id = $1`,
       [decoded.id]
     );
