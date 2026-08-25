@@ -1,5 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, HostListener, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs/operators';
 import { AuthService } from '../core/services/auth.service';
 
 interface AdminNavItem {
@@ -17,7 +19,9 @@ interface AdminNavItem {
 })
 export class AdminLayoutComponent {
   auth = inject(AuthService);
-  collapsed = signal(false);
+  private router = inject(Router);
+
+  mobileOpen = signal(false);
 
   navItems: AdminNavItem[] = [
     { label: 'Overview', path: '/admin', icon: '◆' },
@@ -37,11 +41,33 @@ export class AdminLayoutComponent {
     { label: 'Bookings', path: '/admin/bookings', icon: '▦' },
   ];
 
-  toggleCollapsed(): void {
-    this.collapsed.update((v) => !v);
+  constructor() {
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      takeUntilDestroyed(),
+    ).subscribe(() => this.closeMobile());
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    this.closeMobile();
+  }
+
+  toggleMobile(): void {
+    this.mobileOpen.update((v) => {
+      const next = !v;
+      document.body.style.overflow = next ? 'hidden' : '';
+      return next;
+    });
+  }
+
+  closeMobile(): void {
+    this.mobileOpen.set(false);
+    document.body.style.overflow = '';
   }
 
   logout(): void {
+    this.closeMobile();
     this.auth.logout();
   }
 }

@@ -1,6 +1,6 @@
-<div class="admin-shell" [class.collapsed]="collapsed()">
+<div class="admin-shell" [class.menu-open]="mobileOpen()">
   <aside class="admin-sidebar">
-    <a routerLink="/" class="admin-sidebar__logo">
+    <a routerLink="/" class="admin-sidebar__logo" (click)="closeMobile()">
       <img src="assets/logo.svg" alt="BOOK'D" />
       <span class="admin-sidebar__tag">ADMIN</span>
     </a>
@@ -11,6 +11,7 @@
           [routerLink]="item.path"
           [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
           routerLinkActive="active"
+          (click)="closeMobile()"
         >
           <span class="icon">{{ item.icon }}</span>
           <span class="label">{{ item.label }}</span>
@@ -19,12 +20,27 @@
     </nav>
 
     <div class="admin-sidebar__footer">
-      <a routerLink="/" class="admin-sidebar__back">← Back to Site</a>
+      <a routerLink="/" class="admin-sidebar__back" (click)="closeMobile()">← Back to Site</a>
       <button class="admin-sidebar__logout" (click)="logout()">Log Out</button>
     </div>
   </aside>
 
-  <button class="admin-toggle" (click)="toggleCollapsed()" aria-label="Toggle sidebar">☰</button>
+  @if (mobileOpen()) {
+    <div class="admin-backdrop" (click)="closeMobile()" aria-hidden="true"></div>
+  }
+
+  <button
+    class="admin-toggle"
+    (click)="toggleMobile()"
+    [attr.aria-expanded]="mobileOpen()"
+    [attr.aria-label]="mobileOpen() ? 'Close menu' : 'Open menu'"
+  >
+    @if (mobileOpen()) {
+      <span class="admin-toggle__close">×</span>
+    } @else {
+      ☰
+    }
+  </button>
 
   <main class="admin-main">
     <router-outlet />

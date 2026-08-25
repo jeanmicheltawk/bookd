@@ -4,11 +4,6 @@
   min-height: 100vh;
   background: var(--toxic-orange);
 
-  &.collapsed {
-    grid-template-columns: 84px 1fr;
-    .label, .admin-sidebar__tag, .admin-sidebar__back, .admin-sidebar__logout { display: none; }
-  }
-
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
@@ -26,7 +21,19 @@
   height: 100vh;
   overflow-y: auto;
 
-  @media (max-width: 900px) { display: none; }
+  @media (max-width: 900px) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 86vw);
+    height: 100dvh;
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    visibility: hidden;
+    pointer-events: none;
+  }
 
   &__logo {
     padding: 0 12px 24px;
@@ -40,7 +47,6 @@
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #ffffff;
     background: var(--acid-lime);
     color: var(--ink-black);
     padding: 2px 8px;
@@ -101,26 +107,54 @@
   }
 }
 
+.admin-shell.menu-open .admin-sidebar {
+  @media (max-width: 900px) {
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+.admin-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: rgba(0, 0, 0, 0.5);
+}
+
 .admin-toggle {
   display: none;
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 500;
-  width: 48px; height: 48px;
+  top: 14px;
+  right: 14px;
+  z-index: 1200;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
   background: var(--acid-lime);
   color: var(--ink-black);
   border: none;
   font-size: 1.2rem;
+  line-height: 1;
 
-  @media (max-width: 900px) { display: block; }
+  @media (max-width: 900px) { display: flex; }
+
+  &__close {
+    font-size: 1.8rem;
+    font-weight: 400;
+    line-height: 1;
+  }
 }
 
 .admin-main {
   padding: 32px;
   max-width: 100%;
+  min-width: 0;
   overflow-x: hidden;
   background: var(--toxic-orange);
 
-  @media (max-width: 640px) { padding: 20px 16px 80px; }
+  @media (max-width: 900px) { padding: 72px 20px 24px; }
+  @media (max-width: 640px) { padding: 68px 16px 24px; }
 }

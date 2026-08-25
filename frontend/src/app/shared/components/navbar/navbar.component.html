@@ -62,7 +62,7 @@
         <a routerLink="/auth/signup" class="navbar__signup-btn">Apply</a>
       }
 
-      <button class="navbar__more-btn" [matMenuTriggerFor]="moreMenu" aria-label="More">
+      <button class="navbar__more-btn hide-mobile" [matMenuTriggerFor]="moreMenu" aria-label="More">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
           <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
         </svg>
@@ -74,8 +74,10 @@
         <!-- FUTURE: <a mat-menu-item routerLink="/learn">Learning Hub</a> -->
       </mat-menu>
 
-      <button class="navbar__burger hide-desktop" (click)="toggleMobileMenu()" aria-label="Menu">
-        <span></span><span></span><span></span>
+      <button class="navbar__more-btn hide-desktop" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen()" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+        </svg>
       </button>
     </div>
   </div>
