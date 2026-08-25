@@ -1,12 +1,43 @@
 const { query, getClient } = require('../config/db');
 const { parsePageLimit } = require('../utils/pagination');
 const { emailUser } = require('../utils/mailer');
+const {
+  isPaidPlan,
+  withSubscription,
+  startPaidPeriod,
+  clearPaidPeriod,
+  expireOverdueSubscriptions,
+  endSubscription,
+  remindSubscription,
+} = require('../utils/subscription');
+const { hasConfirmedPayment, markPaymentsApplied } = require('../utils/payment');
 
 const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
 
 const USER_SELECT = `
   u.id, u.email, u.role, u.membership, u.is_verified, u.is_active,
   u.approval_status, u.approval_note, u.reviewed_at, u.created_at, u.last_login_at,
+  u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
+  EXISTS (
+    SELECT 1 FROM subscription_payments spc
+    WHERE spc.user_id = u.id AND spc.status = 'confirmed'
+  ) AS payment_confirmed,
+  (
+    SELECT sp.status FROM subscription_payments sp
+    WHERE sp.user_id = u.id
+    ORDER BY CASE sp.status
+      WHEN 'confirmed' THEN 0 WHEN 'pending' THEN 1 WHEN 'awaiting' THEN 2 ELSE 3
+    END, sp.created_at DESC
+    LIMIT 1
+  ) AS payment_status,
+  (
+    SELECT sp.reference FROM subscription_payments sp
+    WHERE sp.user_id = u.id
+    ORDER BY CASE sp.status
+      WHEN 'confirmed' THEN 0 WHEN 'pending' THEN 1 WHEN 'awaiting' THEN 2 ELSE 3
+    END, sp.created_at DESC
+    LIMIT 1
+  ) AS payment_reference,
   p.id AS profile_id, p.full_name, p.professional_name, p.country, p.city,
   p.bio, p.instagram, p.phone, p.whatsapp, p.website, p.gender, p.age,
   p.profile_photo_url, p.is_public, p.custom_fields, p.availability,
@@ -27,6 +58,7 @@ async function fetchAdminUser(userId) {
 
 async function listUsers(req, res, next) {
   try {
+    await expireOverdueSubscriptions();
     const { page, limit, offset } = parsePageLimit(req.query);
     const { q, role, membership, verified, approval_status: approvalStatus } = req.query;
     const params = [];
@@ -73,7 +105,7 @@ async function listUsers(req, res, next) {
     );
 
     res.json({
-      data: result.rows,
+      data: result.rows.map(withSubscription),
       pagination: {
         page,
         limit,
@@ -90,7 +122,7 @@ async function getUser(req, res, next) {
   try {
     const user = await fetchAdminUser(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json(user);
+    res.json(withSubscription(user));
   } catch (err) {
     next(err);
   }
@@ -123,8 +155,24 @@ async function updateUser(req, res, next) {
       availability,
     } = req.body;
 
-    const existing = await query('SELECT id, role, email, approval_status FROM users WHERE id = $1', [id]);
+    const existing = await query(
+      'SELECT id, role, email, approval_status, membership FROM users WHERE id = $1',
+      [id]
+    );
     if (!existing.rows[0]) return res.status(404).json({ error: 'User not found' });
+
+    if (
+      approvalStatus === 'approved'
+      && existing.rows[0].approval_status !== 'approved'
+      && existing.rows[0].role === 'member'
+    ) {
+      const nextPlan = membership !== undefined ? membership : existing.rows[0].membership;
+      if (isPaidPlan(nextPlan) && !(await hasConfirmedPayment(id))) {
+        return res.status(400).json({
+          error: 'Confirm this member\'s Whish payment before approving their profile.',
+        });
+      }
+    }
 
     const userUpdates = [];
     const userParams = [];
@@ -204,6 +252,26 @@ async function updateUser(req, res, next) {
       }
     }
 
+    const nextMembership = membership !== undefined ? membership : existing.rows[0].membership;
+    const becameApproved = approvalStatus === 'approved' && existing.rows[0].approval_status !== 'approved';
+    const paidPlanChanged = membership !== undefined && membership !== existing.rows[0].membership;
+    const willBeApproved =
+      approvalStatus === 'approved'
+      || (approvalStatus === undefined && existing.rows[0].approval_status === 'approved');
+
+    if (existing.rows[0].role === 'member' && isPaidPlan(nextMembership) && (becameApproved || (paidPlanChanged && willBeApproved))) {
+      await startPaidPeriod(id);
+      if (becameApproved) {
+        await markPaymentsApplied(id);
+      }
+      if (willBeApproved) {
+        await query(`UPDATE profiles SET is_public = TRUE, updated_at = NOW() WHERE user_id = $1`, [id]);
+      }
+    } else if (existing.rows[0].role === 'member' && membership !== undefined && !isPaidPlan(membership)) {
+      await clearPaidPeriod(id);
+      await query(`UPDATE profiles SET is_public = FALSE, updated_at = NOW() WHERE user_id = $1`, [id]);
+    }
+
     if (approvalStatus === 'approved') {
       await query(
         `UPDATE profiles SET is_public = TRUE, updated_at = NOW()
@@ -215,7 +283,7 @@ async function updateUser(req, res, next) {
         void emailUser(
           id,
           'Your profile is live',
-          'Your BOOK\'D HAUS application was approved. Your profile is now public and you can log in.',
+          'Your BOOK\'D HAUS application was approved. Your 7-day free trial has started — the full period is 1 month + 7 days from today. Your profile is now public.',
           '/dashboard'
         );
       }
@@ -336,7 +404,29 @@ async function updateUser(req, res, next) {
     }
 
     const updated = await fetchAdminUser(id);
-    res.json(updated);
+    res.json(withSubscription(updated));
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function remindUserSubscription(req, res, next) {
+  try {
+    await remindSubscription(req.params.id);
+    const user = await fetchAdminUser(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(withSubscription(user));
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function endUserSubscription(req, res, next) {
+  try {
+    await endSubscription(req.params.id, { notifyUser: true, endedBy: 'admin' });
+    const user = await fetchAdminUser(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(withSubscription(user));
   } catch (err) {
     next(err);
   }
@@ -480,4 +570,12 @@ ${rowsXml}
   }
 }
 
-module.exports = { listUsers, getUser, updateUser, deleteUser, exportClientsExcel };
+module.exports = {
+  listUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+  exportClientsExcel,
+  remindUserSubscription,
+  endUserSubscription,
+};

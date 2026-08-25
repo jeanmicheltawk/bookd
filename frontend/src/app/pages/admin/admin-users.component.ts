@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { catchError, of } from 'rxjs';
 
-import { ApprovalStatus, Category, CategoryField, Country } from '../../core/models';
+import { ApprovalStatus, Category, CategoryField, Country, SubscriptionInfo } from '../../core/models';
 import { AdminUser, AdminUserService } from '../../core/services/admin-user.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CountryService } from '../../core/services/country.service';
@@ -19,6 +19,7 @@ import {
 } from '../../core/utils/contact-validation';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
+import { subscriptionStatusLabel } from '../../core/utils/subscription';
 
 interface EditForm {
   email: string;
@@ -64,6 +65,7 @@ export class AdminUsersComponent implements OnInit {
   editSaving = signal(false);
   editError = signal('');
   listError = signal('');
+  listNotice = signal('');
   fieldErrors = signal<ContactFieldErrors>({});
   editCategorySlug = signal('');
   editForm: EditForm = this.emptyEditForm();
@@ -115,6 +117,7 @@ export class AdminUsersComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.listError.set('');
+    this.listNotice.set('');
     const status = this.activeStatus();
     this.usersApi
       .list({
@@ -274,8 +277,19 @@ export class AdminUsersComponent implements OnInit {
       });
   }
 
+  canApprove(user: AdminUser): boolean {
+    if (user.role !== 'member') return true;
+    if (user.membership !== 'basic' && user.membership !== 'premium') return true;
+    return !!user.payment_confirmed;
+  }
+
   setApproval(user: AdminUser, approval_status: ApprovalStatus): void {
+    if (approval_status === 'approved' && !this.canApprove(user)) {
+      this.listError.set("Confirm this member's Whish payment before approving their profile.");
+      return;
+    }
     this.savingId.set(user.id);
+    this.listError.set('');
     this.usersApi.update(user.id, { approval_status }).subscribe({
       next: (updated) => {
         this.savingId.set(null);
@@ -285,7 +299,10 @@ export class AdminUsersComponent implements OnInit {
           this.users.update((list) => list.filter((u) => u.id !== user.id));
         }
       },
-      error: () => this.savingId.set(null),
+      error: (err) => {
+        this.savingId.set(null);
+        this.listError.set(err?.error?.error || 'Could not update approval.');
+      },
     });
   }
 
@@ -308,6 +325,47 @@ export class AdminUsersComponent implements OnInit {
         this.savingId.set(null);
       },
       error: () => this.savingId.set(null),
+    });
+  }
+
+  subStatus(sub?: SubscriptionInfo): string {
+    return subscriptionStatusLabel(sub?.status);
+  }
+
+  remindSubscription(user: AdminUser): void {
+    this.savingId.set(user.id);
+    this.listError.set('');
+    this.listNotice.set('');
+    this.usersApi.remindSubscription(user.id).subscribe({
+      next: (updated) => {
+        this.users.update((list) => list.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)));
+        this.savingId.set(null);
+        this.listNotice.set(`Reminder sent to ${updated.professional_name || updated.full_name || updated.email}.`);
+      },
+      error: (err) => {
+        this.savingId.set(null);
+        this.listError.set(err?.error?.error || 'Could not send reminder.');
+      },
+    });
+  }
+
+  endSubscription(user: AdminUser): void {
+    const label = user.professional_name || user.full_name || user.email;
+    if (!confirm(`End ${label}'s 7-day free trial? Their profile will be taken off the public directory.`)) return;
+
+    this.savingId.set(user.id);
+    this.listError.set('');
+    this.listNotice.set('');
+    this.usersApi.endSubscription(user.id).subscribe({
+      next: (updated) => {
+        this.users.update((list) => list.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)));
+        this.savingId.set(null);
+        this.listNotice.set(`${label}'s free trial ended.`);
+      },
+      error: (err) => {
+        this.savingId.set(null);
+        this.listError.set(err?.error?.error || 'Could not end subscription.');
+      },
     });
   }
 

@@ -14,6 +14,7 @@
 
     <div class="navbar__actions">
       @if (auth.isAuthenticated()) {
+        @if (!auth.isPending()) {
         <a routerLink="/dashboard/messages" class="navbar__icon-btn hide-mobile" aria-label="Messages">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -31,6 +32,7 @@
             <span class="navbar__badge">{{ bookingBadge }}</span>
           }
         </a>
+        }
 
         <button class="navbar__avatar-btn" [matMenuTriggerFor]="userMenu" aria-label="Account menu">
           @if (avatarUrl) {
@@ -45,10 +47,10 @@
             <a mat-menu-item routerLink="/admin/users">Review Applications</a>
           }
           <a mat-menu-item routerLink="/dashboard">Dashboard</a>
-          @if (!auth.isBrand()) {
+          @if (!auth.isPending() && !auth.isBrand()) {
             <a mat-menu-item [routerLink]="['/profile', auth.user()?.profile_id]">My Profile</a>
             <a mat-menu-item routerLink="/dashboard/bookings">Bookings</a>
-          } @else {
+          } @else if (!auth.isPending() && auth.isBrand()) {
             <a mat-menu-item routerLink="/dashboard/bookings">History</a>
             <a mat-menu-item routerLink="/dashboard/messages">Messages</a>
           }
@@ -93,7 +95,11 @@
         <a routerLink="/auth/signup" (click)="closeMobileMenu()" class="mobile-signup">Apply</a>
       } @else {
         <a routerLink="/dashboard" (click)="closeMobileMenu()">Dashboard</a>
-        <a routerLink="/dashboard/messages" (click)="closeMobileMenu()">Messages</a>
+        @if (!auth.isPending()) {
+          <a routerLink="/dashboard/messages" (click)="closeMobileMenu()">Messages</a>
+        } @else {
+          <a routerLink="/dashboard/settings" (click)="closeMobileMenu()">Profile</a>
+        }
         <button class="btn-reset" (click)="logout(); closeMobileMenu()">Log Out</button>
       }
     </div>

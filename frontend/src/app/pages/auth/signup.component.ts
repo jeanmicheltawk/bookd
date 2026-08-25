@@ -7,7 +7,7 @@ import { catchError, of } from 'rxjs';
 import { AuthService, RegisterPayload } from '../../core/services/auth.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CountryService } from '../../core/services/country.service';
-import { Category, CategoryField, Country, Membership } from '../../core/models';
+import { Category, CategoryField, Country, Membership, WhishPaymentInstructions } from '../../core/models';
 import {
   ContactFieldErrors,
   EMAIL_FORMAT_PATTERN,
@@ -19,6 +19,7 @@ import {
 } from '../../core/utils/contact-validation';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
+import { WhishPayInstructionsComponent } from '../../shared/components/whish-pay-instructions/whish-pay-instructions.component';
 
 interface MembershipOption {
   value: Membership;
@@ -55,7 +56,7 @@ interface TalentFormModel {
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AnimatedButtonComponent, SelectComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AnimatedButtonComponent, SelectComponent, WhishPayInstructionsComponent],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.scss',
 })
@@ -69,13 +70,14 @@ export class SignupComponent implements OnInit {
   categories = signal<Category[]>([]);
   countries = signal<Country[]>([]);
   submitted = signal(false);
+  payment = signal<WhishPaymentInstructions | null>(null);
   customFields = signal<Record<string, string>>({});
   role = signal<'member' | 'brand'>(this.initialRole());
   categorySlug = signal('');
 
   membershipOptions: MembershipOption[] = [
-    { value: 'basic', label: 'Starter plan', description: '$6.99 / month' },
-    { value: 'premium', label: 'Premium plan', description: '$14.99 / month' },
+    { value: 'basic', label: 'Starter plan', description: '$6.99 / month · 7-day free trial' },
+    { value: 'premium', label: 'Premium plan', description: '$14.99 / month · 7-day free trial' },
   ];
 
   talent: TalentFormModel = {
@@ -402,6 +404,7 @@ export class SignupComponent implements OnInit {
           this.router.navigateByUrl(redirect || '/dashboard');
           return;
         }
+        this.payment.set(res.payment || null);
         this.submitted.set(true);
       },
       error: (err) => {
@@ -409,5 +412,13 @@ export class SignupComponent implements OnInit {
         this.error.set(err?.error?.error || 'Could not submit your application. Try again.');
       },
     });
+  }
+
+  selectedPlanAmount(): number {
+    return this.talent.membership === 'premium' ? 14.99 : 6.99;
+  }
+
+  selectedPlanLabel(): string {
+    return this.talent.membership === 'premium' ? 'Premium plan' : 'Starter plan';
   }
 }

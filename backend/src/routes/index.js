@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticate, optionalAuth, requireRole } = require('../middleware/auth');
+const { authenticate, optionalAuth, requireRole, requireApproved } = require('../middleware/auth');
 const { upload, imageUpload, forceUploadFolder } = require('../middleware/upload');
 
 const auth = require('../controllers/authController');
@@ -20,9 +20,12 @@ const testimonial = require('../controllers/testimonialController');
 const dashboard = require('../controllers/dashboardController');
 const pricing = require('../controllers/pricingController');
 const adminUsers = require('../controllers/adminUserController');
+const cancellations = require('../controllers/subscriptionCancellationController');
+const payments = require('../controllers/paymentController');
 
 const router = express.Router();
 const admin = [authenticate, requireRole('admin')];
+const approved = [authenticate, requireApproved];
 
 // Auth
 router.post('/auth/register', auth.registerValidators, auth.register);
@@ -89,49 +92,49 @@ router.post(
   imageUpload.single('file'),
   profile.uploadProfilePhoto
 );
-router.get('/profiles/me/portfolio', authenticate, profile.listPortfolio);
+router.get('/profiles/me/portfolio', ...approved, profile.listPortfolio);
 router.post(
   '/profiles/me/portfolio/upload',
-  authenticate,
+  ...approved,
   forceUploadFolder('portfolio'),
   upload.single('file'),
   profile.uploadPortfolioMedia
 );
-router.post('/profiles/me/portfolio', authenticate, profile.addPortfolioItem);
-router.patch('/profiles/me/portfolio/:id', authenticate, profile.updatePortfolioItem);
-router.delete('/profiles/me/portfolio/:id', authenticate, profile.deletePortfolioItem);
+router.post('/profiles/me/portfolio', ...approved, profile.addPortfolioItem);
+router.patch('/profiles/me/portfolio/:id', ...approved, profile.updatePortfolioItem);
+router.delete('/profiles/me/portfolio/:id', ...approved, profile.deletePortfolioItem);
 router.patch('/profiles/me', authenticate, profile.updateMyProfile);
 router.get('/profiles/:idOrSlug', optionalAuth, profile.getPublicProfile);
 
 // Announcements
 router.get('/announcements', announcement.listApproved);
-router.get('/announcements/mine', authenticate, announcement.listMyAnnouncements);
+router.get('/announcements/mine', ...approved, announcement.listMyAnnouncements);
 router.get('/announcements/:id', optionalAuth, announcement.getAnnouncement);
-router.post('/announcements', authenticate, announcement.createAnnouncement);
-router.post('/announcements/:id/apply', authenticate, announcement.applyToAnnouncement);
-router.get('/announcements/:id/applications', authenticate, announcement.listApplications);
+router.post('/announcements', ...approved, announcement.createAnnouncement);
+router.post('/announcements/:id/apply', ...approved, announcement.applyToAnnouncement);
+router.get('/announcements/:id/applications', ...approved, announcement.listApplications);
 router.get('/admin/announcements', ...admin, announcement.listAllAdmin);
 router.patch('/admin/announcements/:id', ...admin, announcement.moderateAnnouncement);
 
 // Bookings
-router.post('/bookings', authenticate, booking.createBooking);
-router.get('/bookings/mine', authenticate, booking.listMine);
+router.post('/bookings', ...approved, booking.createBooking);
+router.get('/bookings/mine', ...approved, booking.listMine);
 router.get('/admin/bookings', ...admin, booking.listAllAdmin);
-router.get('/bookings/:id', authenticate, booking.getBooking);
-router.post('/bookings/:id/accept', authenticate, booking.acceptBooking);
-router.post('/bookings/:id/decline', authenticate, booking.declineBooking);
-router.post('/bookings/:id/negotiate', authenticate, booking.negotiateBooking);
-router.patch('/bookings/:id/status', authenticate, booking.updateBookingStatus);
+router.get('/bookings/:id', ...approved, booking.getBooking);
+router.post('/bookings/:id/accept', ...approved, booking.acceptBooking);
+router.post('/bookings/:id/decline', ...approved, booking.declineBooking);
+router.post('/bookings/:id/negotiate', ...approved, booking.negotiateBooking);
+router.patch('/bookings/:id/status', ...approved, booking.updateBookingStatus);
 
 // Messages
-router.get('/messages/conversations', authenticate, message.listConversations);
-router.post('/messages/conversations', authenticate, message.getOrCreateConversation);
-router.get('/messages/conversations/:id', authenticate, message.listMessages);
-router.post('/messages/conversations/:id', authenticate, message.sendMessage);
-router.post('/messages/conversations/:id/read', authenticate, message.markRead);
-router.get('/messages/saved', authenticate, message.listSavedMessages);
-router.patch('/messages/:messageId/save', authenticate, message.saveMessage);
-router.post('/messages/:messageId/report', authenticate, message.reportMessage);
+router.get('/messages/conversations', ...approved, message.listConversations);
+router.post('/messages/conversations', ...approved, message.getOrCreateConversation);
+router.get('/messages/conversations/:id', ...approved, message.listMessages);
+router.post('/messages/conversations/:id', ...approved, message.sendMessage);
+router.post('/messages/conversations/:id/read', ...approved, message.markRead);
+router.get('/messages/saved', ...approved, message.listSavedMessages);
+router.patch('/messages/:messageId/save', ...approved, message.saveMessage);
+router.post('/messages/:messageId/report', ...approved, message.reportMessage);
 
 // Events
 router.get('/events', event.listEvents);
@@ -162,13 +165,23 @@ router.post('/pricing/estimate', pricing.estimatePrice);
 // Dashboard
 router.get('/dashboard/me', authenticate, dashboard.getMyDashboard);
 router.get('/dashboard/alerts', authenticate, dashboard.getAlerts);
-router.post('/dashboard/notifications/read', authenticate, dashboard.markNotificationsRead);
+router.post('/dashboard/notifications/read', ...approved, dashboard.markNotificationsRead);
+router.post('/dashboard/subscription/end', ...approved, dashboard.endMySubscription);
+router.get('/payments/whish', authenticate, payments.getMyWhishPayment);
+router.post('/payments/whish', authenticate, payments.submitMyWhishPayment);
 
 // Admin users
 router.get('/admin/clients/export', ...admin, adminUsers.exportClientsExcel);
 router.get('/admin/users', ...admin, adminUsers.listUsers);
 router.get('/admin/users/:id', ...admin, adminUsers.getUser);
 router.patch('/admin/users/:id', ...admin, adminUsers.updateUser);
+router.post('/admin/users/:id/subscription/remind', ...admin, adminUsers.remindUserSubscription);
+router.post('/admin/users/:id/subscription/end', ...admin, adminUsers.endUserSubscription);
+router.get('/admin/subscription-cancellations', ...admin, cancellations.listCancellations);
+router.patch('/admin/subscription-cancellations/:id', ...admin, cancellations.updateCancellationRefund);
+router.get('/admin/payments', ...admin, payments.listPayments);
+router.post('/admin/payments/:id/confirm', ...admin, payments.confirmPayment);
+router.post('/admin/payments/:id/reject', ...admin, payments.rejectPayment);
 router.delete('/admin/users/:id', ...admin, adminUsers.deleteUser);
 
 module.exports = router;

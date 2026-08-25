@@ -32,6 +32,8 @@ export class AdminLayoutComponent {
     // FUTURE: { label: 'Learning Hub', path: '/admin/learn', icon: '▤' },
     { label: 'Testimonials', path: '/admin/testimonials', icon: '❝' },
     { label: 'Users', path: '/admin/users', icon: '⌘' },
+    { label: 'Payments', path: '/admin/payments', icon: '$' },
+    { label: 'Cancellations', path: '/admin/cancellations', icon: '⊘' },
     { label: 'Clients', path: '/admin/clients', icon: '▣' },
     { label: 'Bookings', path: '/admin/bookings', icon: '▦' },
   ];

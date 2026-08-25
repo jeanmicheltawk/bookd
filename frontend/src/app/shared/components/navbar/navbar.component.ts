@@ -22,7 +22,7 @@ export class NavbarComponent implements OnInit {
   mobileMenuOpen = signal(false);
 
   ngOnInit(): void {
-    this.alerts.refresh();
+    if (!this.auth.isPending()) this.alerts.refresh();
   }
 
   @HostListener('window:scroll')

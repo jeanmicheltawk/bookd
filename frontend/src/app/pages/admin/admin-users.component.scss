@@ -120,6 +120,30 @@
   color: var(--text);
 }
 
+.sub-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.sub-badge {
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--laser-cyan);
+  color: var(--ink-black);
+
+  &[data-status='trial'] { background: var(--acid-lime); }
+  &[data-status='ending_soon'] { background: var(--nuclear-yellow); }
+  &[data-status='expired'] { background: var(--hyper-pink); color: #fff; }
+}
+
 .edit-btn, .approve-btn, .reject-btn, .delete-btn {
   padding: 9px 18px;
   font-size: 0.78rem;
@@ -137,6 +161,15 @@
 }
 .approve-btn { background: var(--acid-lime); color: var(--ink-black); }
 .reject-btn { background: var(--hyper-pink); color: #ffffff; }
+
+.pay-wait {
+  align-self: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
 .delete-btn {
   background: var(--hyper-pink);
   color: #ffffff;
@@ -254,6 +287,12 @@
 .form-error {
   margin-top: 14px;
   font-size: 0.85rem;
+}
+
+.form-notice {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--acid-lime);
 }
 
 .field-error {

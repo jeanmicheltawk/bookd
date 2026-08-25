@@ -15,7 +15,7 @@ interface DashNavItem {
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
   template: `
-    @if (alerts.alerts(); as a) {
+    @if (!auth.isPending() && alerts.alerts(); as a) {
       <div class="dash-notices">
         @if (a.unreadMessages) {
           <a class="dash-notice dash-notice--message" routerLink="/dashboard/messages">
@@ -30,6 +30,11 @@ interface DashNavItem {
         @if (auth.isBrand() && a.bookingUpdates) {
           <a class="dash-notice dash-notice--booking" routerLink="/dashboard/bookings">
             You have {{ a.bookingUpdates }} booking update{{ a.bookingUpdates === 1 ? '' : 's' }} — approved or declined.
+          </a>
+        }
+        @if (!auth.isBrand() && (a.subscription?.status === 'ending_soon' || a.subscription?.status === 'expired')) {
+          <a class="dash-notice dash-notice--pay" routerLink="/dashboard/pay">
+            {{ a.subscription?.status === 'expired' ? 'Your plan has ended. Pay with Whish to stay public.' : 'Time to pay your subscription with Whish.' }}
           </a>
         }
       </div>
@@ -68,6 +73,7 @@ interface DashNavItem {
       color: var(--ink-black);
       &--message { background: var(--acid-lime); }
       &--booking { background: var(--nuclear-yellow); }
+      &--pay { background: var(--hyper-pink); color: #fff; }
       &:hover { transform: translateY(-1px); }
     }
 
@@ -127,10 +133,18 @@ export class DashboardNavComponent implements OnInit {
   alerts = inject(AlertService);
 
   ngOnInit(): void {
-    this.alerts.refresh();
+    if (!this.auth.isPending()) this.alerts.refresh();
   }
 
   get items(): DashNavItem[] {
+    if (this.auth.isPending()) {
+      return [
+        { label: 'Status', path: '/dashboard', exact: true },
+        { label: 'Pay', path: '/dashboard/pay' },
+        { label: 'Profile', path: '/dashboard/settings' },
+      ];
+    }
+
     const a = this.alerts.alerts();
     if (this.auth.isBrand()) {
       return [
@@ -147,6 +161,7 @@ export class DashboardNavComponent implements OnInit {
       { label: 'Messages', path: '/dashboard/messages', badge: a.unreadMessages },
       { label: 'Notifications', path: '/dashboard/notifications' },
       { label: 'Portfolio', path: '/dashboard/portfolio' },
+      { label: 'Pay', path: '/dashboard/pay', badge: (a.subscription?.status === 'ending_soon' || a.subscription?.status === 'expired') ? 1 : 0 },
       { label: 'Profile', path: '/dashboard/settings' },
     ];
   }

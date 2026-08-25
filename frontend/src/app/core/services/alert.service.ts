@@ -1,11 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { catchError, of, tap } from 'rxjs';
 
-import { DashboardAlerts } from '../models';
+import { DashboardAlerts, Membership, SubscriptionInfo } from '../models';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 
-const EMPTY: DashboardAlerts = { unreadMessages: 0, newBookings: 0, bookingUpdates: 0 };
+const EMPTY: DashboardAlerts = { unreadMessages: 0, newBookings: 0, bookingUpdates: 0, subscription: null };
 
 @Injectable({ providedIn: 'root' })
 export class AlertService {
@@ -15,18 +15,28 @@ export class AlertService {
   readonly alerts = signal<DashboardAlerts>(EMPTY);
 
   refresh(): void {
-    if (!this.auth.isAuthenticated()) {
+    if (!this.auth.isAuthenticated() || this.auth.isPending()) {
       this.alerts.set(EMPTY);
       return;
     }
     this.api
       .get<DashboardAlerts>('/dashboard/alerts')
       .pipe(catchError(() => of(EMPTY)))
-      .subscribe((res) => this.alerts.set(res));
+      .subscribe((res) => this.apply(res));
   }
 
   apply(alerts?: DashboardAlerts | null): void {
-    if (alerts) this.alerts.set(alerts);
+    if (!alerts) return;
+    this.alerts.set(alerts);
+    this.syncUser(alerts.subscription);
+  }
+
+  private syncUser(subscription?: SubscriptionInfo | null): void {
+    if (!subscription) return;
+    this.auth.updateStoredUser({
+      subscription,
+      effective_membership: (subscription.can_end ? subscription.plan : 'free') as Membership,
+    });
   }
 
   markBookingNoticesRead(): void {

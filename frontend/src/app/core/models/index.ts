@@ -5,11 +5,27 @@ export type UserRole = 'member' | 'brand' | 'admin';
 export type Membership = 'free' | 'basic' | 'premium' | 'visitor';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
+export type SubscriptionStatus = 'none' | 'trial' | 'active' | 'ending_soon' | 'expired';
+
+export interface SubscriptionInfo {
+  plan: string;
+  plan_label: string;
+  status: SubscriptionStatus;
+  started_at: string | null;
+  trial_ends_at: string | null;
+  ends_at: string | null;
+  days_remaining: number | null;
+  in_trial: boolean;
+  can_end: boolean;
+  needs_reminder: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
   role: UserRole;
   membership: Membership;
+  effective_membership?: Membership;
   is_verified?: boolean;
   approval_status?: ApprovalStatus;
   created_at?: string;
@@ -20,12 +36,74 @@ export interface User {
   custom_url?: string;
   category_slug?: string;
   category_name?: string;
+  membership_started_at?: string | null;
+  membership_trial_ends_at?: string | null;
+  membership_ends_at?: string | null;
+  subscription?: SubscriptionInfo;
 }
 
 export interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
+}
+
+export type PaymentStatus = 'awaiting' | 'pending' | 'confirmed' | 'rejected';
+
+export interface WhishRecipient {
+  display: string;
+  copy: string;
+  digits: string;
+}
+
+export interface SubscriptionPayment {
+  id: string;
+  user_id: string;
+  email?: string;
+  full_name?: string | null;
+  professional_name?: string | null;
+  phone?: string | null;
+  plan: string;
+  plan_label: string;
+  amount: number;
+  currency: string;
+  method: string;
+  recipient_number: string;
+  sender_whish_number?: string | null;
+  reference: string;
+  note?: string | null;
+  status: PaymentStatus;
+  submitted_at?: string | null;
+  reviewed_at?: string | null;
+  review_note?: string | null;
+  created_at: string;
+}
+
+export interface WhishPaymentInstructions {
+  method: 'whish_p2p';
+  recipient: WhishRecipient;
+  amount: number;
+  currency: string;
+  plan: string;
+  plan_label: string;
+  payment: SubscriptionPayment | null;
+  suggested_whish_number?: string;
+}
+
+export type CancellationBy = 'self' | 'admin';
+
+export interface SubscriptionCancellation {
+  id: string;
+  user_id: string | null;
+  email: string;
+  full_name?: string | null;
+  professional_name?: string | null;
+  plan: string;
+  plan_label: string;
+  cancelled_at: string;
+  cancelled_by: CancellationBy;
+  refund_done: boolean;
+  refund_updated_at?: string | null;
 }
 
 export type CategoryFieldType = 'text' | 'number' | 'dropdown' | 'textarea';
@@ -357,6 +435,7 @@ export interface DashboardAlerts {
   unreadMessages: number;
   newBookings: number;
   bookingUpdates: number;
+  subscription?: SubscriptionInfo | null;
 }
 
 export interface DashboardSummary {
@@ -373,6 +452,8 @@ export interface DashboardSummary {
   analytics: { views_7d: number; views_30d: number };
   notifications: { unread: number };
   alerts?: DashboardAlerts;
+  subscription?: SubscriptionInfo | null;
+  payment?: WhishPaymentInstructions | null;
   recentBookings: Array<{
     id: string;
     project_type?: string;
@@ -402,6 +483,8 @@ export interface AdminAnalytics {
     pending: number;
     premium: number;
     monthlyAmount: number;
+    activeMemberships: number;
+    pendingPayments?: number;
   };
   topProfiles: Array<{
     id: string;

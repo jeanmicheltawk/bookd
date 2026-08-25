@@ -5,6 +5,7 @@ import { catchError, of } from 'rxjs';
 
 import { PricingService } from '../../core/services/pricing.service';
 import { CategoryService } from '../../core/services/category.service';
+import { AuthService } from '../../core/services/auth.service';
 import { PriceEstimate, Category } from '../../core/models';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
@@ -27,6 +28,7 @@ const PLANS: Plan[] = [
     period: '/ month',
     tagline: 'Get discovered and start getting BOOK\'D.',
     features: [
+      '7-day free trial (1 month + 7 days)',
       'Public profile & portfolio',
       'Up to 4 portfolio images',
       'Direct messaging',
@@ -42,6 +44,7 @@ const PLANS: Plan[] = [
     period: '/ month',
     tagline: 'Priority placement and more visibility.',
     features: [
+      '7-day free trial (1 month + 7 days)',
       'Everything in Starter plan',
       'Up to 15 portfolio images',
       'Priority spotlight placement',
@@ -79,6 +82,7 @@ const PLANS: Plan[] = [
 export class PricingComponent {
   private pricingService = inject(PricingService);
   private categoryService = inject(CategoryService);
+  auth = inject(AuthService);
 
   plans = PLANS;
   categories = signal<Category[]>([]);
@@ -132,5 +136,14 @@ export class PricingComponent {
         this.estimate.set(res);
         this.estimating.set(false);
       });
+  }
+
+  canPayNow(): boolean {
+    const user = this.auth.user();
+    return !!user && user.role === 'member' && user.approval_status === 'approved';
+  }
+
+  planCta(plan: Plan): string {
+    return this.canPayNow() ? `Pay ${plan.name} with Whish` : plan.cta;
   }
 }

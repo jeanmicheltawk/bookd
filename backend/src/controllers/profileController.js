@@ -1,6 +1,7 @@
 const { query } = require('../config/db');
 const { mediaUrl } = require('./mediaController');
 const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
+const { expireOverdueSubscriptions } = require('../utils/subscription');
 
 const PUBLIC_PROFILE_FIELDS = `
   p.id, p.full_name, p.professional_name, p.age, p.country, p.city, p.gender,
@@ -20,6 +21,7 @@ async function resolveProfileId(idOrSlug) {
 
 async function getPublicProfile(req, res, next) {
   try {
+    await expireOverdueSubscriptions();
     const profileId = await resolveProfileId(req.params.idOrSlug);
     if (!profileId) return res.status(404).json({ error: 'Profile not found' });
 

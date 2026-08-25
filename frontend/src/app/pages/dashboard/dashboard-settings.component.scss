@@ -75,3 +75,13 @@ textarea {
 
 .form-error { font-size: 0.85rem; margin-bottom: 12px; }
 .form-success { color: var(--acid-lime); font-size: 0.85rem; margin-bottom: 12px; }
+
+.pending-banner {
+  margin: -8px 0 24px;
+  padding: 14px 18px;
+  background: var(--nuclear-yellow);
+  color: var(--ink-black);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}

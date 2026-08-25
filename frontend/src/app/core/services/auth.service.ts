@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse, Membership, User } from '../models';
+import { AuthResponse, Membership, User, WhishPaymentInstructions } from '../models';
 import { ApiService } from './api.service';
 
 const ACCESS_TOKEN_KEY = 'bkd_access_token';
@@ -33,6 +33,7 @@ export interface RegisterResponse {
   user: Pick<User, 'id' | 'email' | 'role' | 'membership'> & { approval_status: string };
   accessToken?: string;
   refreshToken?: string;
+  payment?: WhishPaymentInstructions | null;
 }
 
 export interface LoginPayload {
@@ -51,6 +52,10 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this.userSignal());
   readonly isAdmin = computed(() => this.userSignal()?.role === 'admin');
   readonly isBrand = computed(() => this.userSignal()?.role === 'brand');
+  readonly isPending = computed(() => {
+    const user = this.userSignal();
+    return !!user && user.role !== 'admin' && user.role !== 'brand' && user.approval_status === 'pending';
+  });
 
   private readUserFromStorage(): User | null {
     try {

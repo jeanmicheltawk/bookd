@@ -4,13 +4,17 @@
       <span class="eyebrow">DIRECTORY</span>
       <h1 class="display-lg">PLATFORM <span class="text-gradient">USERS</span></h1>
       <p class="admin-page__hint">
-        Review applications, approve or reject creatives, verify profiles, and manage membership. Client accounts live under Clients.
+        Review applications, approve or reject creatives, verify profiles, and manage membership.
+        Confirm the Whish payment first — then approve the profile to start the 7-day free trial (first period is 1 month + 7 days). Client accounts live under Clients.
       </p>
     </div>
   </div>
 
   @if (listError()) {
     <p class="form-error">{{ listError() }}</p>
+  }
+  @if (listNotice()) {
+    <p class="form-notice">{{ listNotice() }}</p>
   }
 
   <div class="status-chips">
@@ -48,6 +52,27 @@
               @if (u.country) { · {{ u.city ? u.city + ', ' : '' }}{{ u.country }} }
             </span>
             <p>{{ u.bio || 'No bio provided.' }}</p>
+            @if (u.subscription && u.subscription.status !== 'none') {
+              <div class="sub-line">
+                <span class="sub-badge" [attr.data-status]="u.subscription.status">{{ subStatus(u.subscription) }}</span>
+                @if (u.subscription.in_trial && u.subscription.trial_ends_at) {
+                  <span>Trial until {{ u.subscription.trial_ends_at | date: 'mediumDate' }}</span>
+                }
+                @if (u.subscription.ends_at) {
+                  <span>Ends {{ u.subscription.ends_at | date: 'mediumDate' }}</span>
+                }
+              </div>
+            }
+            @if (u.role === 'member') {
+              <div class="sub-line">
+                <span class="sub-badge" [attr.data-status]="u.payment_confirmed ? 'active' : 'expired'">
+                  {{ u.payment_confirmed ? 'Whish paid' : 'Whish not confirmed' }}
+                </span>
+                @if (u.payment_reference) {
+                  <span>Ref {{ u.payment_reference }}</span>
+                }
+              </div>
+            }
             <div class="meta-line">
               @if (u.instagram) { <span>IG {{ u.instagram }}</span> }
               @if (u.phone) { <span>{{ u.phone }}</span> }
@@ -68,10 +93,30 @@
             <button type="button" class="edit-btn" (click)="openEdit(u)">Edit</button>
 
             @if (u.approval_status === 'pending') {
-              <button type="button" class="approve-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'approved')">Approve</button>
+              <button
+                type="button"
+                class="approve-btn"
+                [disabled]="savingId() === u.id || !canApprove(u)"
+                (click)="setApproval(u, 'approved')"
+              >
+                Approve
+              </button>
+              @if (!canApprove(u)) {
+                <span class="pay-wait">Confirm Whish first</span>
+              }
               <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
             } @else if (u.approval_status === 'rejected') {
-              <button type="button" class="approve-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'approved')">Approve</button>
+              <button
+                type="button"
+                class="approve-btn"
+                [disabled]="savingId() === u.id || !canApprove(u)"
+                (click)="setApproval(u, 'approved')"
+              >
+                Approve
+              </button>
+              @if (!canApprove(u)) {
+                <span class="pay-wait">Confirm Whish first</span>
+              }
             } @else if (u.role !== 'admin') {
               <app-select [ngModel]="u.membership" (ngModelChange)="setMembership(u, $event)" [name]="'mem-' + u.id" [options]="membershipOptions" />
               <button type="button" class="chip-btn" [class.on]="u.is_verified" (click)="toggleVerified(u)">
@@ -81,6 +126,13 @@
                 {{ u.is_active ? 'Active' : 'Suspended' }}
               </button>
               <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="setApproval(u, 'rejected')">Reject</button>
+            }
+
+            @if (u.role !== 'admin' && u.subscription && u.subscription.status !== 'none') {
+              <button type="button" class="chip-btn" [disabled]="savingId() === u.id" (click)="remindSubscription(u)">Remind</button>
+              @if (u.subscription.can_end) {
+                <button type="button" class="reject-btn" [disabled]="savingId() === u.id" (click)="endSubscription(u)">End subscription</button>
+              }
             }
 
             @if (u.role !== 'admin') {

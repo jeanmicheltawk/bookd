@@ -9,6 +9,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { PortfolioItem } from '../../core/models';
 import { portfolioLimitFor, PREMIUM_PORTFOLIO_LIMIT } from '../../core/utils/portfolio-limit';
+import { effectiveMembership } from '../../core/utils/subscription';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
@@ -32,9 +33,9 @@ export class DashboardPortfolioComponent implements OnInit {
   lightboxIndex = signal<number | null>(null);
   newTitle = '';
 
-  limit = computed(() => portfolioLimitFor(this.auth.user()?.membership));
+  limit = computed(() => portfolioLimitFor(effectiveMembership(this.auth.user())));
   atLimit = computed(() => this.items().length >= this.limit());
-  isPremium = computed(() => this.auth.user()?.membership === 'premium');
+  isPremium = computed(() => effectiveMembership(this.auth.user()) === 'premium');
   premiumLimit = PREMIUM_PORTFOLIO_LIMIT;
 
   ngOnInit(): void {

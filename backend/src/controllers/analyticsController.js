@@ -91,20 +91,75 @@ async function getAdminDashboard(_req, res, next) {
                AND COALESCE(u.approval_status, 'approved') = 'approved'
                AND u.is_active = TRUE
                AND u.membership = 'premium'
+               AND u.membership_ends_at IS NOT NULL
+               AND u.membership_ends_at > NOW()
            )::int AS premium,
-           COALESCE(SUM(
-             CASE
-               WHEN u.role = 'member'
-                 AND COALESCE(u.approval_status, 'approved') = 'approved'
-                 AND u.is_active = TRUE THEN
-                 CASE u.membership
+           (
+             COALESCE((
+               SELECT SUM(
+                 CASE u2.membership
                    WHEN 'premium' THEN 14.99
                    WHEN 'basic' THEN 6.99
                    ELSE 0
                  END
-               ELSE 0
-             END
-           ), 0)::float AS monthly_amount
+               )
+               FROM users u2
+               WHERE u2.role = 'member'
+                 AND COALESCE(u2.approval_status, 'approved') = 'approved'
+                 AND u2.is_active = TRUE
+                 AND u2.membership IN ('basic', 'premium')
+                 AND u2.membership_ends_at IS NOT NULL
+                 AND u2.membership_ends_at > NOW()
+             ), 0)
+             +
+             COALESCE((
+               SELECT SUM(
+                 CASE sc.plan
+                   WHEN 'premium' THEN 14.99
+                   WHEN 'basic' THEN 6.99
+                   ELSE 0
+                 END
+               )
+               FROM subscription_cancellations sc
+               WHERE sc.refund_done = FALSE
+                 AND NOT EXISTS (
+                   SELECT 1 FROM users live
+                   WHERE live.id = sc.user_id
+                     AND live.role = 'member'
+                     AND COALESCE(live.approval_status, 'approved') = 'approved'
+                     AND live.is_active = TRUE
+                     AND live.membership IN ('basic', 'premium')
+                     AND live.membership_ends_at IS NOT NULL
+                     AND live.membership_ends_at > NOW()
+                 )
+             ), 0)
+           )::float AS monthly_amount,
+           (
+             COUNT(*) FILTER (
+               WHERE u.role = 'member'
+                 AND COALESCE(u.approval_status, 'approved') = 'approved'
+                 AND u.is_active = TRUE
+                 AND u.membership IN ('basic', 'premium')
+                 AND u.membership_ends_at IS NOT NULL
+                 AND u.membership_ends_at > NOW()
+             )
+             +
+             COALESCE((
+               SELECT COUNT(*)
+               FROM subscription_cancellations sc
+               WHERE sc.refund_done = FALSE
+                 AND NOT EXISTS (
+                   SELECT 1 FROM users live
+                   WHERE live.id = sc.user_id
+                     AND live.role = 'member'
+                     AND COALESCE(live.approval_status, 'approved') = 'approved'
+                     AND live.is_active = TRUE
+                     AND live.membership IN ('basic', 'premium')
+                     AND live.membership_ends_at IS NOT NULL
+                     AND live.membership_ends_at > NOW()
+                 )
+             ), 0)
+           )::int AS active_memberships
          FROM profiles p
          JOIN users u ON u.id = p.user_id`
       ),
@@ -134,6 +189,11 @@ async function getAdminDashboard(_req, res, next) {
          GROUP BY p.id, p.professional_name, p.full_name, p.profile_photo_url, p.custom_url, c.name
          ORDER BY views DESC
          LIMIT 20`
+      ),
+      query(
+        `SELECT COUNT(*)::int AS pending
+         FROM subscription_payments
+         WHERE status IN ('pending', 'awaiting')`
       ),
     ]);
 
@@ -167,6 +227,8 @@ async function getAdminDashboard(_req, res, next) {
         pending: Number(stats.pending) || 0,
         premium: Number(stats.premium) || 0,
         monthlyAmount: Number(stats.monthly_amount) || 0,
+        activeMemberships: Number(stats.active_memberships) || 0,
+        pendingPayments: Number(first(6).pending) || 0,
       },
       topProfiles: row(5),
     });

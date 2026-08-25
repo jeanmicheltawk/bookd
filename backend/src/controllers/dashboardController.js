@@ -1,4 +1,11 @@
 const { query } = require('../config/db');
+const {
+  expireOverdueSubscriptions,
+  loadUserSubscription,
+  endSubscription,
+  isPaidPlan,
+} = require('../utils/subscription');
+const { ensureOpenPayment, instructionsFor } = require('../utils/payment');
 
 async function loadAlerts(userId) {
   const [messages, incoming, updates] = await Promise.all([
@@ -32,7 +39,15 @@ async function loadAlerts(userId) {
 
 async function getAlerts(req, res, next) {
   try {
-    res.json(await loadAlerts(req.user.id));
+    await expireOverdueSubscriptions();
+    const [alerts, subscriptionUser] = await Promise.all([
+      loadAlerts(req.user.id),
+      loadUserSubscription(req.user.id),
+    ]);
+    res.json({
+      ...alerts,
+      subscription: subscriptionUser?.role === 'member' ? subscriptionUser.subscription : null,
+    });
   } catch (err) {
     next(err);
   }
@@ -62,6 +77,7 @@ async function markNotificationsRead(req, res, next) {
 
 async function getMyDashboard(req, res, next) {
   try {
+    await expireOverdueSubscriptions();
     const userId = req.user.id;
 
     const profileRes = await query(
@@ -71,7 +87,7 @@ async function getMyDashboard(req, res, next) {
     );
     const profile = profileRes.rows[0];
 
-    const [bookings, messages, analytics, notifications, alerts] = await Promise.all([
+    const [bookings, messages, analytics, notifications, alerts, subscriptionUser] = await Promise.all([
       query(
         `SELECT
            COUNT(*) FILTER (WHERE status = 'pending')::int AS pending,
@@ -103,6 +119,7 @@ async function getMyDashboard(req, res, next) {
         [userId]
       ),
       loadAlerts(userId),
+      loadUserSubscription(userId),
     ]);
 
     const recentBookings = await query(
@@ -116,13 +133,22 @@ async function getMyDashboard(req, res, next) {
       [userId]
     );
 
+    const payment = subscriptionUser?.role === 'member' && isPaidPlan(subscriptionUser.membership)
+      ? instructionsFor(subscriptionUser, await ensureOpenPayment(subscriptionUser))
+      : null;
+
     res.json({
       profile,
       bookings: bookings.rows[0],
       messages: messages.rows[0],
       analytics: analytics.rows[0],
       notifications: notifications.rows[0],
-      alerts,
+      alerts: {
+        ...alerts,
+        subscription: subscriptionUser?.role === 'member' ? subscriptionUser.subscription : null,
+      },
+      subscription: subscriptionUser?.role === 'member' ? subscriptionUser.subscription : null,
+      payment,
       recentBookings: recentBookings.rows,
     });
   } catch (err) {
@@ -130,4 +156,13 @@ async function getMyDashboard(req, res, next) {
   }
 }
 
-module.exports = { getMyDashboard, getAlerts, markNotificationsRead };
+async function endMySubscription(req, res, next) {
+  try {
+    const result = await endSubscription(req.user.id, { notifyUser: true, endedBy: 'self' });
+    res.json(result.subscription);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getMyDashboard, getAlerts, markNotificationsRead, endMySubscription };

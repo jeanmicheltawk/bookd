@@ -1,0 +1,73 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">BILLING</span>
+      <h1 class="display-lg">WHISH <span class="text-gradient">PAYMENTS</span></h1>
+      <p class="admin-page__hint">
+        Members send Whish to Whish to +961 3 177 655 with their unique reference.
+        Signup creates a payment as soon as they apply — confirm it here when you see that reference in Whish.
+        Confirming payment does not start the trial. Approve the profile after payment to start the 7-day free trial.
+      </p>
+    </div>
+  </div>
+
+  @if (listError()) {
+    <p class="form-error">{{ listError() }}</p>
+  }
+
+  <div class="status-chips">
+    @for (f of filters; track f.id) {
+      <button type="button" class="chip" [class.active]="statusFilter() === f.id" (click)="filterBy(f.id)">{{ f.label }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING PAYMENTS..." />
+  } @else if (rows().length) {
+    <div class="mod-list">
+      @for (row of rows(); track row.id) {
+        <div class="mod-row" [class.is-saving]="savingId() === row.id">
+          <div class="mod-row__info">
+            <div class="pay-name">
+              <strong>{{ displayName(row) }}</strong>
+              @if (row.reference) {
+                <span class="pay-ref">
+                  reference:
+                  <button type="button" class="pay-ref__btn" (click)="copyReference(row)" [attr.title]="'Copy ' + row.reference">
+                    <b>{{ copiedId() === row.id ? 'Copied' : row.reference }}</b>
+                  </button>
+                </span>
+              }
+            </div>
+            <span>{{ row.email }} · {{ row.plan_label }} · {{ row.amount | currency: row.currency:'symbol':'1.2-2' }}</span>
+            <div class="meta-line">
+              <span>From {{ row.sender_whish_number || '—' }}</span>
+              <span>To {{ row.recipient_number }}</span>
+              @if (row.submitted_at) {
+                <span>Sent {{ row.submitted_at | date: 'medium' }}</span>
+              }
+            </div>
+            @if (row.note) {
+              <p class="note">{{ row.note }}</p>
+            }
+          </div>
+          <div class="mod-row__actions">
+            <span class="status-pill status-{{ row.status }}">{{ statusLabel(row.status) }}</span>
+            @if (row.status === 'pending' || row.status === 'awaiting') {
+              <button type="button" class="chip-btn on" [disabled]="savingId() === row.id" (click)="confirm(row)">
+                Confirm
+              </button>
+              <button type="button" class="chip-btn off" [disabled]="savingId() === row.id" (click)="reject(row)">
+                Not found
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No {{ statusFilter() === 'all' ? '' : statusFilter() === 'open' ? 'open ' : statusFilter() + ' ' }}Whish payments.</h3>
+    </div>
+  }
+</div>

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ApprovalStatus } from '../models';
+import { ApprovalStatus, SubscriptionInfo } from '../models';
 import { ApiService, QueryParams } from './api.service';
 
 export interface AdminUser {
@@ -7,6 +7,11 @@ export interface AdminUser {
   email: string;
   role: string;
   membership: string;
+  effective_membership?: string;
+  membership_started_at?: string | null;
+  membership_trial_ends_at?: string | null;
+  membership_ends_at?: string | null;
+  subscription?: SubscriptionInfo;
   is_verified: boolean;
   is_active: boolean;
   approval_status: ApprovalStatus;
@@ -31,6 +36,9 @@ export interface AdminUser {
   availability?: string;
   category_slug?: string;
   category_name?: string;
+  payment_confirmed?: boolean;
+  payment_status?: string | null;
+  payment_reference?: string | null;
   custom_fields?: Record<string, string>;
 }
 
@@ -79,6 +87,14 @@ export class AdminUserService {
 
   delete(id: string) {
     return this.api.delete<{ deleted: boolean; id: string; email: string }>(`/admin/users/${id}`);
+  }
+
+  remindSubscription(id: string) {
+    return this.api.post<AdminUser>(`/admin/users/${id}/subscription/remind`);
+  }
+
+  endSubscription(id: string) {
+    return this.api.post<AdminUser>(`/admin/users/${id}/subscription/end`);
   }
 
   listClients(params?: QueryParams) {

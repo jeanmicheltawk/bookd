@@ -1,0 +1,119 @@
+<section class="container dash-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">BILLING</span>
+      <h1 class="display-lg">PAY WITH <span class="text-gradient">WHISH</span></h1>
+      @if (auth.isPending() && isPaymentConfirmed) {
+        <p class="pay-pending-note">Your Whish payment is confirmed. The 7-day free trial starts when an admin approves your profile.</p>
+      } @else if (auth.isPending()) {
+        <p class="pay-pending-note">Your application is still under review. You can send the Whish now — save your reference and tap I sent the payment after you transfer. The trial starts when you're approved, not when payment is confirmed.</p>
+      }
+    </div>
+  </div>
+
+  <app-dashboard-nav />
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING PAYMENT..." />
+  } @else {
+    @if (info(); as whish) {
+      @if (isPaymentConfirmed) {
+        <div class="pay-status pay-status--confirmed">
+          <span class="pay-status__pill">PAYMENT CONFIRMED</span>
+          <h2>Whish received</h2>
+          <p>
+            @if (auth.isPending()) {
+              Your payment for {{ whish.plan_label }} is confirmed. Your 7-day free trial starts when an admin approves your profile.
+            } @else {
+              Your payment for {{ whish.plan_label }} is confirmed.
+            }
+          </p>
+        </div>
+      } @else if (isPendingReview) {
+        <div class="pay-status">
+          <span class="pay-status__pill">WAITING FOR CONFIRMATION</span>
+          <h2>Payment submitted</h2>
+          <p>
+            You sent from <strong>{{ whish.payment?.sender_whish_number }}</strong>.
+            We’ll match the Whish transfer. The 7-day trial starts after your profile is approved.
+          </p>
+        </div>
+      } @else {
+        <div class="pay-form">
+          <h3>Confirm your transfer</h3>
+          <div class="form-field">
+            <label>Your Whish number</label>
+            <input
+              type="text"
+              name="senderNumber"
+              [ngModel]="senderNumber"
+              (ngModelChange)="onSenderChange($event)"
+              placeholder="+961 ..."
+              autocomplete="tel"
+            />
+            @if (phoneError) {
+              <span class="field-error">{{ phoneError }}</span>
+            }
+          </div>
+          <div class="form-field">
+            <label>Optional note</label>
+            <input type="text" [(ngModel)]="note" name="note" placeholder="Anything we should know" />
+          </div>
+
+          @if (error()) { <p class="form-error">{{ error() }}</p> }
+          @if (success()) { <p class="form-success">{{ success() }}</p> }
+
+          <app-animated-button
+            variant="primary"
+            size="lg"
+            [loading]="submitting()"
+            [disabled]="submitting()"
+            (clicked)="submit()"
+          >
+            I sent the payment
+          </app-animated-button>
+        </div>
+      }
+
+      @if (error() && isPendingReview) {
+        <p class="form-error">{{ error() }}</p>
+      }
+      @if (success() && isPendingReview) {
+        <p class="form-success">{{ success() }}</p>
+      }
+
+      <div class="pay-grid">
+        <div class="pay-card">
+          <span class="pay-card__label">Amount</span>
+          <strong>{{ whish.amount | currency: whish.currency:'symbol':'1.2-2' }}</strong>
+          <p>{{ whish.plan_label }} · 1 month</p>
+        </div>
+        <div class="pay-card pay-card--number">
+          <span class="pay-card__label">Send Whish to Whish to</span>
+          <strong>{{ whish.recipient.display }}</strong>
+          <button type="button" class="copy-btn" (click)="copy(whish.recipient.copy, 'number')">
+            {{ copied() === 'number' ? 'Copied' : 'Copy number' }}
+          </button>
+        </div>
+        <div class="pay-card">
+          <span class="pay-card__label">Transfer note</span>
+          <strong>{{ whish.payment?.reference }}</strong>
+          <button type="button" class="copy-btn" (click)="copy(whish.payment?.reference || '', 'ref')">
+            {{ copied() === 'ref' ? 'Copied' : 'Copy reference' }}
+          </button>
+        </div>
+      </div>
+
+      <ol class="pay-steps">
+        <li>Open the Whish app and choose <strong>Whish to Whish</strong>.</li>
+        <li>Send <strong>{{ whish.amount | currency: whish.currency:'symbol':'1.2-2' }}</strong> to <strong>{{ whish.recipient.display }}</strong>.</li>
+        <li>Put this in the transfer note: <strong>{{ whish.payment?.reference }}</strong>.</li>
+        @if (!isPaymentConfirmed) {
+          <li>Enter the Whish number you sent from, then tap I sent the payment.</li>
+        }
+      </ol>
+    } @else if (error()) {
+      <p class="form-error">{{ error() }}</p>
+    }
+  }
+</section>

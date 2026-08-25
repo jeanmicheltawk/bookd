@@ -4,6 +4,8 @@ const { body, validationResult } = require('express-validator');
 const config = require('../config');
 const { query } = require('../config/db');
 const { emailAdmin, emailUser } = require('../utils/mailer');
+const { expireOverdueSubscriptions, withSubscription, isPaidPlan } = require('../utils/subscription');
+const { ensureOpenPayment, instructionsFor, paymentEmailLines } = require('../utils/payment');
 
 const ALLOWED_MEMBERSHIPS = ['free', 'basic', 'premium'];
 
@@ -228,6 +230,9 @@ async function register(req, res, next) {
       });
     }
 
+    const paymentRow = isPaidPlan(membership) ? await ensureOpenPayment(user) : null;
+    const payment = paymentRow ? instructionsFor(user, paymentRow) : null;
+
     void emailAdmin(
       'New creator application',
       [
@@ -244,13 +249,19 @@ async function register(req, res, next) {
     void emailUser(
       user.id,
       'Application received',
-      'Thanks for applying to BOOK\'D HAUS. An admin will review your profile. We will email you when it is approved.',
+      [
+        'Thanks for applying to BOOK\'D HAUS. An admin will review your profile. You can log in now to track your application and update your details.',
+        '',
+        'You pay with Whish to Whish now. After an admin confirms your payment and approves your profile, your 7-day free trial starts (first period is 1 month + 7 days from approval).',
+        ...paymentEmailLines(user, paymentRow),
+      ].join('\n'),
       '/auth/login'
     );
 
     res.status(201).json({
       message: 'Application submitted. An admin will review it before your profile goes live.',
       user: payloadUser,
+      payment,
     });
   } catch (err) {
     next(err);
@@ -261,8 +272,10 @@ async function login(req, res, next) {
   try {
     validate(req);
     const { email, password } = req.body;
+    await expireOverdueSubscriptions();
     const result = await query(
-      `SELECT id, email, password_hash, role, membership, is_verified, is_active, approval_status
+      `SELECT id, email, password_hash, role, membership, is_verified, is_active, approval_status,
+              membership_started_at, membership_trial_ends_at, membership_ends_at
        FROM users WHERE email = $1`,
       [email.toLowerCase()]
     );
@@ -273,17 +286,12 @@ async function login(req, res, next) {
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
     if (user.role !== 'admin') {
-      if (user.approval_status === 'pending') {
-        return res.status(403).json({
-          error: 'Your application is pending admin approval. You will be able to log in once approved.',
-        });
-      }
       if (user.approval_status === 'rejected') {
         return res.status(403).json({
           error: 'Your application was not approved. Contact support if you think this is a mistake.',
         });
       }
-      if (user.approval_status !== 'approved') {
+      if (user.approval_status !== 'approved' && user.approval_status !== 'pending') {
         return res.status(403).json({ error: 'Account is not approved for login.' });
       }
     }
@@ -291,8 +299,9 @@ async function login(req, res, next) {
     await query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
     delete user.password_hash;
     delete user.is_active;
-    const tokens = signTokens(user);
-    res.json({ user, ...tokens });
+    const payloadUser = withSubscription(user);
+    const tokens = signTokens(payloadUser);
+    res.json({ user: payloadUser, ...tokens });
   } catch (err) {
     next(err);
   }
@@ -300,8 +309,10 @@ async function login(req, res, next) {
 
 async function me(req, res, next) {
   try {
+    await expireOverdueSubscriptions();
     const result = await query(
       `SELECT u.id, u.email, u.role, u.membership, u.is_verified, u.approval_status, u.created_at,
+              u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
               p.id AS profile_id, p.full_name, p.professional_name, p.profile_photo_url,
               p.custom_url, c.slug AS category_slug, c.name AS category_name
        FROM users u
@@ -311,7 +322,7 @@ async function me(req, res, next) {
       [req.user.id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'User not found' });
-    res.json(result.rows[0]);
+    res.json(withSubscription(result.rows[0]));
   } catch (err) {
     next(err);
   }
@@ -322,19 +333,25 @@ async function refresh(req, res, next) {
     const { refreshToken } = req.body;
     if (!refreshToken) return res.status(400).json({ error: 'refreshToken required' });
     const decoded = jwt.verify(refreshToken, config.jwt.refreshSecret);
+    await expireOverdueSubscriptions();
     const result = await query(
-      `SELECT id, email, role, membership, is_verified, is_active, approval_status
+      `SELECT id, email, role, membership, is_verified, is_active, approval_status,
+              membership_started_at, membership_trial_ends_at, membership_ends_at
        FROM users WHERE id = $1`,
       [decoded.id]
     );
     const user = result.rows[0];
     if (!user || !user.is_active) return res.status(401).json({ error: 'Invalid refresh token' });
-    if (user.role !== 'admin' && user.approval_status !== 'approved') {
+    if (
+      user.role !== 'admin' &&
+      user.approval_status !== 'approved' &&
+      user.approval_status !== 'pending'
+    ) {
       return res.status(401).json({ error: 'Invalid refresh token' });
     }
     delete user.is_active;
     delete user.approval_status;
-    res.json(signTokens(user));
+    res.json(signTokens(withSubscription(user)));
   } catch {
     res.status(401).json({ error: 'Invalid refresh token' });
   }

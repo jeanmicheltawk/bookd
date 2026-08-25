@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { query } = require('../config/db');
+const { effectiveMembership } = require('./subscription');
 
 const STARTER_PORTFOLIO_LIMIT = 4;
 const PREMIUM_PORTFOLIO_LIMIT = 15;
@@ -16,8 +17,11 @@ function limitMessage(membership, limit) {
 }
 
 async function assertPortfolioCapacity(userId, extraFile) {
-  const userRes = await query('SELECT membership FROM users WHERE id = $1', [userId]);
-  const membership = userRes.rows[0]?.membership || 'basic';
+  const userRes = await query(
+    'SELECT membership, membership_ends_at, approval_status FROM users WHERE id = $1',
+    [userId]
+  );
+  const membership = effectiveMembership(userRes.rows[0] || {});
   const limit = portfolioLimitFor(membership);
 
   const profileRes = await query('SELECT id FROM profiles WHERE user_id = $1', [userId]);

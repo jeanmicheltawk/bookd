@@ -228,7 +228,7 @@ export class DashboardSettingsComponent implements OnInit {
         gender: this.form.gender || null,
         age: ageNumber,
         availability: this.form.availability,
-        is_public: this.form.isPublic,
+        is_public: this.auth.isPending() ? false : this.form.isPublic,
         profile_photo_url: this.form.profilePhotoUrl,
         categorySlug: this.form.categorySlug || undefined,
         custom_fields: this.selectedCategoryFields().length ? this.customFields() : {},

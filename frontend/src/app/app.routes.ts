@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { talentGuard } from './core/guards/talent.guard';
+import { approvedGuard } from './core/guards/approved.guard';
 
 export const routes: Routes = [
   {
@@ -127,18 +128,21 @@ export const routes: Routes = [
       },
       {
         path: 'bookings',
+        canActivate: [approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-bookings.component').then((m) => m.DashboardBookingsComponent),
         title: 'My Bookings',
       },
       {
         path: 'messages',
+        canActivate: [approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-messages.component').then((m) => m.DashboardMessagesComponent),
         title: 'Messages',
       },
       {
         path: 'notifications',
+        canActivate: [approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-notifications.component').then(
             (m) => m.DashboardNotificationsComponent,
@@ -147,7 +151,7 @@ export const routes: Routes = [
       },
       {
         path: 'portfolio',
-        canActivate: [talentGuard],
+        canActivate: [talentGuard, approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-portfolio.component').then((m) => m.DashboardPortfolioComponent),
         title: 'My Portfolio',
@@ -166,6 +170,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/dashboard/dashboard-settings.component').then((m) => m.DashboardSettingsComponent),
         title: 'Profile',
+      },
+      {
+        path: 'pay',
+        canActivate: [talentGuard],
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard-pay.component').then((m) => m.DashboardPayComponent),
+        title: 'Pay with Whish',
       },
     ],
   },
@@ -246,6 +257,18 @@ export const routes: Routes = [
         title: 'Admin — Users',
       },
       {
+        path: 'payments',
+        loadComponent: () =>
+          import('./pages/admin/admin-payments.component').then((m) => m.AdminPaymentsComponent),
+        title: 'Admin — Whish Payments',
+      },
+      {
+        path: 'cancellations',
+        loadComponent: () =>
+          import('./pages/admin/admin-cancellations.component').then((m) => m.AdminCancellationsComponent),
+        title: 'Admin — Cancelled Subscriptions',
+      },
+      {
         path: 'clients',
         loadComponent: () => import('./pages/admin/admin-clients.component').then((m) => m.AdminClientsComponent),
         title: 'Admin — Clients',
@@ -265,7 +288,7 @@ export const routes: Routes = [
 
   {
     path: 'book/:profileId',
-    canActivate: [authGuard],
+    canActivate: [authGuard, approvedGuard],
     loadComponent: () => import('./pages/booking/booking-flow.component').then((m) => m.BookingFlowComponent),
     title: "Book a Creative — BOOK'D HAUS",
   },

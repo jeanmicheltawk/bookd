@@ -50,6 +50,15 @@
     .period { font-size: 0.85rem; color: var(--text); }
   }
 
+  &__trial {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: -4px 0 16px;
+    color: var(--acid-lime);
+  }
+
   &__tagline { font-size: 0.9rem; margin-bottom: 24px; }
 
   &__features {

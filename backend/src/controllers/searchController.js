@@ -1,4 +1,5 @@
 const { query } = require('../config/db');
+const { expireOverdueSubscriptions } = require('../utils/subscription');
 
 function shuffle(arr) {
   const a = [...arr];
@@ -11,6 +12,7 @@ function shuffle(arr) {
 
 async function searchProfiles(req, res, next) {
   try {
+    await expireOverdueSubscriptions();
     const {
       q = '',
       category,
@@ -116,6 +118,7 @@ async function searchProfiles(req, res, next) {
 
 async function getSpotlight(req, res, next) {
   try {
+    await expireOverdueSubscriptions();
     const result = await query(
       `SELECT p.id, p.professional_name, p.full_name, p.profile_photo_url, p.country,
               u.is_verified, u.membership, c.name AS category_name, c.slug AS category_slug,

@@ -1,0 +1,65 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">BILLING</span>
+      <h1 class="display-lg">CANCELLED <span class="text-gradient">SUBSCRIPTIONS</span></h1>
+      <p class="admin-page__hint">
+        Members can only end a plan during the 7-day free trial (trial starts when you accept the application).
+        Mark whether a refund was processed.
+      </p>
+    </div>
+  </div>
+
+  @if (listError()) {
+    <p class="form-error">{{ listError() }}</p>
+  }
+
+  <div class="status-chips">
+    @for (f of filters; track f.id) {
+      <button type="button" class="chip" [class.active]="refundFilter() === f.id" (click)="filterBy(f.id)">{{ f.label }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING CANCELLATIONS..." />
+  } @else if (rows().length) {
+    <div class="mod-list">
+      @for (row of rows(); track row.id) {
+        <div class="mod-row" [class.is-saving]="savingId() === row.id">
+          <div class="mod-row__info">
+            <strong>{{ displayName(row) }}</strong>
+            <span>{{ row.email }} · {{ row.plan_label }}</span>
+            <div class="meta-line">
+              <span>Cancelled {{ row.cancelled_at | date: 'medium' }}</span>
+              <span>{{ row.cancelled_by === 'admin' ? 'Ended by admin' : 'Ended by member' }}</span>
+            </div>
+          </div>
+          <div class="mod-row__actions">
+            <button
+              type="button"
+              class="chip-btn"
+              [class.off]="!row.refund_done"
+              [disabled]="savingId() === row.id"
+              (click)="setRefund(row, false)"
+            >
+              Refund not done
+            </button>
+            <button
+              type="button"
+              class="chip-btn"
+              [class.on]="row.refund_done"
+              [disabled]="savingId() === row.id"
+              (click)="setRefund(row, true)"
+            >
+              Refund done
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No cancelled subscriptions{{ refundFilter() === 'all' ? '' : ' in this filter' }}.</h3>
+    </div>
+  }
+</div>

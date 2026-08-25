@@ -1,22 +1,119 @@
 <section class="container dash-page">
   <div class="dash-head">
     <div>
-      <span class="eyebrow">DASHBOARD</span>
+      <span class="eyebrow">{{ auth.isPending() ? 'APPLICATION' : 'DASHBOARD' }}</span>
       <h1 class="display-lg">HEY, <span class="text-gradient">{{ (auth.user()?.professional_name || auth.user()?.full_name || (auth.isBrand() ? 'CLIENT' : 'CREATIVE')).toUpperCase() }}</span></h1>
     </div>
-    @if (!auth.isBrand() && auth.user()?.profile_id) {
+    @if (!auth.isPending() && !auth.isBrand() && auth.user()?.profile_id) {
       <app-animated-button [routerLink]="['/profile', auth.user()?.profile_id]" variant="outline">View Public Profile</app-animated-button>
     }
-    @if (auth.isBrand()) {
+    @if (!auth.isPending() && auth.isBrand()) {
       <app-animated-button routerLink="/" variant="outline">Find Talent</app-animated-button>
     }
   </div>
 
   <app-dashboard-nav />
 
-  @if (loading()) {
+  @if (auth.isPending()) {
+    <div class="pending-panel">
+      <div class="pending-status">
+        <span class="pending-status__pill">UNDER REVIEW</span>
+        <h2 class="display-lg">APPLICATION <span class="text-gradient">UNDER REVIEW</span></h2>
+        <p>
+          Thanks for applying to BOOK'D HAUS. An admin is reviewing your profile.
+          You'll get an email when a decision is made. Until then you can update your info —
+          nothing goes live until you're accepted.
+        </p>
+        <app-animated-button routerLink="/dashboard/settings" variant="primary">Update Profile</app-animated-button>
+      </div>
+
+      <div class="pending-guide">
+        <span class="eyebrow">WHEN YOU'RE ACCEPTED</span>
+        <h3>What you'll get in the dashboard</h3>
+        <ul>
+          <li>A live public profile in search so clients can find you</li>
+          <li>Portfolio to showcase your work</li>
+          <li>Booking requests from brands and clients</li>
+          <li>Direct messages</li>
+          <li>A 7-day free trial on your {{ pendingPlanLabel() }} plan — it starts when you're approved, after payment is confirmed</li>
+        </ul>
+      </div>
+    </div>
+
+    @if (payment(); as pay) {
+      <div class="pending-pay">
+        @if (pay.payment?.status === 'confirmed') {
+          <div class="pay-confirmed-note">
+            <span>Payment confirmed</span>
+            <h3>You're paid — waiting on approval</h3>
+            <p>
+              Your Whish payment for {{ pay.plan_label }} is confirmed (ref {{ pay.payment?.reference }}).
+              The 7-day free trial starts when an admin approves your profile.
+            </p>
+          </div>
+        } @else {
+          <app-whish-pay-instructions
+            [amount]="pay.amount"
+            [currency]="pay.currency"
+            [planLabel]="pay.plan_label"
+            [recipient]="pay.recipient.display"
+            [reference]="pay.payment?.reference || ''"
+            [showCta]="true"
+          />
+        }
+      </div>
+    }
+  } @else if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING DASHBOARD..." />
   } @else {
+  @if (!auth.isBrand() && subscription(); as sub) {
+    @if (sub.status !== 'none') {
+      <div class="sub-card" [class.sub-card--alert]="sub.needs_reminder || sub.status === 'expired'">
+        <div>
+          <span class="sub-card__label">Subscription</span>
+          <strong>{{ sub.plan_label }} · {{ statusLabel(sub) }}</strong>
+          <p>
+            @if (sub.in_trial) {
+              Your 7-day free trial ends {{ formatDate(sub.trial_ends_at) }}
+              (it started when your application was accepted). You can end it anytime during these 7 days.
+            } @else {
+              7-day free trial
+              @if (sub.trial_ends_at) { until {{ formatDate(sub.trial_ends_at) }} }
+              · full period ends {{ formatDate(sub.ends_at) }}
+              @if (sub.days_remaining != null && sub.status !== 'expired') { ({{ sub.days_remaining }} day{{ sub.days_remaining === 1 ? '' : 's' }} left) }
+            }
+          </p>
+        </div>
+        <div class="sub-card__actions">
+          @if (sub.status === 'expired' || sub.status === 'ending_soon' || sub.in_trial || sub.status === 'active') {
+            <app-animated-button routerLink="/dashboard/pay" variant="primary" size="sm">Pay with Whish</app-animated-button>
+          }
+          @if (sub.can_end) {
+            <app-animated-button variant="outline" size="sm" [loading]="ending()" [disabled]="ending()" (clicked)="endTrial()">
+              End subscription
+            </app-animated-button>
+          }
+        </div>
+      </div>
+      @if (endError()) {
+        <p class="form-error">{{ endError() }}</p>
+      }
+
+      @if (payment(); as pay) {
+        <div class="pending-pay">
+          <app-whish-pay-instructions
+            [amount]="pay.amount"
+            [currency]="pay.currency"
+            [planLabel]="pay.plan_label"
+            [recipient]="pay.recipient.display"
+            [reference]="pay.payment?.reference || ''"
+            [showCta]="true"
+          />
+        </div>
+      }
+    }
+  }
+
   @if (summary(); as s) {
     <div class="stats-grid">
       <a class="stat-card" routerLink="/dashboard/bookings" [class.has-alert]="!auth.isBrand() && s.alerts?.newBookings">

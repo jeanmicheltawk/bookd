@@ -186,8 +186,8 @@ async function seed() {
         content: {
           plans: [
             { id: 'free', name: 'Free', price: 0, trial: null, blurb: 'Create a profile. Save favourites. Browse announcements.' },
-            { id: 'basic', name: 'Starter plan', price: 6.99, trial: '7-day free trial', blurb: 'Messaging, calendar, reviews & better visibility.' },
-            { id: 'premium', name: 'Premium plan', price: 49, trial: '2-week free trial', blurb: 'Priority search, unlimited portfolio & business tools.' },
+            { id: 'basic', name: 'Starter plan', price: 6.99, trial: '7-day free trial', blurb: 'Messaging, calendar, reviews & better visibility. First period is 1 month + 7 days.' },
+            { id: 'premium', name: 'Premium plan', price: 14.99, trial: '7-day free trial', blurb: 'Priority search, extra portfolio & business tools. First period is 1 month + 7 days.' },
           ],
         },
         sort: 4,
@@ -203,47 +203,7 @@ async function seed() {
       );
     }
 
-    const demoUsers = [
-      { email: 'maya@bookd.demo', name: 'Maya Chen', pro: 'Maya C.', cat: 'photographers', country: 'Lebanon', membership: 'premium', verified: true },
-      { email: 'leo@bookd.demo', name: 'Leo Santos', pro: 'LEO', cat: 'models', country: 'Lebanon', membership: 'premium', verified: true },
-      { email: 'aria@bookd.demo', name: 'Aria Novak', pro: 'Aria N.', cat: 'makeup-artists', country: 'Lebanon', membership: 'basic', verified: true },
-      { email: 'jon@bookd.demo', name: 'Jon Park', pro: 'JON PARK', cat: 'videographers', country: 'Lebanon', membership: 'basic', verified: false },
-      { email: 'sofia@bookd.demo', name: 'Sofia Reyes', pro: 'Sofia R.', cat: 'stylists', country: 'Lebanon', membership: 'premium', verified: true },
-      { email: 'brand@bookd.demo', name: 'Neon Label', pro: 'Neon Label', cat: 'brand-client', country: 'Lebanon', membership: 'premium', verified: true, role: 'brand' },
-    ];
-
-    const demoPass = await bcrypt.hash('demo1234', 10);
-    for (const u of demoUsers) {
-      const cat = await client.query('SELECT id FROM categories WHERE slug = $1', [u.cat]);
-      const ur = await client.query(
-        `INSERT INTO users (email, password_hash, role, membership, is_verified, is_active)
-         VALUES ($1, $2, $3, $4, $5, TRUE)
-         ON CONFLICT (email) DO NOTHING
-         RETURNING id`,
-        [u.email, demoPass, u.role || 'member', u.membership, u.verified]
-      );
-      const userId = ur.rows[0]
-        ? ur.rows[0].id
-        : (await client.query('SELECT id FROM users WHERE email = $1', [u.email])).rows[0].id;
-      const isTalent = (u.role || 'member') !== 'brand';
-      await client.query(
-        `INSERT INTO profiles (user_id, category_id, full_name, professional_name, country, bio, is_public, years_experience, availability)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'available')
-         ON CONFLICT (user_id) DO NOTHING`,
-        [
-          userId,
-          cat.rows[0]?.id || null,
-          u.name,
-          u.pro,
-          u.country,
-          isTalent
-            ? `${u.pro} — creative on BOOK'D. Ready to collaborate.`
-            : `${u.pro} — client on BOOK'D.`,
-          isTalent,
-          isTalent ? 3 + Math.floor(Math.random() * 10) : null,
-        ]
-      );
-    }
+    await client.query(`DELETE FROM users WHERE email ILIKE '%@bookd.demo'`);
 
     await client.query(
       `INSERT INTO testimonials (author_name, author_role, content, rating, is_published, sort_order)
@@ -271,27 +231,6 @@ async function seed() {
        ) AS v(title, slug, category, content, is_published)
        WHERE NOT EXISTS (SELECT 1 FROM learning_articles LIMIT 1)`
     );
-
-    const brand = await client.query(`SELECT id FROM users WHERE email = 'brand@bookd.demo'`);
-    const photoCat = await client.query(`SELECT id FROM categories WHERE slug = 'photographers'`);
-    if (brand.rows[0]) {
-      await client.query(
-        `INSERT INTO announcements (author_id, title, announcement_type, description, budget, is_paid, location, deadline, required_category_id, people_needed, status)
-         SELECT $1, 'Fashion Lookbook Photographer Needed', 'Photographer Needed',
-                'Looking for a bold editorial photographer for a 2-day lookbook in LA.',
-                2500, TRUE, 'Los Angeles, USA', NOW() + INTERVAL '14 days', $2, 1, 'approved'
-         WHERE NOT EXISTS (SELECT 1 FROM announcements LIMIT 1)`,
-        [brand.rows[0].id, photoCat.rows[0]?.id]
-      );
-      await client.query(
-        `INSERT INTO announcements (author_id, title, announcement_type, description, budget, is_paid, location, deadline, people_needed, status)
-         SELECT $1, 'Street Style Model Call', 'Model Call',
-                'Casting diverse models for a street-style campaign. Paid day rate.',
-                800, TRUE, 'New York, USA', NOW() + INTERVAL '10 days', 4, 'approved'
-         WHERE (SELECT COUNT(*) FROM announcements) < 2`,
-        [brand.rows[0].id]
-      );
-    }
 
     await client.query('COMMIT');
     console.log('Seed complete.');

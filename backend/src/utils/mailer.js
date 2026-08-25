@@ -118,7 +118,6 @@ function dashboardUrl(path) {
 
 async function sendEmail({ to, subject, text, html }) {
   if (!transport || !to) return false;
-  if (String(to).toLowerCase().endsWith('@bookd.demo')) return false;
   try {
     await transport.sendMail({
       from: `"BOOK'D HAUS" <${config.mail.from}>`,

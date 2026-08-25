@@ -4,10 +4,20 @@
     <h2 class="display-lg">UNDER <span class="text-gradient">REVIEW</span></h2>
     <p class="auth-card__sub">
       Thanks for applying to BOOK'D HAUS. An admin will review your profile.
-      Once approved, your profile will go live and you can log in.
+      Follow the steps below to pay with Whish. Your 7-day free trial starts when your profile is approved.
     </p>
+    @if (payment(); as pay) {
+      <app-whish-pay-instructions
+        [amount]="pay.amount"
+        [currency]="pay.currency"
+        [planLabel]="pay.plan_label"
+        [recipient]="pay.recipient.display"
+        [reference]="pay.payment?.reference || ''"
+        [requireLogin]="true"
+      />
+    }
     <app-animated-button routerLink="/auth/login" variant="primary" size="lg" [fullWidth]="true">
-      Back to Log In
+      Log In to Your Account
     </app-animated-button>
   </div>
 } @else {
@@ -19,6 +29,7 @@
         Create a free client account. No payment — just your details so talent can reach you.
       } @else {
         Submit your profile for review. Profiles go live only after admin approval.
+        You pay with Whish to Whish to +961 3 177 655.
       }
     </p>
 
@@ -188,6 +199,11 @@
             <label>Membership Program *</label>
             <app-select name="talentMembership" [(ngModel)]="talent.membership" required [options]="membershipSelectOptions" />
           </div>
+          <p class="pay-note">
+            You pay {{ selectedPlanAmount() | currency:'USD':'symbol':'1.2-2' }} with
+            <strong>Whish to Whish</strong> to <strong>+961 3 177 655</strong>.
+            After you apply, send the Whish. Your 7-day free trial starts when your profile is approved.
+          </p>
           <div class="form-field">
             <label>Country *</label>
             <app-select name="talentCountry" [(ngModel)]="talent.country" required placeholder="Select country" [options]="countryOptions()" />

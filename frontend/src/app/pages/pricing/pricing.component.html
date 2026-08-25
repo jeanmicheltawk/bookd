@@ -2,7 +2,7 @@
   <div class="container text-center">
     <span class="eyebrow">MEMBERSHIP</span>
     <h1 class="display-xl">PICK YOUR <span class="text-gradient">POWER LEVEL</span></h1>
-    <p class="pricing-hero__sub">No hidden fees. Cancel anytime. Upgrade the second you're ready to get BOOK'D more.</p>
+    <p class="pricing-hero__sub">Every plan includes a 7-day free trial. Your first period is 1 month + 7 days. Pay by Whish to Whish. Cancel anytime.</p>
   </div>
 </section>
 
@@ -16,14 +16,20 @@
           <span class="amount">{{ plan.price }}</span>
           <span class="period">{{ plan.period }}</span>
         </div>
+        <p class="plan-card__trial">7-day free trial · first period 1 month + 7 days</p>
         <p class="plan-card__tagline">{{ plan.tagline }}</p>
         <ul class="plan-card__features">
           @for (f of plan.features; track f) {
             <li>✓ {{ f }}</li>
           }
         </ul>
-        <app-animated-button [routerLink]="['/auth/signup']" [queryParams]="{ plan: plan.planKey }" [variant]="plan.highlighted ? 'primary' : 'outline'" [fullWidth]="true">
-          {{ plan.cta }}
+        <app-animated-button
+          [routerLink]="canPayNow() ? ['/dashboard/pay'] : ['/auth/signup']"
+          [queryParams]="canPayNow() ? {} : { plan: plan.planKey }"
+          [variant]="plan.highlighted ? 'primary' : 'outline'"
+          [fullWidth]="true"
+        >
+          {{ planCta(plan) }}
         </app-animated-button>
       </div>
     }

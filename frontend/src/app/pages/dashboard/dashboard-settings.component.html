@@ -8,6 +8,10 @@
 
   <app-dashboard-nav />
 
+  @if (auth.isPending()) {
+    <p class="pending-banner">Your application is under review. You can update your info here — it stays private until you're accepted.</p>
+  }
+
   @if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING..." />
   } @else if (isBrand) {
@@ -116,9 +120,11 @@
             <label>Availability</label>
             <app-select [(ngModel)]="form.availability" name="availability" [options]="availabilityOptions" />
           </div>
-          <div class="form-field checkbox-field">
-            <label><input type="checkbox" [(ngModel)]="form.isPublic" name="isPublic" /> Public Profile (visible in search)</label>
-          </div>
+          @if (!auth.isPending()) {
+            <div class="form-field checkbox-field">
+              <label><input type="checkbox" [(ngModel)]="form.isPublic" name="isPublic" /> Public Profile (visible in search)</label>
+            </div>
+          }
         </div>
 
         @if (selectedCategoryFields().length) {

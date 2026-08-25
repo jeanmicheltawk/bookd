@@ -1,0 +1,149 @@
+.dash-page { padding: 48px 0 100px; }
+.dash-head { margin-bottom: 32px; }
+
+.pay-pending-note {
+  margin: 12px 0 0;
+  max-width: 52ch;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.pay-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+
+  @media (max-width: 860px) { grid-template-columns: 1fr; }
+}
+
+.pay-card {
+  padding: 24px;
+  border: 1px solid currentColor;
+
+  &__label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  strong {
+    display: block;
+    font-size: 1.35rem;
+    letter-spacing: 0.04em;
+  }
+
+  p {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+
+  &--number {
+    background: var(--acid-lime);
+    color: var(--ink-black);
+    border-color: var(--acid-lime);
+
+    .pay-card__label, p { color: var(--ink-black); }
+  }
+}
+
+.copy-btn {
+  margin-top: 14px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover { background: var(--ink-black); color: var(--acid-lime); border-color: var(--ink-black); }
+}
+
+.pay-card--number .copy-btn:hover {
+  background: var(--ink-black);
+  color: var(--acid-lime);
+}
+
+.pay-steps {
+  margin: 0 0 32px;
+  padding: 24px 24px 24px 44px;
+  border: 1px solid currentColor;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  li {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+}
+
+.pay-status {
+  padding: 28px;
+  border: 1px solid currentColor;
+  margin-bottom: 24px;
+
+  &__pill {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 14px;
+    background: var(--nuclear-yellow);
+    color: var(--ink-black);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &--confirmed .pay-status__pill {
+    background: var(--acid-lime);
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0;
+    max-width: 52ch;
+    color: var(--text);
+    line-height: 1.55;
+  }
+}
+
+.pay-form {
+  padding: 28px;
+  border: 1px solid currentColor;
+  max-width: 560px;
+  margin-bottom: 28px;
+
+  h3 {
+    margin: 0 0 20px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+}
+
+.field-error,
+.form-error {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.82rem;
+}
+
+.form-success {
+  color: var(--acid-lime);
+  font-size: 0.85rem;
+  margin: 8px 0 16px;
+}

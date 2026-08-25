@@ -10,6 +10,7 @@ const config = require('./config');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/error');
 const { uploadRoot } = require('./middleware/upload');
+const { expireOverdueSubscriptions } = require('./utils/subscription');
 
 const app = express();
 
@@ -57,10 +58,24 @@ app.use('/api', routes);
 app.use(notFound);
 app.use(errorHandler);
 
+const SUBSCRIPTION_JOB_MS = 60 * 60 * 1000;
+
+function startSubscriptionJobs() {
+  const tick = () => {
+    expireOverdueSubscriptions().catch((err) => {
+      console.error('[subscription] job failed:', err.message);
+    });
+  };
+  tick();
+  setInterval(tick, SUBSCRIPTION_JOB_MS);
+}
+
 if (require.main === module) {
   app.listen(config.port, '0.0.0.0', () => {
     console.log(`BOOK'D HAUS API listening on port ${config.port} (${config.env})`);
     console.log(`Uploads served from ${path.resolve(uploadRoot)}`);
+    console.log('Subscription payment reminders: email talent 5 days before expiry');
+    startSubscriptionJobs();
   });
 }
 
