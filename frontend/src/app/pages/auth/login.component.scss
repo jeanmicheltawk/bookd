@@ -18,6 +18,59 @@
   a { color: var(--acid-lime); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 }
 
+.auth-paths {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.auth-path {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 12px;
+  border: 1px solid currentColor;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+
+  &__label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  &__action {
+    color: var(--acid-lime);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: var(--acid-lime);
+    border-color: var(--acid-lime);
+    color: var(--ink-black);
+    outline: none;
+
+    .auth-path__label,
+    .auth-path__action {
+      color: inherit;
+      opacity: 1;
+    }
+  }
+}
+
 .password-field {
   position: relative;
 

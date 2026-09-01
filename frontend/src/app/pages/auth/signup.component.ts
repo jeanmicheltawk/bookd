@@ -1,7 +1,8 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { AuthService, RegisterPayload } from '../../core/services/auth.service';
@@ -66,6 +67,7 @@ export class SignupComponent implements OnInit {
   private router = inject(Router);
   private categoryService = inject(CategoryService);
   private countryService = inject(CountryService);
+  private destroyRef = inject(DestroyRef);
 
   categories = signal<Category[]>([]);
   countries = signal<Country[]>([]);
@@ -157,14 +159,33 @@ export class SignupComponent implements OnInit {
     } else if (plan === 'free' || plan === 'normal') {
       this.talent.membership = 'basic';
     }
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const nextRole = this.roleFromParams(params);
+      if (nextRole !== this.role()) {
+        this.applyRole(nextRole, false);
+      }
+    });
   }
 
   private initialRole(): 'member' | 'brand' {
-    const params = this.route.snapshot.queryParamMap;
-    return params.get('role') === 'brand' || params.get('plan') === 'brand' ? 'brand' : 'member';
+    return this.roleFromParams(this.route.snapshot.queryParamMap);
+  }
+
+  private roleFromParams(params: ParamMap): 'member' | 'brand' {
+    const role = (params.get('role') || '').toLowerCase();
+    const plan = (params.get('plan') || '').toLowerCase();
+    if (role === 'brand' || role === 'client' || plan === 'brand' || plan === 'client') {
+      return 'brand';
+    }
+    return 'member';
   }
 
   onRoleChange(role: 'member' | 'brand'): void {
+    this.applyRole(role, true);
+  }
+
+  private applyRole(role: 'member' | 'brand', syncUrl: boolean): void {
     this.role.set(role);
     this.error.set('');
     this.fieldErrors.set({});
@@ -172,6 +193,14 @@ export class SignupComponent implements OnInit {
     if (role === 'member') {
       this.categorySlug.set(this.talent.categorySlug || '');
       this.onCategoryChange();
+    }
+    if (syncUrl) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { role },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
     }
   }
 

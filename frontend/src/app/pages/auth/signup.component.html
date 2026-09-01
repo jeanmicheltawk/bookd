@@ -23,19 +23,44 @@
 } @else {
   <div class="auth-card animate-slide-up" [class.auth-card--wide]="role() === 'member'">
     <span class="eyebrow">{{ role() === 'brand' ? 'BOOK TALENT' : 'JOIN THE HAUS' }}</span>
-    <h2 class="display-lg">{{ role() === 'brand' ? 'CLIENT' : 'APPLY' }}</h2>
+    <h2 class="display-lg">{{ role() === 'brand' ? 'BRAND / CLIENT' : 'CREATIVE / TALENT' }}</h2>
     <p class="auth-card__sub">
       @if (role() === 'brand') {
-        Create a free client account. No payment — just your details so talent can reach you.
+        Create a free brand / client account. No payment — just your details so talent can reach you.
       } @else {
-        Submit your profile for review. Profiles go live only after admin approval.
+        Apply as creative / talent. Profiles go live only after admin approval.
         You pay with Whish to Whish to +961 3 177 655.
       }
     </p>
 
-    <div class="role-toggle">
-      <button type="button" class="chip" [class.active]="role() === 'member'" (click)="onRoleChange('member')">Creative / Talent</button>
-      <button type="button" class="chip" [class.active]="role() === 'brand'" (click)="onRoleChange('brand')">Brand / Client</button>
+    <div class="role-toggle" role="tablist" aria-label="Account type">
+      <button
+        type="button"
+        class="role-option"
+        role="tab"
+        [class.active]="role() === 'member'"
+        [attr.aria-selected]="role() === 'member'"
+        (click)="onRoleChange('member')"
+      >
+        <span class="role-option__name">Creative / Talent</span>
+        <span class="role-option__hint">Apply to the directory</span>
+      </button>
+      <button
+        type="button"
+        class="role-option"
+        role="tab"
+        [class.active]="role() === 'brand'"
+        [attr.aria-selected]="role() === 'brand'"
+        (click)="onRoleChange('brand')"
+      >
+        <span class="role-option__name">Brand / Client</span>
+        <span class="role-option__hint">Free account to book talent</span>
+      </button>
+    </div>
+
+    <div class="role-banner">
+      <span class="role-banner__kicker">You are {{ role() === 'brand' ? 'creating' : 'applying as' }}</span>
+      <strong>{{ role() === 'brand' ? 'Brand / Client' : 'Creative / Talent' }}</strong>
     </div>
 
     @if (role() === 'brand') {

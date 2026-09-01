@@ -51,8 +51,15 @@
 
   <p class="auth-switch">
     New to BOOK'D HAUS?
-    <a routerLink="/auth/signup">Apply to join</a>
-    or
-    <a routerLink="/auth/signup" [queryParams]="{ role: 'brand' }">create a free client account</a>
   </p>
+  <div class="auth-paths">
+    <a routerLink="/auth/signup" [queryParams]="{ role: 'member' }" class="auth-path">
+      <span class="auth-path__label">Creative / Talent</span>
+      <span class="auth-path__action">Apply to join</span>
+    </a>
+    <a routerLink="/auth/signup" [queryParams]="{ role: 'brand' }" class="auth-path">
+      <span class="auth-path__label">Brand / Client</span>
+      <span class="auth-path__action">Create a free client account</span>
+    </a>
+  </div>
 </div>
