@@ -13,6 +13,7 @@ import { DashboardNavComponent } from './dashboard-nav.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
+import { toGenderValue } from '../../core/utils/gender';
 
 @Component({
   selector: 'app-dashboard-settings',
@@ -75,6 +76,11 @@ export class DashboardSettingsComponent implements OnInit {
     { value: 'booked', label: 'Booked' },
   ];
 
+  genderOptions: SelectOption[] = [
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+  ];
+
   selectedCategoryFields = computed<CategoryField[]>(() => {
     const slug = this.categorySlug();
     if (!slug) return [];
@@ -109,7 +115,7 @@ export class DashboardSettingsComponent implements OnInit {
             instagram: p.instagram || '',
             phone: p.phone || '',
             whatsapp: p.whatsapp || '',
-            gender: p.gender || '',
+            gender: toGenderValue(p.gender),
             age: p.age ?? null,
             availability: p.availability || 'available',
             isPublic: p.is_public ?? true,

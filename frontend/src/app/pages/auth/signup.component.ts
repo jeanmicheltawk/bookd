@@ -130,6 +130,11 @@ export class SignupComponent implements OnInit {
     label: `${opt.label} — ${opt.description}`,
   }));
 
+  genderOptions: SelectOption[] = [
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+  ];
+
   selectedCategoryFields = computed<CategoryField[]>(() => {
     if (this.role() !== 'member') return [];
     const slug = this.categorySlug();
@@ -355,7 +360,7 @@ export class SignupComponent implements OnInit {
       return;
     }
     if (!this.talent.gender.trim()) {
-      this.error.set('Please enter your gender.');
+      this.error.set('Please select your gender.');
       return;
     }
     if (!this.talent.bio.trim()) {

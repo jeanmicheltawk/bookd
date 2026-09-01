@@ -110,7 +110,7 @@
           </div>
           <div class="form-field">
             <label>Gender</label>
-            <input type="text" [(ngModel)]="form.gender" name="gender" />
+            <app-select [(ngModel)]="form.gender" name="gender" placeholder="Select gender" [options]="genderOptions" />
           </div>
           <div class="form-field">
             <label>Age</label>

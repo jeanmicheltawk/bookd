@@ -19,6 +19,7 @@ import {
 } from '../../core/utils/contact-validation';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
+import { toGenderValue } from '../../core/utils/gender';
 import { subscriptionStatusLabel, membershipLabel, isComplimentaryMember } from '../../core/utils/subscription';
 
 interface EditForm {
@@ -96,6 +97,11 @@ export class AdminUsersComponent implements OnInit {
     selectOptions(this.countries().map((c) => ({ value: c.name, label: c.name })), 'Select country'),
   );
 
+  genderOptions: SelectOption[] = [
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+  ];
+
   fieldSelectOptions(field: CategoryField): SelectOption[] {
     return selectOptions(field.options || [], `Select ${field.label}`);
   }
@@ -172,7 +178,7 @@ export class AdminUsersComponent implements OnInit {
       phone: user.phone || '',
       whatsapp: user.whatsapp || '',
       website: user.website || '',
-      gender: user.gender || '',
+      gender: toGenderValue(user.gender),
       age: user.age ?? null,
       bio: user.bio || '',
       custom_fields: { ...(user.custom_fields || {}) },

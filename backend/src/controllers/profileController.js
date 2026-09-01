@@ -1,5 +1,5 @@
 const { query } = require('../config/db');
-const { mediaUrl } = require('./mediaController');
+const { insertUploadedMedia } = require('../utils/mediaStore');
 const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
 
@@ -155,22 +155,12 @@ async function uploadProfilePhoto(req, res, next) {
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
 
     const folder = req.uploadFolder || 'avatars';
-    const url = mediaUrl(folder, req.file.filename);
-
-    await query(
-      `INSERT INTO media (filename, original_name, mime_type, size_bytes, url, folder, alt_text, uploaded_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [
-        req.file.filename,
-        req.file.originalname,
-        req.file.mimetype,
-        req.file.size,
-        url,
-        folder,
-        'Profile photo',
-        req.user.id,
-      ]
-    );
+    const { url } = await insertUploadedMedia({
+      file: req.file,
+      folder,
+      altText: 'Profile photo',
+      uploadedBy: req.user.id,
+    });
 
     const updated = await query(
       `UPDATE profiles SET profile_photo_url = $1, updated_at = NOW()
@@ -295,24 +285,14 @@ async function uploadPortfolioMedia(req, res, next) {
     }
 
     const folder = req.uploadFolder || 'portfolio';
-    const url = mediaUrl(folder, req.file.filename);
     const mediaType = (req.file.mimetype || '').startsWith('video') ? 'video' : 'image';
     const title = (req.body.title || '').trim() || req.file.originalname || null;
-
-    await query(
-      `INSERT INTO media (filename, original_name, mime_type, size_bytes, url, folder, alt_text, uploaded_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [
-        req.file.filename,
-        req.file.originalname,
-        req.file.mimetype,
-        req.file.size,
-        url,
-        folder,
-        title,
-        req.user.id,
-      ]
-    );
+    const { url } = await insertUploadedMedia({
+      file: req.file,
+      folder,
+      altText: title,
+      uploadedBy: req.user.id,
+    });
 
     const result = await query(
       `INSERT INTO portfolio_items (profile_id, media_type, url, thumbnail_url, title, sort_order)

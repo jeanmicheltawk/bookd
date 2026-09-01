@@ -3,10 +3,12 @@ const path = require('path');
 const { query } = require('../config/db');
 const { uploadRoot } = require('../middleware/upload');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
-
-function mediaUrl(folder, filename) {
-  return `/uploads/${folder}/${filename}`;
-}
+const {
+  MEDIA_PUBLIC_COLUMNS,
+  mediaUrl,
+  insertUploadedMedia,
+  replaceUploadedMedia,
+} = require('../utils/mediaStore');
 
 async function listMedia(req, res, next) {
   try {
@@ -30,7 +32,7 @@ async function listMedia(req, res, next) {
 
     params.push(limit, offset);
     const result = await query(
-      `SELECT id, filename, original_name, mime_type, size_bytes, url, folder, alt_text, uploaded_by, created_at
+      `SELECT ${MEDIA_PUBLIC_COLUMNS}
        FROM media ${whereSql}
        ORDER BY created_at DESC
        LIMIT $${params.length - 1} OFFSET $${params.length}`,
@@ -60,25 +62,14 @@ async function uploadMedia(req, res, next) {
     if (!req.file) return res.status(400).json({ error: 'File required' });
 
     const folder = req.uploadFolder || 'general';
-    const url = mediaUrl(folder, req.file.filename);
     const { altText } = req.body;
-
-    const result = await query(
-      `INSERT INTO media (filename, original_name, mime_type, size_bytes, url, folder, alt_text, uploaded_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *`,
-      [
-        req.file.filename,
-        req.file.originalname,
-        req.file.mimetype,
-        req.file.size,
-        url,
-        folder,
-        altText || null,
-        req.user?.id || null,
-      ]
-    );
-    res.status(201).json(result.rows[0]);
+    const { row } = await insertUploadedMedia({
+      file: req.file,
+      folder,
+      altText,
+      uploadedBy: req.user?.id || null,
+    });
+    res.status(201).json(row);
   } catch (err) {
     next(err);
   }
@@ -87,7 +78,10 @@ async function uploadMedia(req, res, next) {
 async function deleteMedia(req, res, next) {
   try {
     const { id } = req.params;
-    const result = await query('SELECT * FROM media WHERE id = $1', [id]);
+    const result = await query(
+      `SELECT ${MEDIA_PUBLIC_COLUMNS} FROM media WHERE id = $1`,
+      [id]
+    );
     const item = result.rows[0];
     if (!item) return res.status(404).json({ error: 'Media not found' });
 
@@ -106,7 +100,10 @@ async function replaceMedia(req, res, next) {
     const { id } = req.params;
     if (!req.file) return res.status(400).json({ error: 'File required' });
 
-    const existing = await query('SELECT * FROM media WHERE id = $1', [id]);
+    const existing = await query(
+      `SELECT ${MEDIA_PUBLIC_COLUMNS} FROM media WHERE id = $1`,
+      [id]
+    );
     const item = existing.rows[0];
     if (!item) return res.status(404).json({ error: 'Media not found' });
 
@@ -114,26 +111,14 @@ async function replaceMedia(req, res, next) {
     if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
 
     const folder = req.uploadFolder || item.folder;
-    const url = mediaUrl(folder, req.file.filename);
     const { altText } = req.body;
-
-    const result = await query(
-      `UPDATE media SET
-         filename = $1, original_name = $2, mime_type = $3, size_bytes = $4,
-         url = $5, folder = $6, alt_text = COALESCE($7, alt_text)
-       WHERE id = $8 RETURNING *`,
-      [
-        req.file.filename,
-        req.file.originalname,
-        req.file.mimetype,
-        req.file.size,
-        url,
-        folder,
-        altText ?? null,
-        id,
-      ]
-    );
-    res.json(result.rows[0]);
+    const { row } = await replaceUploadedMedia({
+      id,
+      file: req.file,
+      folder,
+      altText,
+    });
+    res.json(row);
   } catch (err) {
     next(err);
   }
@@ -141,7 +126,10 @@ async function replaceMedia(req, res, next) {
 
 async function getMediaById(req, res, next) {
   try {
-    const result = await query('SELECT * FROM media WHERE id = $1', [req.params.id]);
+    const result = await query(
+      `SELECT ${MEDIA_PUBLIC_COLUMNS} FROM media WHERE id = $1`,
+      [req.params.id]
+    );
     if (!result.rows[0]) return res.status(404).json({ error: 'Media not found' });
     res.json(result.rows[0]);
   } catch (err) {

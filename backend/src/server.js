@@ -10,6 +10,7 @@ const config = require('./config');
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middleware/error');
 const { uploadRoot } = require('./middleware/upload');
+const { servePersistedUpload } = require('./middleware/serveUploads');
 const { expireOverdueSubscriptions } = require('./utils/subscription');
 
 const app = express();
@@ -25,7 +26,12 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(compression());
+app.use(compression({
+  filter: (req, res) => {
+    if ((req.path || '').startsWith('/uploads')) return false;
+    return compression.filter(req, res);
+  },
+}));
 app.use(morgan(config.env === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -47,7 +53,17 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-app.use('/uploads', express.static(uploadRoot));
+app.use(
+  '/uploads',
+  express.static(uploadRoot, {
+    fallthrough: true,
+    setHeaders(res) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
+  }),
+  servePersistedUpload
+);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'bookd-haus-api', env: config.env });

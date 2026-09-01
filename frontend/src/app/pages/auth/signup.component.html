@@ -253,7 +253,13 @@
           </div>
           <div class="form-field">
             <label>Gender *</label>
-            <input type="text" name="talentGender" [(ngModel)]="talent.gender" required />
+            <app-select
+              name="talentGender"
+              [(ngModel)]="talent.gender"
+              required
+              placeholder="Select gender"
+              [options]="genderOptions"
+            />
           </div>
           <div class="form-field">
             <label>Age</label>

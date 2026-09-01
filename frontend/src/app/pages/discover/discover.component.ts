@@ -12,6 +12,7 @@ import { Category, Country, SearchResult } from '../../core/models';
 import { ProfileCardComponent } from '../../shared/components/profile-card/profile-card.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
+import { toGenderValue } from '../../core/utils/gender';
 
 @Component({
   selector: 'app-discover',
@@ -61,9 +62,8 @@ export class DiscoverComponent implements OnInit {
 
   genderOptions: SelectOption[] = [
     { value: '', label: 'Any Gender' },
-    { value: 'female', label: 'Female' },
-    { value: 'male', label: 'Male' },
-    { value: 'non-binary', label: 'Non-binary' },
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
   ];
 
   get isModelsOrTalents(): boolean {
@@ -79,7 +79,7 @@ export class DiscoverComponent implements OnInit {
       this.filters.country = params.get('country') || '';
       this.filters.availability = params.get('availability') || '';
       this.filters.verified = params.get('verified') === 'true';
-      this.filters.gender = params.get('gender') || '';
+      this.filters.gender = toGenderValue(params.get('gender'));
       this.page.set(Number(params.get('page')) || 1);
       this.runSearch();
     });
