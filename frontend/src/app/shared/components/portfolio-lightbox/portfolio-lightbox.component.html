@@ -10,6 +10,16 @@
     <figure class="lightbox__stage" (click)="$event.stopPropagation()">
       @if (item.media_type === 'video') {
         <video [src]="src(item)" [poster]="item.thumbnail_url ? api.assetUrl(item.thumbnail_url) : ''" controls autoplay></video>
+      } @else if (isPdf(item)) {
+        @if (pdfUrl(); as url) {
+          <iframe [src]="url" [title]="item.title || 'Portfolio PDF'"></iframe>
+        } @else {
+          <div class="lightbox__pdf-fallback">
+            <span class="lightbox__pdf-badge">PDF</span>
+            <p>{{ item.title || 'Document' }}</p>
+          </div>
+        }
+        <a class="lightbox__pdf-open" [href]="src(item)" target="_blank" rel="noopener">Open PDF ↗</a>
       } @else {
         <img [src]="src(item)" [alt]="item.title || 'Portfolio piece'" />
       }

@@ -6,7 +6,7 @@ import { catchError, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { CountryService } from '../../core/services/country.service';
-import { CategoryService } from '../../core/services/category.service';
+import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
 import { ApiService } from '../../core/services/api.service';
 import { Category, CategoryField, Country } from '../../core/models';
 import { DashboardNavComponent } from './dashboard-nav.component';
@@ -85,7 +85,7 @@ export class DashboardSettingsComponent implements OnInit {
     const slug = this.categorySlug();
     if (!slug) return [];
     const cat = this.categories().find((c) => c.slug === slug);
-    return cat?.fields || [];
+    return sortCategoryFields(cat?.fields);
   });
 
   get isBrand(): boolean {

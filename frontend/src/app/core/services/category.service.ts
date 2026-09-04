@@ -54,4 +54,14 @@ export class CategoryService {
   deleteField(categoryId: string, fieldId: string): Observable<{ deleted: boolean; id: string }> {
     return this.api.delete(`/admin/categories/${categoryId}/fields/${fieldId}`);
   }
+
+  reorderFields(categoryId: string, fieldIds: string[]): Observable<{ data: CategoryField[] }> {
+    return this.api.put(`/admin/categories/${categoryId}/fields/reorder`, { fieldIds });
+  }
+}
+
+export function sortCategoryFields(fields?: CategoryField[] | null): CategoryField[] {
+  return [...(fields || [])].sort(
+    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.label.localeCompare(b.label),
+  );
 }

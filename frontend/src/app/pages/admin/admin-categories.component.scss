@@ -108,6 +108,8 @@
     text-transform: uppercase;
     color: var(--text);
   }
+
+  h4 + .muted { margin: -4px 0 12px; }
 }
 
 .fields-list {
@@ -126,14 +128,37 @@
   background: transparent;
   border: 1px solid currentColor;
 
-  div {
+  > div:first-child {
     display: flex;
     flex-direction: column;
     gap: 3px;
+    min-width: 0;
   }
 
   strong { font-size: 0.88rem; }
   span { font-size: 0.75rem; color: var(--text); }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+}
+
+.order-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--acid-lime); color: var(--ink-black); }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
 }
 
 .field-form {

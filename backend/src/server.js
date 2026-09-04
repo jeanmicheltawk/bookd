@@ -57,9 +57,13 @@ app.use(
   '/uploads',
   express.static(uploadRoot, {
     fallthrough: true,
-    setHeaders(res) {
+    setHeaders(res, filePath) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      if (String(filePath).toLowerCase().endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+      }
     },
   }),
   servePersistedUpload

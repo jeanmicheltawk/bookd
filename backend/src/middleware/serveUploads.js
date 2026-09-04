@@ -10,6 +10,9 @@ function setUploadHeaders(res, mimeType) {
   res.setHeader('Content-Type', mimeType || 'application/octet-stream');
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  if ((mimeType || '').toLowerCase() === 'application/pdf') {
+    res.setHeader('Content-Disposition', 'inline');
+  }
 }
 
 async function servePersistedUpload(req, res, next) {

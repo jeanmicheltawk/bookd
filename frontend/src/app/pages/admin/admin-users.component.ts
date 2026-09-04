@@ -5,7 +5,7 @@ import { catchError, of } from 'rxjs';
 
 import { ApprovalStatus, Category, CategoryField, Country, SubscriptionInfo } from '../../core/models';
 import { AdminUser, AdminUserService } from '../../core/services/admin-user.service';
-import { CategoryService } from '../../core/services/category.service';
+import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
 import { CountryService } from '../../core/services/country.service';
 import { ApiService } from '../../core/services/api.service';
 import {
@@ -110,7 +110,7 @@ export class AdminUsersComponent implements OnInit {
     const slug = this.editCategorySlug();
     if (!slug) return [];
     const cat = this.categories().find((c) => c.slug === slug);
-    return cat?.fields || [];
+    return sortCategoryFields(cat?.fields);
   }
 
   ngOnInit(): void {

@@ -56,21 +56,38 @@
           </div>
 
           <h4>Extra fields</h4>
+          <p class="muted">Use the arrows to set the order shown on the signup form.</p>
           @if ((cat.fields || []).length) {
             <div class="fields-list">
-              @for (f of cat.fields; track f.id) {
+              @for (f of cat.fields; track f.id; let i = $index) {
                 <div class="field-row">
                   <div>
                     <strong>{{ f.label }}</strong>
                     <span>
                       {{ f.field_key }} · {{ f.field_type }}
                       @if (f.is_required) { · required }
-                      @if (f.field_type === 'dropdown' && f.options?.length) {
+                      @if (f.field_type === 'dropdown' && f.options.length) {
                         · {{ f.options.join(', ') }}
                       }
                     </span>
                   </div>
-                  <button type="button" class="delete-btn" (click)="removeField(f)">Remove</button>
+                  <div class="field-row__actions">
+                    <button
+                      type="button"
+                      class="order-btn"
+                      [disabled]="saving() || i === 0"
+                      (click)="moveField(f, -1)"
+                      aria-label="Move field up"
+                    >↑</button>
+                    <button
+                      type="button"
+                      class="order-btn"
+                      [disabled]="saving() || i === (cat.fields || []).length - 1"
+                      (click)="moveField(f, 1)"
+                      aria-label="Move field down"
+                    >↓</button>
+                    <button type="button" class="delete-btn" (click)="removeField(f)">Remove</button>
+                  </div>
                 </div>
               }
             </div>

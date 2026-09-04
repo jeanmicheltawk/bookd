@@ -8,7 +8,7 @@ import { ProfileService } from '../../core/services/profile.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { PortfolioItem } from '../../core/models';
-import { portfolioLimitFor, PREMIUM_PORTFOLIO_LIMIT } from '../../core/utils/portfolio-limit';
+import { isPortfolioPdf, portfolioLimitFor, PREMIUM_PORTFOLIO_LIMIT } from '../../core/utils/portfolio-limit';
 import { effectiveMembership } from '../../core/utils/subscription';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
@@ -63,6 +63,16 @@ export class DashboardPortfolioComponent implements OnInit {
       return;
     }
 
+    const mime = (file.type || '').toLowerCase();
+    const isPdf = mime === 'application/pdf' || mime === 'application/x-pdf' || /\.pdf$/i.test(file.name);
+    const isImage = mime.startsWith('image/');
+    const isVideo = mime.startsWith('video/');
+    if (!isPdf && !isImage && !isVideo) {
+      this.uploadError.set('Use an image, video, or PDF under 25MB.');
+      input.value = '';
+      return;
+    }
+
     this.uploading.set(true);
     this.uploadError.set('');
 
@@ -76,7 +86,7 @@ export class DashboardPortfolioComponent implements OnInit {
       error: (err) => {
         this.uploading.set(false);
         input.value = '';
-        this.uploadError.set(err?.error?.error || 'Could not upload. Try an image or video under 25MB.');
+        this.uploadError.set(err?.error?.error || 'Could not upload. Try an image, video, or PDF under 25MB.');
       },
     });
   }
@@ -86,6 +96,10 @@ export class DashboardPortfolioComponent implements OnInit {
       return `Premium plan allows up to ${this.limit()} portfolio images.`;
     }
     return `Starter plan allows ${this.limit()} portfolio images. Upgrade to Premium plan for ${PREMIUM_PORTFOLIO_LIMIT}.`;
+  }
+
+  isPdf(item: PortfolioItem): boolean {
+    return isPortfolioPdf(item);
   }
 
   openLightbox(index: number): void {

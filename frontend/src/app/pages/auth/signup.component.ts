@@ -6,7 +6,7 @@ import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { AuthService, RegisterPayload } from '../../core/services/auth.service';
-import { CategoryService } from '../../core/services/category.service';
+import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
 import { CountryService } from '../../core/services/country.service';
 import { Category, CategoryField, Country, Membership, WhishPaymentInstructions } from '../../core/models';
 import {
@@ -142,7 +142,7 @@ export class SignupComponent implements OnInit {
     const slug = this.categorySlug();
     if (!slug) return [];
     const cat = this.categories().find((c) => c.slug === slug);
-    return cat?.fields || [];
+    return sortCategoryFields(cat?.fields);
   });
 
   ngOnInit(): void {

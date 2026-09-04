@@ -141,7 +141,7 @@ export interface Country {
 
 export interface PortfolioItem {
   id: string;
-  media_type: 'image' | 'video';
+  media_type: 'image' | 'video' | 'pdf';
   url: string;
   thumbnail_url?: string | null;
   title?: string | null;

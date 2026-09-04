@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { PortfolioItem, Profile } from '../../core/models';
+import { isPortfolioPdf } from '../../core/utils/portfolio-limit';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
@@ -53,6 +54,10 @@ export class ProfilePublicComponent implements OnInit {
 
   portfolioItems(): PortfolioItem[] {
     return this.profile()?.portfolio || [];
+  }
+
+  isPdf(item: PortfolioItem): boolean {
+    return isPortfolioPdf(item);
   }
 
   openLightbox(index: number): void {

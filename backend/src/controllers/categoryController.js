@@ -1,4 +1,4 @@
-const { query } = require('../config/db');
+const { query, getClient } = require('../config/db');
 
 const FIELD_TYPES = ['text', 'number', 'dropdown', 'textarea'];
 
@@ -152,7 +152,7 @@ async function createCategoryField(req, res, next) {
       field_type: fieldType = 'text',
       options,
       is_required: isRequired = false,
-      sort_order: sortOrder = 0,
+      sort_order: sortOrder,
     } = req.body;
 
     if (!label || !String(label).trim()) {
@@ -173,6 +173,18 @@ async function createCategoryField(req, res, next) {
       return res.status(400).json({ error: 'Dropdown fields need at least one option' });
     }
 
+    let nextOrder;
+    if (sortOrder === undefined || sortOrder === null || sortOrder === '') {
+      const maxRes = await query(
+        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next FROM category_fields WHERE category_id = $1`,
+        [categoryId]
+      );
+      nextOrder = maxRes.rows[0].next;
+    } else {
+      nextOrder = Number(sortOrder);
+      if (Number.isNaN(nextOrder)) nextOrder = 0;
+    }
+
     const result = await query(
       `INSERT INTO category_fields
          (category_id, field_key, label, field_type, options, is_required, sort_order)
@@ -185,7 +197,7 @@ async function createCategoryField(req, res, next) {
         fieldType,
         JSON.stringify(normalizedOptions),
         !!isRequired,
-        Number(sortOrder) || 0,
+        nextOrder,
       ]
     );
     res.status(201).json(result.rows[0]);
@@ -253,7 +265,8 @@ async function updateCategoryField(req, res, next) {
       updates.push(`is_required = $${params.length}`);
     }
     if (sortOrder !== undefined) {
-      params.push(Number(sortOrder) || 0);
+      const nextOrder = Number(sortOrder);
+      params.push(Number.isNaN(nextOrder) ? 0 : nextOrder);
       updates.push(`sort_order = $${params.length}`);
     }
 
@@ -270,6 +283,60 @@ async function updateCategoryField(req, res, next) {
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Field key already exists on this category' });
     next(err);
+  }
+}
+
+async function reorderCategoryFields(req, res, next) {
+  const client = await getClient();
+  try {
+    const { id: categoryId } = req.params;
+    const fieldIds = req.body.fieldIds || req.body.field_ids;
+    if (!Array.isArray(fieldIds) || !fieldIds.length) {
+      return res.status(400).json({ error: 'fieldIds array is required' });
+    }
+    const ids = fieldIds.map((id) => String(id || '').trim()).filter(Boolean);
+    if (ids.length !== fieldIds.length || new Set(ids).size !== ids.length) {
+      return res.status(400).json({ error: 'fieldIds must be unique non-empty strings' });
+    }
+
+    await client.query('BEGIN');
+    const existing = await client.query(
+      `SELECT id FROM category_fields WHERE category_id = $1`,
+      [categoryId]
+    );
+    if (!existing.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Category not found or has no fields' });
+    }
+    const existingIds = new Set(existing.rows.map((row) => row.id));
+    if (ids.length !== existingIds.size || ids.some((id) => !existingIds.has(id))) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'fieldIds must include every field for this category' });
+    }
+
+    for (let i = 0; i < ids.length; i += 1) {
+      await client.query(
+        `UPDATE category_fields SET sort_order = $1 WHERE id = $2 AND category_id = $3`,
+        [i, ids[i], categoryId]
+      );
+    }
+    await client.query('COMMIT');
+
+    const result = await query(
+      `SELECT id, category_id, field_key, label, field_type, options, is_required, sort_order, created_at
+       FROM category_fields WHERE category_id = $1 ORDER BY sort_order, label`,
+      [categoryId]
+    );
+    res.json({ data: result.rows });
+  } catch (err) {
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      /* ignore */
+    }
+    next(err);
+  } finally {
+    client.release();
   }
 }
 
@@ -295,5 +362,6 @@ module.exports = {
   deleteCategory,
   createCategoryField,
   updateCategoryField,
+  reorderCategoryFields,
   deleteCategoryField,
 };

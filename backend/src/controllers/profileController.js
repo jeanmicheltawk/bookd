@@ -1,7 +1,16 @@
+const path = require('path');
 const { query } = require('../config/db');
 const { insertUploadedMedia } = require('../utils/mediaStore');
 const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
+
+function portfolioMediaType(file) {
+  const mime = (file?.mimetype || '').toLowerCase();
+  const ext = path.extname(file?.originalname || '').toLowerCase();
+  if (mime.startsWith('video')) return 'video';
+  if (mime === 'application/pdf' || mime === 'application/x-pdf' || ext === '.pdf') return 'pdf';
+  return 'image';
+}
 
 const PUBLIC_PROFILE_FIELDS = `
   p.id, p.full_name, p.professional_name, p.age, p.country, p.city, p.gender,
@@ -285,7 +294,7 @@ async function uploadPortfolioMedia(req, res, next) {
     }
 
     const folder = req.uploadFolder || 'portfolio';
-    const mediaType = (req.file.mimetype || '').startsWith('video') ? 'video' : 'image';
+    const mediaType = portfolioMediaType(req.file);
     const title = (req.body.title || '').trim() || req.file.originalname || null;
     const { url } = await insertUploadedMedia({
       file: req.file,

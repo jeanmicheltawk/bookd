@@ -38,6 +38,7 @@ router.post('/admin/categories', ...admin, category.createCategory);
 router.patch('/admin/categories/:id', ...admin, category.updateCategory);
 router.delete('/admin/categories/:id', ...admin, category.deleteCategory);
 router.post('/admin/categories/:id/fields', ...admin, category.createCategoryField);
+router.put('/admin/categories/:id/fields/reorder', ...admin, category.reorderCategoryFields);
 router.patch('/admin/categories/:id/fields/:fieldId', ...admin, category.updateCategoryField);
 router.delete('/admin/categories/:id/fields/:fieldId', ...admin, category.deleteCategoryField);
 

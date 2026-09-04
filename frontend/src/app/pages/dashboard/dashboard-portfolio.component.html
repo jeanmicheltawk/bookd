@@ -11,7 +11,7 @@
   <div class="upload-panel glass-panel">
     <input type="text" placeholder="Title (optional)" [(ngModel)]="newTitle" name="newTitle" [disabled]="atLimit()" />
     <label class="upload-btn" [class.upload-btn--disabled]="atLimit() || uploading()">
-      <input type="file" accept="image/*,video/*" (change)="onFileSelected($event)" hidden [disabled]="uploading() || atLimit()" />
+      <input type="file" accept="image/*,video/*,.pdf,application/pdf" (change)="onFileSelected($event)" hidden [disabled]="uploading() || atLimit()" />
       {{ uploading() ? 'Uploading...' : '+ Upload Media' }}
     </label>
   </div>
@@ -34,18 +34,23 @@
         <div class="portfolio-tile" (click)="openLightbox(i)" role="button" tabindex="0" (keydown.enter)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
           @if (item.media_type === 'video') {
             <video [src]="api.assetUrl(item.url)" muted playsinline></video>
+          } @else if (isPdf(item)) {
+            <div class="portfolio-pdf">
+              <span class="portfolio-pdf__badge">PDF</span>
+              <span class="portfolio-pdf__name">{{ item.title || 'Document' }}</span>
+            </div>
           } @else {
             <img [src]="api.assetUrl(item.url)" [alt]="item.title || 'Portfolio piece'" />
           }
           <button type="button" class="portfolio-tile__remove" (click)="remove(item); $event.stopPropagation()" aria-label="Remove">✕</button>
-          @if (item.title) { <span class="portfolio-tile__title">{{ item.title }}</span> }
+          @if (item.title && !isPdf(item)) { <span class="portfolio-tile__title">{{ item.title }}</span> }
         </div>
       }
     </div>
   } @else {
     <div class="empty-state">
       <h3>Your portfolio is empty.</h3>
-      <p>Upload your best work to start getting noticed by brands and clients.</p>
+      <p>Upload images, videos, or PDFs to start getting noticed by brands and clients.</p>
     </div>
   }
 

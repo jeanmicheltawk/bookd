@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { catchError, of } from 'rxjs';
 
 import { Category, CategoryField, CategoryFieldType } from '../../core/models';
-import { CategoryService } from '../../core/services/category.service';
+import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { SelectComponent, SelectOption } from '../../shared/components/select/select.component';
 
@@ -55,7 +55,7 @@ export class AdminCategoriesComponent implements OnInit {
         this.categories.set(
           res.data.map((c) => ({
             ...c,
-            fields: (c.fields || []).map((f) => ({
+            fields: sortCategoryFields(c.fields).map((f) => ({
               ...f,
               options: Array.isArray(f.options) ? f.options : [],
             })),
@@ -140,6 +140,7 @@ export class AdminCategoriesComponent implements OnInit {
         field_type: this.fieldDraft.field_type,
         options: this.fieldDraft.field_type === 'dropdown' ? options : [],
         is_required: this.fieldDraft.is_required,
+        sort_order: (category.fields || []).length,
       })
       .subscribe({
         next: (field) => {
@@ -154,7 +155,13 @@ export class AdminCategoriesComponent implements OnInit {
           this.categories.update((list) =>
             list.map((c) =>
               c.id === category.id
-                ? { ...c, fields: [...(c.fields || []), { ...field, options: field.options || [] }] }
+                ? {
+                    ...c,
+                    fields: sortCategoryFields([
+                      ...(c.fields || []),
+                      { ...field, options: field.options || [] },
+                    ]),
+                  }
                 : c,
             ),
           );
@@ -189,5 +196,49 @@ export class AdminCategoriesComponent implements OnInit {
         this.error.set(err?.error?.error || 'Could not remove field.');
       },
     });
+  }
+
+  moveField(field: CategoryField, direction: -1 | 1): void {
+    const category = this.selected();
+    if (!category) return;
+    const fields = [...(category.fields || [])];
+    const index = fields.findIndex((f) => f.id === field.id);
+    const next = index + direction;
+    if (index < 0 || next < 0 || next >= fields.length) return;
+
+    const swapped = fields[next];
+    fields[index] = swapped;
+    fields[next] = field;
+    this.persistFieldOrder(category.id, fields);
+  }
+
+  private persistFieldOrder(categoryId: string, fields: CategoryField[]): void {
+    const ordered = fields.map((f, i) => ({ ...f, sort_order: i }));
+    this.applyFields(categoryId, ordered);
+    this.saving.set(true);
+    this.error.set('');
+    this.categoriesApi.reorderFields(categoryId, ordered.map((f) => f.id)).subscribe({
+      next: (res) => {
+        this.saving.set(false);
+        this.applyFields(
+          categoryId,
+          sortCategoryFields(res.data).map((f) => ({
+            ...f,
+            options: Array.isArray(f.options) ? f.options : [],
+          })),
+        );
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.error.set(err?.error?.error || 'Could not reorder fields.');
+        this.load();
+      },
+    });
+  }
+
+  private applyFields(categoryId: string, fields: CategoryField[]): void {
+    this.categories.update((list) =>
+      list.map((c) => (c.id === categoryId ? { ...c, fields } : c)),
+    );
   }
 }
