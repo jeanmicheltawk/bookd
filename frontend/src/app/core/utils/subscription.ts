@@ -1,7 +1,27 @@
 import { Membership, SubscriptionInfo, SubscriptionStatus } from '../models';
 
-export function effectiveMembership(user?: { membership?: Membership | string; effective_membership?: Membership | string } | null): Membership {
-  return (user?.effective_membership || user?.membership || 'free') as Membership;
+function asMembership(value?: string | null): Membership | null {
+  if (value === 'premium' || value === 'basic' || value === 'free' || value === 'visitor') {
+    return value;
+  }
+  return null;
+}
+
+/** Plan the member currently has access to. Pending/expired subscriptions are treated as free. */
+export function membershipFromSubscription(subscription?: SubscriptionInfo | null): Membership | null {
+  if (!subscription) return null;
+  if (subscription.status === 'none' || subscription.status === 'expired') return 'free';
+  return asMembership(subscription.plan);
+}
+
+export function effectiveMembership(user?: {
+  membership?: Membership | string;
+  effective_membership?: Membership | string;
+  subscription?: SubscriptionInfo | null;
+} | null): Membership {
+  const fromSub = membershipFromSubscription(user?.subscription);
+  if (fromSub) return fromSub;
+  return asMembership(user?.effective_membership) || asMembership(user?.membership) || 'free';
 }
 
 export function membershipLabel(membership?: string | null): string {

@@ -1,9 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { catchError, of, tap } from 'rxjs';
 
-import { DashboardAlerts, Membership, SubscriptionInfo } from '../models';
+import { DashboardAlerts, SubscriptionInfo } from '../models';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
+import { membershipFromSubscription } from '../utils/subscription';
 
 const EMPTY: DashboardAlerts = { unreadMessages: 0, newBookings: 0, bookingUpdates: 0, subscription: null };
 
@@ -35,7 +36,7 @@ export class AlertService {
     if (!subscription) return;
     this.auth.updateStoredUser({
       subscription,
-      effective_membership: (subscription.can_end ? subscription.plan : 'free') as Membership,
+      effective_membership: membershipFromSubscription(subscription) ?? 'free',
     });
   }
 

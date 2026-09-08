@@ -17,11 +17,9 @@
   </div>
   <p class="upload-meta">
     {{ items().length }} / {{ limit() }} images
-    @if (!isPremium()) {
-      <span> · Starter plan</span>
-      @if (atLimit()) {
-        <a routerLink="/pricing">Upgrade to Premium plan for {{ premiumLimit }} images</a>
-      }
+    <span> · {{ isPremium() ? 'Premium plan' : 'Starter plan' }}</span>
+    @if (!isPremium() && atLimit() && !auth.isComplimentary()) {
+      <a routerLink="/pricing">Upgrade to Premium plan for {{ premiumLimit }} images</a>
     }
   </p>
   @if (uploadError()) { <p class="upload-error">{{ uploadError() }}</p> }

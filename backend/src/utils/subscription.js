@@ -18,7 +18,9 @@ function isComplimentaryPlan(membership) {
 
 function isComplimentary(user) {
   if (!user) return false;
-  return user.is_complimentary === true || user.is_complimentary === 't' || isComplimentaryPlan(user.membership);
+  const flag = user.is_complimentary;
+  if (flag === true || flag === 't' || flag === 'true' || flag === 1 || flag === '1') return true;
+  return isComplimentaryPlan(user.membership);
 }
 
 function planLabel(membership) {
