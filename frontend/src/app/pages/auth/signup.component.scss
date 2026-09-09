@@ -39,6 +39,17 @@
   }
 }
 
+.checkbox-field label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
 .form-field {
   textarea {
     width: 100%;

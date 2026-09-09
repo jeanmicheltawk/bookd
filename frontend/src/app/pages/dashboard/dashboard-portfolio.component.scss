@@ -26,15 +26,18 @@
 .upload-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 12px 24px;
   background: var(--cta);
   color: var(--ink-black);
+  font: inherit;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.8rem;
   cursor: pointer;
   border: none;
+  white-space: nowrap;
   &:hover { transform: translateY(-1px); }
   &--disabled {
     opacity: 0.45;
@@ -112,6 +115,33 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+  }
+
+  .portfolio-video {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--ink-black);
+    color: #ffffff;
+    pointer-events: none;
+
+    &__badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      padding: 6px 10px;
+      background: var(--acid-lime);
+      color: var(--ink-black);
+    }
+
+    &__play {
+      font-size: 1.4rem;
+      line-height: 1;
     }
   }
 

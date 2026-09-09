@@ -4,7 +4,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { PortfolioItem } from '../../../core/models';
 import { ApiService } from '../../../core/services/api.service';
-import { isPortfolioPdf } from '../../../core/utils/portfolio-limit';
+import { isPlayableVideoFile, isPortfolioPdf, videoEmbedUrl } from '../../../core/utils/portfolio-limit';
 
 @Component({
   selector: 'app-portfolio-lightbox',
@@ -19,6 +19,7 @@ export class PortfolioLightboxComponent implements OnDestroy {
   items = input<PortfolioItem[]>([]);
   index = model<number | null>(null);
   pdfUrl = signal<SafeResourceUrl | null>(null);
+  embedUrl = signal<SafeResourceUrl | null>(null);
 
   constructor() {
     effect(() => {
@@ -55,6 +56,12 @@ export class PortfolioLightboxComponent implements OnDestroy {
         this.pdfUrl.set(null);
       });
     });
+
+    effect(() => {
+      const item = this.current();
+      const url = item?.media_type === 'video' ? videoEmbedUrl(item.url) : null;
+      this.embedUrl.set(url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null);
+    });
   }
 
   ngOnDestroy(): void {
@@ -70,6 +77,10 @@ export class PortfolioLightboxComponent implements OnDestroy {
 
   isPdf(item: PortfolioItem): boolean {
     return isPortfolioPdf(item);
+  }
+
+  isPlayableVideo(item: PortfolioItem): boolean {
+    return isPlayableVideoFile(item);
   }
 
   src(item: PortfolioItem): string {

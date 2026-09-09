@@ -23,7 +23,8 @@ const PLANS: Plan[] = [
     features: [
       '7-day free trial (1 month + 7 days)',
       'Public profile & portfolio',
-      'Up to 4 portfolio images',
+      'Up to 10 portfolio images',
+      'Up to 10 video links',
       'Direct messaging',
       'Search visibility',
       'Apply to join the directory',
@@ -39,10 +40,10 @@ const PLANS: Plan[] = [
     features: [
       '7-day free trial (1 month + 7 days)',
       'Everything in Starter plan',
-      'Up to 15 portfolio images',
+      'Up to 35 portfolio images/PDFs',
+      'Up to 15 video links',
       'Priority spotlight placement',
       'Enhanced search visibility',
-      'Verified badge eligibility',
     ],
     cta: 'Apply Premium Plan',
     planKey: 'premium',

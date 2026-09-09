@@ -31,13 +31,23 @@ export class DashboardOverviewComponent implements OnInit {
   endError = signal('');
   subscription = computed(() => this.summary()?.subscription || this.alerts.alerts().subscription || null);
   payment = computed<WhishPaymentInstructions | null>(() => this.summary()?.payment || null);
+  greetingName = computed(() => {
+    const profile = this.summary()?.profile;
+    const user = this.auth.user();
+    const name = (
+      profile?.professional_name ||
+      profile?.full_name ||
+      user?.professional_name ||
+      user?.full_name ||
+      ''
+    ).trim();
+    return name ? name.toUpperCase() : '';
+  });
 
   ngOnInit(): void {
-    if (this.auth.isPending()) {
-      this.auth.me().pipe(catchError(() => of(null))).subscribe(() => {
-        if (!this.auth.isPending()) this.loadSummary();
-      });
-    }
+    this.auth.me().pipe(catchError(() => of(null))).subscribe(() => {
+      if (!this.auth.isPending()) this.loadSummary();
+    });
     this.loadSummary();
   }
 
@@ -48,6 +58,14 @@ export class DashboardOverviewComponent implements OnInit {
       .subscribe((res) => {
         this.summary.set(res);
         this.alerts.apply(res?.alerts);
+        if (res?.profile) {
+          this.auth.updateStoredUser({
+            profile_id: res.profile.id,
+            full_name: res.profile.full_name,
+            professional_name: res.profile.professional_name,
+            profile_photo_url: res.profile.profile_photo_url,
+          });
+        }
         this.loading.set(false);
       });
   }

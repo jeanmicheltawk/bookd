@@ -45,7 +45,7 @@ const registerValidators = [
   body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
   body('fullName').trim().notEmpty().withMessage('Full name required'),
   body('categorySlug').if(isTalentSignup).trim().notEmpty().withMessage('Category required'),
-  body('membership').optional().isIn(PUBLIC_TALENT_MEMBERSHIPS).withMessage('Invalid membership program'),
+  body('membership').if(isTalentSignup).optional().isIn(PUBLIC_TALENT_MEMBERSHIPS).withMessage('Invalid membership program'),
   body('professionalName').if(isTalentSignup).trim().notEmpty().withMessage('Professional name required'),
   body('country').if(isTalentSignup).trim().notEmpty().withMessage('Country required'),
   body('city').if(isTalentSignup).trim().notEmpty().withMessage('City required'),
@@ -107,6 +107,8 @@ async function register(req, res, next) {
       gender,
       age,
       customFields,
+      showNumbersPublic,
+      show_numbers_public: showNumbersPublicSnake,
     } = req.body;
 
     const existing = await query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
@@ -174,12 +176,15 @@ async function register(req, res, next) {
     );
     const user = userRes.rows[0];
 
+    const showNumbersPublicFlag = showNumbersPublic === true || showNumbersPublicSnake === true;
+
     await query(
       `INSERT INTO profiles (
          user_id, category_id, full_name, professional_name, is_public,
-         country, city, bio, instagram, phone, whatsapp, website, gender, age, custom_fields
+         country, city, bio, instagram, phone, whatsapp, website, gender, age, custom_fields,
+         show_numbers_public
        )
-       VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)`,
+       VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15)`,
       [
         user.id,
         categoryId,
@@ -195,6 +200,7 @@ async function register(req, res, next) {
         gender || null,
         age != null && age !== '' ? Number(age) : null,
         JSON.stringify(normalizedCustom),
+        userRole === 'member' ? showNumbersPublicFlag : false,
       ]
     );
 
@@ -204,6 +210,8 @@ async function register(req, res, next) {
       role: user.role,
       membership: user.membership,
       approval_status: user.approval_status,
+      full_name: fullName,
+      professional_name: professionalName || fullName,
     };
 
     if (userRole === 'brand') {
@@ -274,9 +282,14 @@ async function login(req, res, next) {
     const { email, password } = req.body;
     await expireOverdueSubscriptions();
     const result = await query(
-      `SELECT id, email, password_hash, role, membership, is_verified, is_active, approval_status,
-              is_complimentary, membership_started_at, membership_trial_ends_at, membership_ends_at
-       FROM users WHERE email = $1`,
+      `SELECT u.id, u.email, u.password_hash, u.role, u.membership, u.is_verified, u.is_active, u.approval_status,
+              u.is_complimentary, u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
+              p.id AS profile_id, p.full_name, p.professional_name, p.profile_photo_url,
+              p.custom_url, c.slug AS category_slug, c.name AS category_name
+       FROM users u
+       LEFT JOIN profiles p ON p.user_id = u.id
+       LEFT JOIN categories c ON c.id = p.category_id
+       WHERE u.email = $1`,
       [email.toLowerCase()]
     );
     const user = result.rows[0];

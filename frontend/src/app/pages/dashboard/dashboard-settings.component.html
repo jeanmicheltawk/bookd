@@ -108,6 +108,12 @@
             <label>WhatsApp</label>
             <input type="text" [(ngModel)]="form.whatsapp" name="whatsapp" />
           </div>
+          <div class="form-field form-field--full checkbox-field">
+            <label>
+              <input type="checkbox" [(ngModel)]="form.showNumbersPublic" name="showNumbersPublic" />
+              Show number public
+            </label>
+          </div>
           <div class="form-field">
             <label>Gender</label>
             <app-select [(ngModel)]="form.gender" name="gender" placeholder="Select gender" [options]="genderOptions" />

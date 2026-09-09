@@ -9,7 +9,17 @@
 
     <figure class="lightbox__stage" (click)="$event.stopPropagation()">
       @if (item.media_type === 'video') {
-        <video [src]="src(item)" [poster]="item.thumbnail_url ? api.assetUrl(item.thumbnail_url) : ''" controls autoplay></video>
+        @if (embedUrl(); as embed) {
+          <iframe class="lightbox__embed" [src]="embed" [title]="item.title || 'Portfolio video'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        } @else if (isPlayableVideo(item)) {
+          <video [src]="src(item)" [poster]="item.thumbnail_url ? api.assetUrl(item.thumbnail_url) : ''" controls autoplay></video>
+        } @else {
+          <div class="lightbox__pdf-fallback">
+            <span class="lightbox__pdf-badge">VIDEO</span>
+            <p>{{ item.title || 'Video link' }}</p>
+          </div>
+          <a class="lightbox__pdf-open" [href]="src(item)" target="_blank" rel="noopener">Open video ↗</a>
+        }
       } @else if (isPdf(item)) {
         @if (pdfUrl(); as url) {
           <iframe [src]="url" [title]="item.title || 'Portfolio PDF'"></iframe>

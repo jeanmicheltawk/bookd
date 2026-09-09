@@ -8,7 +8,14 @@ import { ProfileService } from '../../core/services/profile.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { PortfolioItem } from '../../core/models';
-import { isPortfolioPdf, portfolioLimitFor, PREMIUM_PORTFOLIO_LIMIT } from '../../core/utils/portfolio-limit';
+import {
+  PREMIUM_FILE_LIMIT,
+  PREMIUM_LINK_LIMIT,
+  isHttpUrl,
+  isPlayableVideoFile,
+  isPortfolioPdf,
+  portfolioCapsFor,
+} from '../../core/utils/portfolio-limit';
 import { effectiveMembership } from '../../core/utils/subscription';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
@@ -29,14 +36,22 @@ export class DashboardPortfolioComponent implements OnInit {
   items = signal<PortfolioItem[]>([]);
   loading = signal(true);
   uploading = signal(false);
+  addingLink = signal(false);
   uploadError = signal('');
   lightboxIndex = signal<number | null>(null);
   newTitle = '';
+  newVideoUrl = '';
 
-  limit = computed(() => portfolioLimitFor(effectiveMembership(this.auth.user())));
-  atLimit = computed(() => this.items().length >= this.limit());
+  caps = computed(() => portfolioCapsFor(effectiveMembership(this.auth.user())));
   isPremium = computed(() => effectiveMembership(this.auth.user()) === 'premium');
-  premiumLimit = PREMIUM_PORTFOLIO_LIMIT;
+  fileLimit = computed(() => this.caps().files);
+  linkLimit = computed(() => this.caps().links);
+  fileCount = computed(() => this.items().filter((item) => item.media_type !== 'video').length);
+  linkCount = computed(() => this.items().filter((item) => item.media_type === 'video').length);
+  atFileLimit = computed(() => this.fileCount() >= this.fileLimit());
+  atLinkLimit = computed(() => this.linkCount() >= this.linkLimit());
+  premiumFileLimit = PREMIUM_FILE_LIMIT;
+  premiumLinkLimit = PREMIUM_LINK_LIMIT;
 
   ngOnInit(): void {
     this.load();
@@ -57,8 +72,8 @@ export class DashboardPortfolioComponent implements OnInit {
     const file = input.files?.[0];
     if (!file) return;
 
-    if (this.atLimit()) {
-      this.uploadError.set(this.limitError());
+    if (this.atFileLimit()) {
+      this.uploadError.set(this.fileLimitError());
       input.value = '';
       return;
     }
@@ -67,8 +82,18 @@ export class DashboardPortfolioComponent implements OnInit {
     const isPdf = mime === 'application/pdf' || mime === 'application/x-pdf' || /\.pdf$/i.test(file.name);
     const isImage = mime.startsWith('image/');
     const isVideo = mime.startsWith('video/');
-    if (!isPdf && !isImage && !isVideo) {
-      this.uploadError.set('Use an image, video, or PDF under 25MB.');
+    if (isVideo) {
+      this.uploadError.set('Add a video as a link instead of uploading a video file.');
+      input.value = '';
+      return;
+    }
+    if (isPdf && !this.caps().allowPdf) {
+      this.uploadError.set('Starter plan allows images only. Upgrade to Premium plan to upload PDFs.');
+      input.value = '';
+      return;
+    }
+    if (!isPdf && !isImage) {
+      this.uploadError.set(this.caps().allowPdf ? 'Use an image or PDF under 25MB.' : 'Use an image under 25MB.');
       input.value = '';
       return;
     }
@@ -86,20 +111,67 @@ export class DashboardPortfolioComponent implements OnInit {
       error: (err) => {
         this.uploading.set(false);
         input.value = '';
-        this.uploadError.set(err?.error?.error || 'Could not upload. Try an image, video, or PDF under 25MB.');
+        this.uploadError.set(err?.error?.error || (this.caps().allowPdf ? 'Could not upload. Try an image or PDF under 25MB.' : 'Could not upload. Try an image under 25MB.'));
       },
     });
   }
 
-  limitError(): string {
-    if (this.isPremium()) {
-      return `Premium plan allows up to ${this.limit()} portfolio images.`;
+  addVideoLink(): void {
+    const url = this.newVideoUrl.trim();
+    if (!url) {
+      this.uploadError.set('Paste a video link first.');
+      return;
     }
-    return `Starter plan allows ${this.limit()} portfolio images. Upgrade to Premium plan for ${PREMIUM_PORTFOLIO_LIMIT}.`;
+    if (this.atLinkLimit()) {
+      this.uploadError.set(this.linkLimitError());
+      return;
+    }
+    if (!isHttpUrl(url)) {
+      this.uploadError.set('Enter a valid video link (http or https).');
+      return;
+    }
+
+    this.addingLink.set(true);
+    this.uploadError.set('');
+
+    this.profileService.addPortfolioItem({
+      url,
+      mediaType: 'video',
+      title: this.newTitle || null,
+    }).subscribe({
+      next: (item) => {
+        this.items.update((list) => [item, ...list]);
+        this.newTitle = '';
+        this.newVideoUrl = '';
+        this.addingLink.set(false);
+      },
+      error: (err) => {
+        this.addingLink.set(false);
+        this.uploadError.set(err?.error?.error || 'Could not add that video link.');
+      },
+    });
+  }
+
+  fileLimitError(): string {
+    if (this.isPremium()) {
+      return `Premium plan allows up to ${this.fileLimit()} portfolio images/PDFs.`;
+    }
+    return `Starter plan allows ${this.fileLimit()} portfolio images. Upgrade to Premium plan for ${PREMIUM_FILE_LIMIT} images/PDFs.`;
+  }
+
+  linkLimitError(): string {
+    if (this.isPremium()) {
+      return `Premium plan allows up to ${this.linkLimit()} video links.`;
+    }
+    return `Starter plan allows ${this.linkLimit()} video links. Upgrade to Premium plan for ${PREMIUM_LINK_LIMIT}.`;
   }
 
   isPdf(item: PortfolioItem): boolean {
     return isPortfolioPdf(item);
+  }
+
+  isPlayableVideo(item: PortfolioItem): boolean {
+    return isPlayableVideoFile(item);
   }
 
   openLightbox(index: number): void {

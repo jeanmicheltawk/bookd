@@ -69,6 +69,15 @@
     background: #ffffff;
   }
 
+  iframe.lightbox__embed {
+    aspect-ratio: 16 / 9;
+    width: min(900px, 100%);
+    height: auto;
+    min-height: 0;
+    max-height: calc(100vh - 180px);
+    background: var(--ink-black);
+  }
+
   figcaption {
     display: flex;
     align-items: center;

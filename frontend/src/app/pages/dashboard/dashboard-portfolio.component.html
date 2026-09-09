@@ -9,17 +9,43 @@
   <app-dashboard-nav />
 
   <div class="upload-panel glass-panel">
-    <input type="text" placeholder="Title (optional)" [(ngModel)]="newTitle" name="newTitle" [disabled]="atLimit()" />
-    <label class="upload-btn" [class.upload-btn--disabled]="atLimit() || uploading()">
-      <input type="file" accept="image/*,video/*,.pdf,application/pdf" (change)="onFileSelected($event)" hidden [disabled]="uploading() || atLimit()" />
-      {{ uploading() ? 'Uploading...' : '+ Upload Media' }}
+    <input type="text" placeholder="Title (optional)" [(ngModel)]="newTitle" name="newTitle" [disabled]="uploading() || addingLink()" />
+    <label class="upload-btn" [class.upload-btn--disabled]="atFileLimit() || uploading()">
+      <input
+        type="file"
+        [accept]="isPremium() ? 'image/*,.pdf,application/pdf' : 'image/*'"
+        (change)="onFileSelected($event)"
+        hidden
+        [disabled]="uploading() || atFileLimit()"
+      />
+      {{ uploading() ? 'Uploading...' : (isPremium() ? '+ Upload Image / PDF' : '+ Upload Image') }}
     </label>
   </div>
+  <div class="upload-panel glass-panel">
+    <input
+      type="url"
+      placeholder="Video link (YouTube, Vimeo, Instagram...)"
+      [(ngModel)]="newVideoUrl"
+      name="newVideoUrl"
+      [disabled]="atLinkLimit() || addingLink()"
+      (keydown.enter)="addVideoLink()"
+    />
+    <button
+      type="button"
+      class="upload-btn"
+      [class.upload-btn--disabled]="atLinkLimit() || addingLink()"
+      [disabled]="atLinkLimit() || addingLink()"
+      (click)="addVideoLink()"
+    >
+      {{ addingLink() ? 'Adding...' : '+ Add Video Link' }}
+    </button>
+  </div>
   <p class="upload-meta">
-    {{ items().length }} / {{ limit() }} images
+    {{ fileCount() }} / {{ fileLimit() }} {{ isPremium() ? 'images/PDFs' : 'images' }}
+    <span> · {{ linkCount() }} / {{ linkLimit() }} video links</span>
     <span> · {{ isPremium() ? 'Premium plan' : 'Starter plan' }}</span>
-    @if (!isPremium() && atLimit() && !auth.isComplimentary()) {
-      <a routerLink="/pricing">Upgrade to Premium plan for {{ premiumLimit }} images</a>
+    @if (!isPremium() && (atFileLimit() || atLinkLimit()) && !auth.isComplimentary()) {
+      <a routerLink="/pricing">Upgrade to Premium plan for {{ premiumFileLimit }} images/PDFs and {{ premiumLinkLimit }} video links</a>
     }
   </p>
   @if (uploadError()) { <p class="upload-error">{{ uploadError() }}</p> }
@@ -31,7 +57,14 @@
       @for (item of items(); track item.id; let i = $index) {
         <div class="portfolio-tile" (click)="openLightbox(i)" role="button" tabindex="0" (keydown.enter)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
           @if (item.media_type === 'video') {
-            <video [src]="api.assetUrl(item.url)" muted playsinline></video>
+            @if (isPlayableVideo(item)) {
+              <video [src]="api.assetUrl(item.url)" muted playsinline></video>
+            } @else {
+              <div class="portfolio-video">
+                <span class="portfolio-video__badge">VIDEO</span>
+                <span class="portfolio-video__play">▶</span>
+              </div>
+            }
           } @else if (isPdf(item)) {
             <div class="portfolio-pdf">
               <span class="portfolio-pdf__badge">PDF</span>
@@ -48,7 +81,7 @@
   } @else {
     <div class="empty-state">
       <h3>Your portfolio is empty.</h3>
-      <p>Upload images, videos, or PDFs to start getting noticed by brands and clients.</p>
+      <p>{{ isPremium() ? 'Upload images or PDFs, and add video links to start getting noticed by brands and clients.' : 'Upload images and add video links to start getting noticed by brands and clients.' }}</p>
     </div>
   }
 

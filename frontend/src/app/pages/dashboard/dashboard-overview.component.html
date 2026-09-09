@@ -2,7 +2,7 @@
   <div class="dash-head">
     <div>
       <span class="eyebrow">{{ auth.isPending() ? 'APPLICATION' : 'DASHBOARD' }}</span>
-      <h1 class="display-lg">HEY, <span class="text-gradient">{{ (auth.user()?.professional_name || auth.user()?.full_name || (auth.isBrand() ? 'CLIENT' : 'CREATIVE')).toUpperCase() }}</span></h1>
+      <h1 class="display-lg">HEY, <span class="text-gradient">{{ greetingName() }}</span></h1>
     </div>
     @if (!auth.isPending() && !auth.isBrand() && auth.user()?.profile_id) {
       <app-animated-button [routerLink]="['/profile', auth.user()?.profile_id]" variant="outline">View Public Profile</app-animated-button>

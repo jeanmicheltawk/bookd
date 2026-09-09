@@ -48,13 +48,13 @@
           <app-animated-button variant="primary" size="lg" (clicked)="bookNow()">BOOK NOW →</app-animated-button>
           <app-animated-button variant="outline" size="lg" (clicked)="messageNow()">Message</app-animated-button>
         </div>
-        @if (p.phone || p.whatsapp || p.instagram) {
+        @if (showPublicNumbers(p) || p.instagram) {
           <div class="p-header__contact">
             <span class="p-header__contact-label">Contact</span>
-            @if (p.phone) {
+            @if (showPublicNumbers(p) && p.phone) {
               <a [href]="phoneHref(p.phone)">{{ p.phone }}</a>
             }
-            @if (p.whatsapp) {
+            @if (showPublicNumbers(p) && p.whatsapp) {
               <a [href]="whatsappHref(p.whatsapp)" target="_blank" rel="noopener">WhatsApp {{ p.whatsapp }}</a>
             }
             @if (p.instagram) {
@@ -81,7 +81,14 @@
               @for (item of p.portfolio; track item.id; let i = $index) {
                 <button type="button" class="portfolio-item" (click)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
                   @if (item.media_type === 'video') {
-                    <video [src]="photo(item.url)" [poster]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" muted playsinline></video>
+                    @if (isPlayableVideo(item)) {
+                      <video [src]="photo(item.url)" [poster]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" muted playsinline></video>
+                    } @else {
+                      <div class="portfolio-video">
+                        <span class="portfolio-video__badge">VIDEO</span>
+                        <span class="portfolio-video__play">▶</span>
+                      </div>
+                    }
                   } @else if (isPdf(item)) {
                     <div class="portfolio-pdf">
                       <span class="portfolio-pdf__badge">PDF</span>
@@ -120,7 +127,7 @@
                 }
               }
             }
-            @if (p.website) { <li><span>Website</span><a [href]="p.website" target="_blank" rel="noopener">Visit ↗</a></li> }
+            @if (p.website) { <li><span>Website</span><a [href]="websiteHref(p.website)" target="_blank" rel="noopener">Visit ↗</a></li> }
             @if (p.instagram) { <li><span>Instagram</span><a [href]="'https://instagram.com/' + p.instagram" target="_blank" rel="noopener">&#64;{{ p.instagram }}</a></li> }
           </ul>
         </div>

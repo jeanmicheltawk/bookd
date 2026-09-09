@@ -48,7 +48,6 @@
           }
           <a mat-menu-item routerLink="/dashboard">Dashboard</a>
           @if (!auth.isPending() && !auth.isBrand()) {
-            <a mat-menu-item [routerLink]="['/profile', auth.user()?.profile_id]">My Profile</a>
             <a mat-menu-item routerLink="/dashboard/bookings">Bookings</a>
           } @else if (!auth.isPending() && auth.isBrand()) {
             <a mat-menu-item routerLink="/dashboard/bookings">History</a>

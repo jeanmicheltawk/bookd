@@ -175,6 +175,7 @@ export interface Profile {
   preferred_contact?: string;
   phone?: string;
   whatsapp?: string;
+  show_numbers_public?: boolean;
   availability?: string;
   custom_url?: string;
   is_public?: boolean;

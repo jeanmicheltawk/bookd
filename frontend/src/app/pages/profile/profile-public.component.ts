@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { PortfolioItem, Profile } from '../../core/models';
-import { isPortfolioPdf } from '../../core/utils/portfolio-limit';
+import { isPlayableVideoFile, isPortfolioPdf } from '../../core/utils/portfolio-limit';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
@@ -60,8 +60,16 @@ export class ProfilePublicComponent implements OnInit {
     return isPortfolioPdf(item);
   }
 
+  isPlayableVideo(item: PortfolioItem): boolean {
+    return isPlayableVideoFile(item);
+  }
+
   openLightbox(index: number): void {
     this.lightboxIndex.set(index);
+  }
+
+  showPublicNumbers(profile: Profile): boolean {
+    return !!profile.show_numbers_public && !!(profile.phone || profile.whatsapp);
   }
 
   phoneHref(phone: string): string {
@@ -71,6 +79,13 @@ export class ProfilePublicComponent implements OnInit {
   whatsappHref(whatsapp: string): string {
     const digits = String(whatsapp).replace(/\D/g, '');
     return `https://wa.me/${digits}`;
+  }
+
+  websiteHref(url: string): string {
+    const value = String(url).trim();
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith('//')) return `https:${value}`;
+    return `https://${value.replace(/^\/+/, '')}`;
   }
 
   instagramHref(handle: string): string {

@@ -272,6 +272,12 @@
               <p class="field-error">{{ fieldErrors().whatsapp }}</p>
             }
           </div>
+          <div class="form-field form-field--full checkbox-field">
+            <label>
+              <input type="checkbox" name="talentShowNumbersPublic" [(ngModel)]="talent.showNumbersPublic" />
+              Show number public
+            </label>
+          </div>
           <div class="form-field">
             <label>Website</label>
             <input type="url" name="talentWebsite" [(ngModel)]="talent.website" placeholder="https://" />

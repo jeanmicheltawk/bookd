@@ -158,8 +158,8 @@
 </div>
 
 @if (creating() || editingUser()) {
-  <div class="edit-overlay" (click)="closeEdit()">
-    <div class="edit-panel glass-panel" (click)="$event.stopPropagation()">
+  <div class="edit-overlay">
+    <div class="edit-panel glass-panel">
       <div class="edit-panel__head">
         <div>
           <span class="eyebrow">{{ creating() ? 'COMPLIMENTARY PROFILE' : 'APPLICATION DETAILS' }}</span>

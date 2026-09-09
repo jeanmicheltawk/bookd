@@ -22,6 +22,7 @@ export interface RegisterPayload {
   instagram?: string;
   phone?: string;
   whatsapp?: string;
+  showNumbersPublic?: boolean;
   website?: string;
   gender?: string;
   age?: number;

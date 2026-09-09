@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const { query } = require('../config/db');
 const { insertUploadedMedia } = require('../utils/mediaStore');
@@ -12,12 +13,32 @@ function portfolioMediaType(file) {
   return 'image';
 }
 
+function unlinkUpload(file) {
+  if (file?.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
+}
+
+function normalizeHttpUrl(value) {
+  if (typeof value !== 'string') return '';
+  return value.trim();
+}
+
+function isAllowedHttpUrl(value) {
+  const trimmed = normalizeHttpUrl(value);
+  if (!trimmed || trimmed.length > 2000) return false;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 const PUBLIC_PROFILE_FIELDS = `
   p.id, p.full_name, p.professional_name, p.age, p.country, p.city, p.gender,
   p.instagram, p.email_public, p.bio, p.languages, p.years_experience, p.website,
   p.profile_photo_url, p.cover_photo_url, p.equipment_owned, p.studio_access,
   p.brands_worked_with, p.social_links, p.booking_preferences, p.preferred_contact,
-  p.phone, p.whatsapp, p.availability, p.custom_url, p.is_public, p.performance_score,
+  p.phone, p.whatsapp, p.show_numbers_public, p.availability, p.custom_url, p.is_public, p.performance_score,
   p.custom_fields, p.created_at, p.updated_at,
   c.slug AS category_slug, c.name AS category_name,
   u.id AS user_id, u.is_verified, u.membership
@@ -48,6 +69,12 @@ async function getPublicProfile(req, res, next) {
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Profile not found' });
 
+    const profile = result.rows[0];
+    if (!profile.show_numbers_public) {
+      profile.phone = null;
+      profile.whatsapp = null;
+    }
+
     const portfolio = await query(
       `SELECT id, media_type, url, thumbnail_url, title, sort_order, view_count, created_at
        FROM portfolio_items WHERE profile_id = $1 ORDER BY sort_order, created_at DESC`,
@@ -60,7 +87,7 @@ async function getPublicProfile(req, res, next) {
       [`/profiles/${req.params.idOrSlug}`, req.user?.id || null, profileId]
     );
 
-    res.json({ ...result.rows[0], portfolio: portfolio.rows });
+    res.json({ ...profile, portfolio: portfolio.rows });
   } catch (err) {
     next(err);
   }
@@ -94,7 +121,7 @@ async function updateMyProfile(req, res, next) {
       'instagram', 'email_public', 'bio', 'languages', 'years_experience', 'website',
       'profile_photo_url', 'cover_photo_url', 'equipment_owned', 'studio_access',
       'brands_worked_with', 'social_links', 'booking_preferences', 'preferred_contact',
-      'phone', 'whatsapp', 'availability', 'custom_url', 'privacy_settings', 'is_public',
+      'phone', 'whatsapp', 'show_numbers_public', 'availability', 'custom_url', 'privacy_settings', 'is_public',
       'custom_fields',
     ];
 
@@ -107,6 +134,9 @@ async function updateMyProfile(req, res, next) {
           updates.push(`${f} = $${params.length}::jsonb`);
         } else if (f === 'languages' || f === 'brands_worked_with') {
           params.push(req.body[f]);
+          updates.push(`${f} = $${params.length}`);
+        } else if (f === 'show_numbers_public' || f === 'is_public' || f === 'studio_access') {
+          params.push(req.body[f] === true || req.body[f] === 'true');
           updates.push(`${f} = $${params.length}`);
         } else {
           params.push(req.body[f]);
@@ -205,11 +235,21 @@ async function listPortfolio(req, res, next) {
 async function addPortfolioItem(req, res, next) {
   try {
     const { mediaType, url, thumbnailUrl, title, sortOrder } = req.body;
-    if (!url) return res.status(400).json({ error: 'url required' });
+    const kind = mediaType === 'video' ? 'video' : 'file';
+    const normalizedUrl = normalizeHttpUrl(url);
+    if (!normalizedUrl) return res.status(400).json({ error: 'url required' });
+    if (kind === 'video' && !isAllowedHttpUrl(normalizedUrl)) {
+      return res.status(400).json({ error: 'Enter a valid video link (http or https).' });
+    }
 
-    const capacity = await assertPortfolioCapacity(req.user.id);
+    const capacity = await assertPortfolioCapacity(req.user.id, { kind });
     if (capacity.error) {
       return res.status(capacity.error.status).json({ error: capacity.error.message });
+    }
+    if (mediaType === 'pdf' && !capacity.caps.allowPdf) {
+      return res.status(403).json({
+        error: 'Starter plan allows images only. Upgrade to Premium plan to upload PDFs.',
+      });
     }
 
     const result = await query(
@@ -219,7 +259,7 @@ async function addPortfolioItem(req, res, next) {
       [
         capacity.profile.id,
         mediaType || 'image',
-        url,
+        normalizedUrl,
         thumbnailUrl || null,
         title || null,
         sortOrder ?? 0,
@@ -288,13 +328,18 @@ async function uploadPortfolioMedia(req, res, next) {
   try {
     if (!req.file) return res.status(400).json({ error: 'File required' });
 
-    const capacity = await assertPortfolioCapacity(req.user.id, req.file);
+    const mediaType = portfolioMediaType(req.file);
+    if (mediaType === 'video') {
+      unlinkUpload(req.file);
+      return res.status(400).json({ error: 'Add a video as a link instead of uploading a video file.' });
+    }
+
+    const capacity = await assertPortfolioCapacity(req.user.id, { extraFile: req.file, kind: 'file' });
     if (capacity.error) {
       return res.status(capacity.error.status).json({ error: capacity.error.message });
     }
 
     const folder = req.uploadFolder || 'portfolio';
-    const mediaType = portfolioMediaType(req.file);
     const title = (req.body.title || '').trim() || req.file.originalname || null;
     const { url } = await insertUploadedMedia({
       file: req.file,

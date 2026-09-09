@@ -49,6 +49,7 @@ interface TalentFormModel {
   instagram: string;
   phone: string;
   whatsapp: string;
+  showNumbersPublic: boolean;
   website: string;
   gender: string;
   age: number | undefined;
@@ -95,6 +96,7 @@ export class SignupComponent implements OnInit {
     instagram: '',
     phone: '',
     whatsapp: '',
+    showNumbersPublic: false,
     website: '',
     gender: '',
     age: undefined,
@@ -334,7 +336,6 @@ export class SignupComponent implements OnInit {
       email: this.client.email.trim(),
       password: this.client.password,
       role: 'brand',
-      membership: 'free',
       categorySlug: 'brand-client',
       phone: this.client.phone.trim(),
       whatsapp: this.client.whatsapp.trim(),
