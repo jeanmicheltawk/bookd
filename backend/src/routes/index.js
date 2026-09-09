@@ -160,8 +160,11 @@ router.get('/dashboard/me', authenticate, dashboard.getMyDashboard);
 router.get('/dashboard/alerts', authenticate, dashboard.getAlerts);
 router.post('/dashboard/notifications/read', ...approved, dashboard.markNotificationsRead);
 router.post('/dashboard/subscription/end', ...approved, dashboard.endMySubscription);
+router.get('/payments/whish/callback/success', payments.whishSuccessCallback);
+router.get('/payments/whish/callback/failure', payments.whishFailureCallback);
 router.get('/payments/whish', authenticate, payments.getMyWhishPayment);
-router.post('/payments/whish', authenticate, payments.submitMyWhishPayment);
+router.post('/payments/whish/checkout', authenticate, payments.startWhishCheckout);
+router.post('/payments/whish/sync', authenticate, payments.syncMyWhishPayment);
 
 // Admin users
 router.get('/admin/clients/export', ...admin, adminUsers.exportClientsExcel);
@@ -174,6 +177,7 @@ router.post('/admin/users/:id/subscription/end', ...admin, adminUsers.endUserSub
 router.get('/admin/subscription-cancellations', ...admin, cancellations.listCancellations);
 router.patch('/admin/subscription-cancellations/:id', ...admin, cancellations.updateCancellationRefund);
 router.get('/admin/payments', ...admin, payments.listPayments);
+router.post('/admin/payments/:id/sync', ...admin, payments.syncAdminPayment);
 router.post('/admin/payments/:id/confirm', ...admin, payments.confirmPayment);
 router.post('/admin/payments/:id/reject', ...admin, payments.rejectPayment);
 router.delete('/admin/users/:id', ...admin, adminUsers.deleteUser);

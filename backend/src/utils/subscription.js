@@ -132,7 +132,7 @@ function paymentReminderBody(user) {
     : days <= 0 ? `today (${endDate})`
     : days === 1 ? `tomorrow (${endDate})`
     : `in ${days} days (${endDate})`;
-  return `Your ${planLabel(user.membership)} ends ${when}. Pay with Whish to Whish to +961 3 177 655. Open Pay in your dashboard for the exact amount and your unique reference to put in the transfer note.`;
+  return `Your ${planLabel(user.membership)} ends ${when}. Open Pay in your dashboard and tap Pay with Whish to renew.`;
 }
 
 async function startPaidPeriod(userId, exec = query) {
@@ -386,7 +386,7 @@ async function remindSubscription(userId) {
 
   let body;
   if (status === 'expired') {
-    body = `Your ${planLabel(user.membership)} ended on ${endDate}. Pay with Whish to Whish to +961 3 177 655. Open Pay in your dashboard for the amount and your unique reference.`;
+    body = `Your ${planLabel(user.membership)} ended on ${endDate}. Open Pay in your dashboard and tap Pay with Whish to renew.`;
   } else if (status === 'trial') {
     body = `Your 7-day free trial for ${planLabel(user.membership)} ends on ${trialDate}. The full period (1 month + 7 days) ends on ${endDate}.`;
   } else {

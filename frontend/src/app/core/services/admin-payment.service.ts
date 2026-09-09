@@ -20,4 +20,8 @@ export class AdminPaymentService {
   reject(id: string, review_note?: string) {
     return this.api.post<SubscriptionPayment>(`/admin/payments/${id}/reject`, { review_note });
   }
+
+  sync(id: string) {
+    return this.api.post<SubscriptionPayment>(`/admin/payments/${id}/sync`, {});
+  }
 }

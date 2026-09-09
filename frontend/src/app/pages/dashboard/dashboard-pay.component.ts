@@ -1,12 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { PaymentService } from '../../core/services/payment.service';
 import { AuthService } from '../../core/services/auth.service';
 import { WhishPaymentInstructions } from '../../core/models';
-import { phoneErrorWhileTyping } from '../../core/utils/contact-validation';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
@@ -14,27 +13,30 @@ import { LoadingScreenComponent } from '../../shared/components/loading-screen/l
 @Component({
   selector: 'app-dashboard-pay',
   standalone: true,
-  imports: [CommonModule, FormsModule, DashboardNavComponent, AnimatedButtonComponent, LoadingScreenComponent],
+  imports: [CommonModule, DashboardNavComponent, AnimatedButtonComponent, LoadingScreenComponent],
   templateUrl: './dashboard-pay.component.html',
   styleUrl: './dashboard-pay.component.scss',
 })
 export class DashboardPayComponent implements OnInit {
   auth = inject(AuthService);
   private payments = inject(PaymentService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   info = signal<WhishPaymentInstructions | null>(null);
   loading = signal(true);
   submitting = signal(false);
-  copied = signal('');
   error = signal('');
   success = signal('');
-  senderNumber = '';
-  note = '';
-  phoneError = '';
 
   ngOnInit(): void {
     if (this.auth.isComplimentary()) {
       this.loading.set(false);
+      return;
+    }
+    const result = this.route.snapshot.queryParamMap.get('whish');
+    if (result === 'success' || result === 'failed') {
+      this.handleReturn(result);
       return;
     }
     this.load();
@@ -45,84 +47,100 @@ export class DashboardPayComponent implements OnInit {
   }
 
   get isPendingReview(): boolean {
-    return this.payment?.status === 'pending';
+    return this.payment?.status === 'pending' && this.payment?.collect_status !== 'success';
   }
 
   get isPaymentConfirmed(): boolean {
     return this.payment?.status === 'confirmed';
   }
 
-  get canSubmit(): boolean {
-    return !this.isPendingReview && !this.isPaymentConfirmed && !!this.info();
+  get canCheckout(): boolean {
+    return !this.isPaymentConfirmed && !!this.info();
   }
 
-  load(): void {
+  load(afterReturn = false): void {
     this.loading.set(true);
     this.error.set('');
     this.payments
       .getWhish()
       .pipe(catchError((err) => {
-        this.error.set(err?.error?.error || 'Could not load payment instructions.');
+        this.error.set(err?.error?.error || 'Could not load payment details.');
         return of(null);
       }))
       .subscribe((res) => {
         this.info.set(res);
-        if (res?.payment?.sender_whish_number) {
-          this.senderNumber = res.payment.sender_whish_number;
-        } else if (res?.suggested_whish_number && !this.senderNumber) {
-          this.senderNumber = res.suggested_whish_number;
-        }
         this.loading.set(false);
+        if (afterReturn && res?.payment?.status === 'confirmed') {
+          this.success.set('Whish confirmed your payment.');
+        }
       });
   }
 
-  onSenderChange(value: string): void {
-    this.senderNumber = value;
-    this.phoneError = phoneErrorWhileTyping(value) || '';
+  handleReturn(result: string): void {
+    this.loading.set(true);
+    this.payments
+      .sync()
+      .pipe(catchError((err) => {
+        this.error.set(err?.error?.error || 'Could not check your Whish payment yet. Refresh this page in a moment.');
+        return of(null);
+      }))
+      .subscribe((res) => {
+        this.info.set(res);
+        this.loading.set(false);
+        if (res?.payment?.status === 'confirmed') {
+          this.success.set('Whish confirmed your payment.');
+        } else if (result === 'failed') {
+          this.error.set('That attempt did not go through. The payment link is still open — tap Pay with Whish to try again.');
+        } else {
+          this.success.set('Checking with Whish. If you just paid, this page will update in a moment — tap Refresh status.');
+        }
+        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+      });
   }
 
-  async copy(value: string, key: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(value);
-      this.copied.set(key);
-      setTimeout(() => {
-        if (this.copied() === key) this.copied.set('');
-      }, 1600);
-    } catch {
-      this.error.set('Could not copy. Please copy it manually.');
-    }
-  }
-
-  submit(): void {
-    if (!this.canSubmit || this.submitting()) return;
-    const sender = this.senderNumber.trim();
-    if (!sender) {
-      this.error.set('Enter the Whish number you sent from.');
-      return;
-    }
-    if (this.phoneError) {
-      this.error.set(this.phoneError);
-      return;
-    }
-
+  checkout(): void {
+    if (!this.canCheckout || this.submitting()) return;
     this.submitting.set(true);
     this.error.set('');
     this.success.set('');
-    this.payments.submitWhish({
-      sender_whish_number: sender,
-      note: this.note.trim() || undefined,
-    }).subscribe({
+    this.payments.checkout().subscribe({
       next: (res) => {
         this.info.set(res);
-        this.submitting.set(false);
-        this.success.set('Got it. We will confirm the Whish transfer and extend your plan.');
+        const url = res.collect_url || res.payment?.collect_url;
+        if (!url) {
+          this.submitting.set(false);
+          this.error.set('Whish did not return a payment page. Try again.');
+          return;
+        }
+        window.location.href = url;
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.error?.error || 'Could not submit your payment.');
+        this.error.set(err?.error?.error || 'Could not start Whish checkout.');
         if (err?.error?.payment) {
           this.info.update((current) => current ? { ...current, ...err.error, payment: err.error.payment } : current);
         }
+      },
+    });
+  }
+
+  refreshStatus(): void {
+    if (this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set('');
+    this.payments.sync().subscribe({
+      next: (res) => {
+        this.info.set(res);
+        this.submitting.set(false);
+        if (res.payment?.status === 'confirmed') {
+          this.success.set('Whish confirmed your payment.');
+        } else {
+          this.success.set('Still waiting on Whish. If you already paid, wait a few seconds and refresh again.');
+        }
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        this.error.set(err?.error?.error || 'Could not check payment status.');
       },
     });
   }

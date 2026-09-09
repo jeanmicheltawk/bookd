@@ -4,9 +4,8 @@
       <span class="eyebrow">BILLING</span>
       <h1 class="display-lg">WHISH <span class="text-gradient">PAYMENTS</span></h1>
       <p class="admin-page__hint">
-        Members send Whish to Whish to +961 3 177 655 with their unique reference.
-        Signup creates a payment as soon as they apply — confirm it here when you see that reference in Whish.
-        Confirming payment does not start the trial. Approve the profile after payment to start the 7-day free trial.
+        Members pay on Whish's hosted page. Successful payments confirm automatically.
+        Use Refresh if a callback was missed. Confirming payment does not start the trial — approve the profile after payment.
       </p>
     </div>
   </div>
@@ -41,10 +40,12 @@
             </div>
             <span>{{ row.email }} · {{ row.plan_label }} · {{ row.amount | currency: row.currency:'symbol':'1.2-2' }}</span>
             <div class="meta-line">
-              <span>From {{ row.sender_whish_number || '—' }}</span>
-              <span>To {{ row.recipient_number }}</span>
+              <span>{{ row.payer_phone || row.sender_whish_number || 'Whish Pay' }}</span>
+              @if (row.collect_status) {
+                <span>Whish {{ row.collect_status }}</span>
+              }
               @if (row.submitted_at) {
-                <span>Sent {{ row.submitted_at | date: 'medium' }}</span>
+                <span>Started {{ row.submitted_at | date: 'medium' }}</span>
               }
             </div>
             @if (row.note) {
@@ -54,6 +55,9 @@
           <div class="mod-row__actions">
             <span class="status-pill status-{{ row.status }}">{{ statusLabel(row.status) }}</span>
             @if (row.status === 'pending' || row.status === 'awaiting') {
+              <button type="button" class="chip-btn" [disabled]="savingId() === row.id" (click)="sync(row)">
+                Refresh
+              </button>
               <button type="button" class="chip-btn on" [disabled]="savingId() === row.id" (click)="confirm(row)">
                 Confirm
               </button>

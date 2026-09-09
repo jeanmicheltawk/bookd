@@ -31,6 +31,19 @@ module.exports = {
     password: process.env.ADMIN_PASSWORD || 'bookdadmin',
   },
   appUrl: (process.env.APP_URL || 'http://localhost:4200').replace(/\/$/, ''),
+  apiPublicUrl: (
+    process.env.API_PUBLIC_URL
+    || process.env.RENDER_EXTERNAL_URL
+    || ''
+  ).replace(/\/$/, ''),
+  whish: {
+    env: (process.env.WHISH_ENV || 'sandbox').toLowerCase() === 'production' ? 'production' : 'sandbox',
+    channel: process.env.WHISH_CHANNEL || '',
+    secret: process.env.WHISH_SECRET || '',
+    websiteUrl: process.env.WHISH_WEBSITE_URL || '',
+    userAgent: process.env.WHISH_USER_AGENT
+      || "BookdHaus/1.0 (https://bookdhaus.com; info@bookdhaus.com)",
+  },
   mail: {
     host: process.env.SMTP_HOST || 'smtp.office365.com',
     port: parseInt(process.env.SMTP_PORT || '587', 10),

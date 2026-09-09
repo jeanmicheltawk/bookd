@@ -60,8 +60,8 @@
             [amount]="pay.amount"
             [currency]="pay.currency"
             [planLabel]="pay.plan_label"
-            [recipient]="pay.recipient.display"
-            [reference]="pay.payment?.reference || ''"
+            [sandbox]="!!pay.sandbox"
+            [sandboxTest]="pay.sandbox_test || null"
             [showCta]="true"
           />
         }
@@ -117,8 +117,8 @@
             [amount]="pay.amount"
             [currency]="pay.currency"
             [planLabel]="pay.plan_label"
-            [recipient]="pay.recipient.display"
-            [reference]="pay.payment?.reference || ''"
+            [sandbox]="!!pay.sandbox"
+            [sandboxTest]="pay.sandbox_test || null"
             [showCta]="true"
           />
         </div>

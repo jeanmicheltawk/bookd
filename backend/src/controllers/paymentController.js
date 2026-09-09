@@ -1,30 +1,16 @@
-const { query, getClient } = require('../config/db');
-const { notify } = require('../utils/notify');
-const { emailAdmin, dashboardUrl, cta } = require('../utils/mailer');
+const { query } = require('../config/db');
 const {
-  isPaidPlan,
-  isComplimentary,
-  planLabel,
-  extendPaidPeriod,
-  startPaidPeriod,
-  clearPaidPeriod,
-} = require('../utils/subscription');
-const {
-  WHISH_RECIPIENT,
   mapPayment,
   instructionsFor,
   loadOpenPayment,
-  ensureOpenPayment,
+  loadPaymentByReference,
   latestConfirmedPayment,
-  markPaymentsApplied,
+  ensureOpenPayment,
+  applyPaymentDecision,
+  createCheckout,
+  reconcilePaymentWithWhish,
 } = require('../utils/payment');
-
-function normalizeWhishNumber(value) {
-  const trimmed = String(value || '').trim();
-  if (!trimmed) return '';
-  if (!/^[0-9+() ]+$/.test(trimmed)) return null;
-  return trimmed.replace(/\s+/g, ' ');
-}
+const { isPaidPlan, isComplimentary } = require('../utils/subscription');
 
 async function loadMember(userId) {
   const result = await query(
@@ -38,47 +24,42 @@ async function loadMember(userId) {
   return result.rows[0] || null;
 }
 
+function paidMemberOrError(user, res) {
+  if (!user || user.role !== 'member' || !isPaidPlan(user.membership) || isComplimentary(user)) {
+    res.status(400).json({ error: 'Only Starter and Premium members can pay with Whish.' });
+    return false;
+  }
+  return true;
+}
+
 async function getMyWhishPayment(req, res, next) {
   try {
     const user = await loadMember(req.user.id);
-    if (!user || user.role !== 'member' || !isPaidPlan(user.membership) || isComplimentary(user)) {
-      return res.status(400).json({ error: 'Only Starter and Premium members can pay with Whish.' });
-    }
+    if (!paidMemberOrError(user, res)) return;
 
-    const payment = await ensureOpenPayment(user);
-    res.json({
-      ...instructionsFor(user, payment),
-      suggested_whish_number: user.phone || '',
-    });
+    let payment = await ensureOpenPayment(user);
+    if (payment && payment.status !== 'confirmed') {
+      try {
+        payment = await reconcilePaymentWithWhish(payment);
+      } catch (err) {
+        console.error('[whish] status check failed:', err.message);
+      }
+    }
+    res.json(instructionsFor(user, payment));
   } catch (err) {
     if (err.code === '23505') {
       const payment = await loadOpenPayment(req.user.id);
       const user = await loadMember(req.user.id);
-      return res.json({
-        ...instructionsFor(user, payment),
-        suggested_whish_number: user?.phone || '',
-      });
+      return res.json(instructionsFor(user, payment));
     }
     next(err);
   }
 }
 
-async function submitMyWhishPayment(req, res, next) {
+async function startWhishCheckout(req, res, next) {
   try {
     const user = await loadMember(req.user.id);
-    if (!user || user.role !== 'member' || !isPaidPlan(user.membership) || isComplimentary(user)) {
-      return res.status(400).json({ error: 'Only Starter and Premium members can pay with Whish.' });
-    }
-
-    const sender = normalizeWhishNumber(req.body?.sender_whish_number);
-    if (sender == null) {
-      return res.status(400).json({ error: 'Whish number may only contain numbers, +, (, ), and spaces.' });
-    }
-    if (!sender) {
-      return res.status(400).json({ error: 'Enter the Whish number you sent from.' });
-    }
-
-    const note = String(req.body?.note || '').trim().slice(0, 280) || null;
+    if (!paidMemberOrError(user, res)) return;
 
     if (user.approval_status !== 'approved') {
       const confirmed = await latestConfirmedPayment(user.id);
@@ -90,60 +71,61 @@ async function submitMyWhishPayment(req, res, next) {
       }
     }
 
-    let payment = await loadOpenPayment(user.id);
-
-    if (payment?.status === 'pending') {
-      return res.status(409).json({
-        error: 'Your payment is already waiting for confirmation.',
-        ...instructionsFor(user, payment),
-      });
+    const payment = await createCheckout(user);
+    if (!payment?.collect_url) {
+      return res.status(502).json({ error: 'Whish Pay did not return a payment page. Try again.' });
     }
-
-    if (!payment) {
-      payment = await ensureOpenPayment(user);
-    }
-
-    const updated = await query(
-      `UPDATE subscription_payments
-       SET sender_whish_number = $1,
-           note = $2,
-           status = 'pending',
-           submitted_at = NOW(),
-           updated_at = NOW()
-       WHERE id = $3 AND status = 'awaiting'
-       RETURNING *`,
-      [sender, note, payment.id]
-    );
-
-    const submitted = updated.rows[0];
-    if (!submitted) {
-      const latest = await loadOpenPayment(user.id);
-      return res.status(409).json({
-        error: 'Your payment is already waiting for confirmation.',
-        ...instructionsFor(user, latest),
-      });
-    }
-
-    const name = user.professional_name || user.full_name || user.email;
-    void emailAdmin(
-      'Whish payment submitted',
-      [
-        `${name} says they sent a Whish to Whish payment.`,
-        `Email: ${user.email}`,
-        `Plan: ${planLabel(user.membership)} — $${Number(submitted.amount).toFixed(2)} USD`,
-        `Send from: ${submitted.sender_whish_number}`,
-        `Send to: ${WHISH_RECIPIENT.display}`,
-        `Reference: ${submitted.reference}`,
-        submitted.note ? `Note: ${submitted.note}` : null,
-        'Open Whish and confirm the transfer, then mark it confirmed in admin.',
-      ].filter(Boolean).join('\n'),
-      cta(dashboardUrl('/admin/payments'), 'Open Whish payments')
-    );
-
-    res.json(instructionsFor(user, submitted));
+    res.json({
+      ...instructionsFor(user, payment),
+      collect_url: payment.collect_url,
+    });
   } catch (err) {
     next(err);
   }
+}
+
+async function syncMyWhishPayment(req, res, next) {
+  try {
+    const user = await loadMember(req.user.id);
+    if (!paidMemberOrError(user, res)) return;
+
+    const payment = await loadOpenPayment(user.id) || await latestConfirmedPayment(user.id);
+    if (!payment) {
+      return res.json(instructionsFor(user, await ensureOpenPayment(user)));
+    }
+    const synced = await reconcilePaymentWithWhish(payment);
+    res.json(instructionsFor(user, synced));
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function handleWhishCallback(req, res, next, kind) {
+  try {
+    const externalId = String(req.query.externalId || req.query.ref || '').trim();
+    if (!externalId) {
+      return res.status(200).json({ ok: true, ignored: true });
+    }
+    const payment = await loadPaymentByReference(externalId);
+    if (payment) {
+      try {
+        await reconcilePaymentWithWhish(payment);
+      } catch (err) {
+        console.error(`[whish] ${kind} callback reconcile failed:`, externalId, err.message);
+      }
+    }
+    res.status(200).json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function whishSuccessCallback(req, res, next) {
+  return handleWhishCallback(req, res, next, 'success');
+}
+
+async function whishFailureCallback(req, res, next) {
+  return handleWhishCallback(req, res, next, 'failure');
 }
 
 async function listPayments(req, res, next) {
@@ -193,88 +175,21 @@ async function listPayments(req, res, next) {
 async function reviewPayment(req, res, next, nextStatus) {
   const { id } = req.params;
   const reviewNote = String(req.body?.review_note || '').trim().slice(0, 280) || null;
-  const client = await getClient();
-
   try {
-    await client.query('BEGIN');
-    const existing = await client.query(
-      `SELECT * FROM subscription_payments WHERE id = $1 FOR UPDATE`,
-      [id]
-    );
+    const existing = await query(`SELECT * FROM subscription_payments WHERE id = $1`, [id]);
     const paymentRow = existing.rows[0];
-    if (!paymentRow) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Payment not found' });
+    if (!paymentRow) return res.status(404).json({ error: 'Payment not found' });
+
+    const result = await applyPaymentDecision(paymentRow, nextStatus, {
+      reviewedBy: req.user.id,
+      reviewNote,
+    });
+    if (result.error) {
+      return res.status(result.status || 400).json({ error: result.error });
     }
-    if (paymentRow.status !== 'pending' && paymentRow.status !== 'awaiting') {
-      await client.query('ROLLBACK');
-      return res.status(409).json({ error: 'This payment was already reviewed.' });
-    }
-
-    const member = await client.query(
-      `SELECT u.email, u.membership, u.approval_status, u.membership_ends_at,
-              p.full_name, p.professional_name
-       FROM users u
-       LEFT JOIN profiles p ON p.user_id = u.id
-       WHERE u.id = $1`,
-      [paymentRow.user_id]
-    );
-    const row = { ...paymentRow, ...member.rows[0] };
-
-    const updated = await client.query(
-      `UPDATE subscription_payments
-       SET status = $1,
-           reviewed_at = NOW(),
-           reviewed_by = $2,
-           review_note = $3,
-           period_applied = $4,
-           updated_at = NOW()
-       WHERE id = $5
-       RETURNING *`,
-      [nextStatus, req.user.id, reviewNote, nextStatus === 'confirmed' && row.approval_status === 'approved', id]
-    );
-
-    const exec = client.query.bind(client);
-    if (nextStatus === 'confirmed' && row.approval_status === 'approved') {
-      if (row.membership_ends_at) {
-        await extendPaidPeriod(row.user_id, exec);
-      } else {
-        await startPaidPeriod(row.user_id, exec);
-      }
-      await markPaymentsApplied(row.user_id, exec);
-    } else if (nextStatus === 'confirmed' && row.approval_status !== 'approved') {
-      await clearPaidPeriod(row.user_id, exec);
-    }
-
-    await client.query('COMMIT');
-
-    const payment = mapPayment({ ...row, ...updated.rows[0] });
-    const plan = planLabel(row.plan);
-
-    if (nextStatus === 'confirmed') {
-      const body = row.approval_status === 'approved'
-        ? `Your Whish payment for ${plan} was confirmed. Your subscription has been extended by 1 month.`
-        : `Your Whish payment for ${plan} was confirmed. Your 7-day free trial starts when an admin approves your profile.`;
-      void notify(row.user_id, 'Payment confirmed', body, '/dashboard');
-    } else {
-      void notify(
-        row.user_id,
-        'Payment not found',
-        `We could not match your Whish payment for ${plan}. Check the amount, number, and reference, then submit again from the pay page.`,
-        '/dashboard/pay'
-      );
-    }
-
-    res.json(payment);
+    res.json(result.payment);
   } catch (err) {
-    try {
-      await client.query('ROLLBACK');
-    } catch {
-      /* ignore */
-    }
     next(err);
-  } finally {
-    client.release();
   }
 }
 
@@ -286,10 +201,26 @@ async function rejectPayment(req, res, next) {
   return reviewPayment(req, res, next, 'rejected');
 }
 
+async function syncAdminPayment(req, res, next) {
+  try {
+    const existing = await query(`SELECT * FROM subscription_payments WHERE id = $1`, [req.params.id]);
+    const paymentRow = existing.rows[0];
+    if (!paymentRow) return res.status(404).json({ error: 'Payment not found' });
+    const synced = await reconcilePaymentWithWhish(paymentRow);
+    res.json(mapPayment(synced));
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getMyWhishPayment,
-  submitMyWhishPayment,
+  startWhishCheckout,
+  syncMyWhishPayment,
+  whishSuccessCallback,
+  whishFailureCallback,
   listPayments,
   confirmPayment,
   rejectPayment,
+  syncAdminPayment,
 };

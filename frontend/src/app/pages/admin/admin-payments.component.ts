@@ -28,8 +28,8 @@ export class AdminPaymentsComponent implements OnInit {
 
   filters: Array<{ id: PaymentFilter; label: string }> = [
     { id: 'open', label: 'to review' },
-    { id: 'awaiting', label: 'reference issued' },
-    { id: 'pending', label: 'member marked sent' },
+    { id: 'awaiting', label: 'not started' },
+    { id: 'pending', label: 'checkout open' },
     { id: 'confirmed', label: 'confirmed' },
     { id: 'rejected', label: 'rejected' },
     { id: 'all', label: 'all' },
@@ -61,7 +61,7 @@ export class AdminPaymentsComponent implements OnInit {
 
   confirm(row: SubscriptionPayment): void {
     if (row.status !== 'pending' && row.status !== 'awaiting') return;
-    const from = row.sender_whish_number || 'Whish (match by reference)';
+    const from = row.payer_phone || row.sender_whish_number || 'Whish Pay';
     if (!window.confirm(`Confirm ${row.plan_label} payment of ${row.amount} ${row.currency} from ${from}? This extends their plan by 1 month.`)) return;
     this.savingId.set(row.id);
     this.listError.set('');
@@ -78,7 +78,7 @@ export class AdminPaymentsComponent implements OnInit {
 
   reject(row: SubscriptionPayment): void {
     if (row.status !== 'pending' && row.status !== 'awaiting') return;
-    if (!window.confirm(`Mark this ${row.plan_label} payment as not found? The member can submit again.`)) return;
+    if (!window.confirm(`Mark this ${row.plan_label} payment as not completed? The member can pay again.`)) return;
     this.savingId.set(row.id);
     this.listError.set('');
     this.api.reject(row.id).subscribe({
@@ -102,9 +102,29 @@ export class AdminPaymentsComponent implements OnInit {
     this.rows.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
   }
 
+  sync(row: SubscriptionPayment): void {
+    this.savingId.set(row.id);
+    this.listError.set('');
+    this.api.sync(row.id).subscribe({
+      next: (updated) => {
+        this.savingId.set(null);
+        const filter = this.statusFilter();
+        if ((filter === 'open' || filter === 'pending' || filter === 'awaiting') && (updated.status === 'confirmed' || updated.status === 'rejected')) {
+          this.rows.update((list) => list.filter((item) => item.id !== updated.id));
+          return;
+        }
+        this.rows.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
+      },
+      error: (err) => {
+        this.savingId.set(null);
+        this.listError.set(err?.error?.error || 'Could not refresh this payment from Whish.');
+      },
+    });
+  }
+
   statusLabel(status: string): string {
-    if (status === 'awaiting') return 'reference issued';
-    if (status === 'pending') return 'member marked sent';
+    if (status === 'awaiting') return 'not started';
+    if (status === 'pending') return 'checkout open';
     return status;
   }
 

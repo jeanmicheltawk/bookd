@@ -12,6 +12,7 @@ const { notFound, errorHandler } = require('./middleware/error');
 const { uploadRoot } = require('./middleware/upload');
 const { servePersistedUpload } = require('./middleware/serveUploads');
 const { expireOverdueSubscriptions } = require('./utils/subscription');
+const { reconcileOpenPayments } = require('./utils/payment');
 
 const app = express();
 
@@ -42,6 +43,7 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' },
+  skip: (req) => (req.originalUrl || '').includes('/payments/whish/callback'),
 });
 app.use('/api', limiter);
 
@@ -84,6 +86,9 @@ function startSubscriptionJobs() {
   const tick = () => {
     expireOverdueSubscriptions().catch((err) => {
       console.error('[subscription] job failed:', err.message);
+    });
+    reconcileOpenPayments().catch((err) => {
+      console.error('[whish] reconcile job failed:', err.message);
     });
   };
   tick();

@@ -50,3 +50,13 @@ services:
         value: info@bookdhaus.com
       - key: SMTP_PASS
         sync: false
+      - key: WHISH_ENV
+        value: sandbox
+      - key: WHISH_WEBSITE_URL
+        value: ille.co
+      - key: WHISH_CHANNEL
+        sync: false
+      - key: WHISH_SECRET
+        sync: false
+      - key: WHISH_USER_AGENT
+        value: BookdHaus/1.0 (https://bookdhaus.com; info@bookdhaus.com)

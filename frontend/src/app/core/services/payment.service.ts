@@ -10,7 +10,11 @@ export class PaymentService {
     return this.api.get<WhishPaymentInstructions>('/payments/whish');
   }
 
-  submitWhish(payload: { sender_whish_number: string; note?: string }) {
-    return this.api.post<WhishPaymentInstructions>('/payments/whish', payload);
+  checkout() {
+    return this.api.post<WhishPaymentInstructions>('/payments/whish/checkout', {});
+  }
+
+  sync() {
+    return this.api.post<WhishPaymentInstructions>('/payments/whish/sync', {});
   }
 }

@@ -51,12 +51,6 @@ export interface AuthResponse {
 
 export type PaymentStatus = 'awaiting' | 'pending' | 'confirmed' | 'rejected';
 
-export interface WhishRecipient {
-  display: string;
-  copy: string;
-  digits: string;
-}
-
 export interface SubscriptionPayment {
   id: string;
   user_id: string;
@@ -69,8 +63,11 @@ export interface SubscriptionPayment {
   amount: number;
   currency: string;
   method: string;
-  recipient_number: string;
+  recipient_number?: string | null;
   sender_whish_number?: string | null;
+  payer_phone?: string | null;
+  collect_url?: string | null;
+  collect_status?: string | null;
   reference: string;
   note?: string | null;
   status: PaymentStatus;
@@ -80,15 +77,22 @@ export interface SubscriptionPayment {
   created_at: string;
 }
 
+export interface WhishSandboxTest {
+  phone: string;
+  otp: string;
+}
+
 export interface WhishPaymentInstructions {
-  method: 'whish_p2p';
-  recipient: WhishRecipient;
+  method: 'whish_pay' | 'whish_p2p';
   amount: number;
   currency: string;
   plan: string;
   plan_label: string;
   payment: SubscriptionPayment | null;
-  suggested_whish_number?: string;
+  collect_url?: string | null;
+  sandbox?: boolean;
+  sandbox_test?: WhishSandboxTest | null;
+  configured?: boolean;
 }
 
 export type CancellationBy = 'self' | 'admin';

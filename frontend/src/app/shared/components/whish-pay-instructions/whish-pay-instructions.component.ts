@@ -1,7 +1,8 @@
-import { Component, Input, input, signal } from '@angular/core';
+import { Component, Input, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AnimatedButtonComponent } from '../animated-button/animated-button.component';
+import { WhishSandboxTest } from '../../../core/models';
 
 @Component({
   selector: 'app-whish-pay-instructions',
@@ -10,65 +11,38 @@ import { AnimatedButtonComponent } from '../animated-button/animated-button.comp
   template: `
     <div class="whish-box">
       <span class="whish-box__label">How to pay</span>
-      <h3>Whish to Whish</h3>
+      <h3>Whish Pay</h3>
       <p class="whish-box__lead">
-        Send <strong>{{ amount | currency: currency:'symbol':'1.2-2' }}</strong>
+        Pay <strong>{{ amount | currency: currency:'symbol':'1.2-2' }}</strong>
         @if (planLabel) { for your {{ planLabel }} }
-        to this Whish number, and put your reference in the transfer note.
+        from your Whish balance. You'll be sent to a Whish page to confirm.
       </p>
 
-      <div class="whish-row">
-        <div>
-          <span>Send to</span>
-          <strong>{{ recipient }}</strong>
-        </div>
-        <button type="button" (click)="copy(recipient, 'number')">
-          {{ copied() === 'number' ? 'Copied' : 'Copy number' }}
-        </button>
-      </div>
-
-      @if (reference) {
-        <div class="whish-row whish-row--ref">
-          <div>
-            <span>Transfer note / reference</span>
-            <strong>{{ reference }}</strong>
-          </div>
-          <button type="button" (click)="copy(reference, 'ref')">
-            {{ copied() === 'ref' ? 'Copied' : 'Copy reference' }}
-          </button>
+      @if (sandbox && sandboxTest) {
+        <div class="whish-sandbox">
+          <span>Sandbox test values</span>
+          <p>Phone <strong>{{ sandboxTest.phone }}</strong> · OTP <strong>{{ sandboxTest.otp }}</strong></p>
         </div>
       }
 
       <ol class="pay-steps">
         <li>
           <span>1</span>
-          <p>Open the Whish app and choose <strong>Whish to Whish</strong>.</p>
+          <p>Tap <strong>Pay with Whish</strong> to open the hosted payment page.</p>
         </li>
         <li>
           <span>2</span>
-          <p>Send <strong>{{ amount | currency: currency:'symbol':'1.2-2' }}</strong> to <strong>{{ recipient }}</strong>.</p>
-        </li>
-        <li>
-          <span>3</span>
-          @if (reference) {
-            <p>Put <strong>{{ reference }}</strong> in the transfer note. We use this to match your payment.</p>
-          } @else {
-            <p>After you log in, your Pay page will show a unique reference to put in the transfer note.</p>
-          }
+          <p>Confirm the amount from your Whish balance. Whish sends a one-time code in the app.</p>
         </li>
         @if (requireLogin()) {
           <li>
-            <span>4</span>
-            <p>Log in to your account, then open the <strong>Pay</strong> tab in your dashboard.</p>
-          </li>
-          <li>
-            <span>5</span>
-            <p>Enter the Whish number you sent from, then tap <strong>I sent the payment</strong>.</p>
+            <span>3</span>
+            <p>Log in first, then open the <strong>Pay</strong> tab to start checkout.</p>
           </li>
         } @else {
           <li>
-            <span>4</span>
-            <p>Open the <strong>Pay</strong> tab, enter the Whish number you sent from, then tap <strong>I sent the payment</strong>.</p>
+            <span>3</span>
+            <p>You'll come back here after Whish confirms. Your trial still starts when an admin approves your profile.</p>
           </li>
         }
       </ol>
@@ -110,53 +84,25 @@ import { AnimatedButtonComponent } from '../animated-button/animated-button.comp
       color: var(--text);
     }
 
-    .whish-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 0;
-      border-top: 1px solid currentColor;
+    .whish-sandbox {
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      background: var(--acid-lime);
+      color: var(--ink-black);
 
       span {
         display: block;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--text);
         margin-bottom: 4px;
       }
 
-      strong {
-        font-size: 1.15rem;
-        letter-spacing: 0.04em;
-      }
-
-      button {
-        flex-shrink: 0;
-        padding: 8px 12px;
-        background: transparent;
-        border: 1px solid currentColor;
-        color: inherit;
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        cursor: pointer;
-      }
-
-      &--ref {
-        background: var(--acid-lime);
-        color: var(--ink-black);
-        border-color: var(--acid-lime);
-        margin: 0 -24px;
-        padding: 16px 24px;
-        span { color: var(--ink-black); }
-      }
+      p { margin: 0; font-size: 0.88rem; }
     }
 
     .pay-steps {
-      margin: 18px 0 0;
+      margin: 0;
       padding: 0;
       list-style: none;
       display: flex;
@@ -201,22 +147,8 @@ export class WhishPayInstructionsComponent {
   @Input() amount = 6.99;
   @Input() currency = 'USD';
   @Input() planLabel = '';
-  @Input() recipient = '+961 3 177 655';
-  @Input() reference = '';
   @Input() showCta = false;
+  @Input() sandbox = false;
+  @Input() sandboxTest: WhishSandboxTest | null = null;
   requireLogin = input(false);
-
-  copied = signal('');
-
-  async copy(value: string, key: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(value);
-      this.copied.set(key);
-      setTimeout(() => {
-        if (this.copied() === key) this.copied.set('');
-      }, 1600);
-    } catch {
-      /* ignore */
-    }
-  }
 }

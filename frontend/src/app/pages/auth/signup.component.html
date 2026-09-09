@@ -11,8 +11,8 @@
         [amount]="pay.amount"
         [currency]="pay.currency"
         [planLabel]="pay.plan_label"
-        [recipient]="pay.recipient.display"
-        [reference]="pay.payment?.reference || ''"
+        [sandbox]="!!pay.sandbox"
+        [sandboxTest]="pay.sandbox_test || null"
         [requireLogin]="true"
       />
     }
@@ -29,7 +29,7 @@
         Create a free brand / client account. No payment — just your details so talent can reach you.
       } @else {
         Apply as creative / talent. Profiles go live only after admin approval.
-        You pay with Whish to Whish to +961 3 177 655.
+        You pay with Whish Pay from your Whish balance.
       }
     </p>
 
@@ -226,8 +226,8 @@
           </div>
           <p class="pay-note">
             You pay {{ selectedPlanAmount() | currency:'USD':'symbol':'1.2-2' }} with
-            <strong>Whish to Whish</strong> to <strong>+961 3 177 655</strong>.
-            After you apply, send the Whish. Your 7-day free trial starts when your profile is approved.
+            <strong>Whish Pay</strong>.
+            After you apply, log in and tap Pay with Whish. Your 7-day free trial starts when your profile is approved.
           </p>
           <div class="form-field">
             <label>Country *</label>
