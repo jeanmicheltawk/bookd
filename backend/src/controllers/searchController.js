@@ -26,8 +26,6 @@ async function searchProfiles(req, res, next) {
       limit = 24,
     } = req.query;
 
-    const membership = req.user?.membership || 'visitor';
-    const isVisitor = !req.user;
     const params = [];
     const where = [
       'p.is_public = TRUE',
@@ -69,11 +67,6 @@ async function searchProfiles(req, res, next) {
       where.push(`p.age <= $${params.length}`);
     }
 
-    // Free / visitor limited filters
-    if (isVisitor || membership === 'free') {
-      // already applied only basic filters
-    }
-
     const sql = `
       SELECT p.id, p.full_name, p.professional_name, p.country, p.city, p.profile_photo_url,
              p.availability, p.custom_url, u.membership, u.is_verified,
@@ -87,14 +80,6 @@ async function searchProfiles(req, res, next) {
     const premium = shuffle(result.rows.filter((r) => r.membership === 'premium'));
     const rest = shuffle(result.rows.filter((r) => r.membership !== 'premium'));
     let ordered = [...premium, ...rest];
-
-    if (isVisitor) {
-      ordered = ordered.slice(0, 8).map((r) => ({
-        ...r,
-        full_name: r.professional_name || r.full_name,
-        bio: undefined,
-      }));
-    }
 
     const pageNum = Math.max(1, parseInt(page, 10));
     const lim = Math.min(50, Math.max(1, parseInt(limit, 10)));
