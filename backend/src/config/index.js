@@ -1,6 +1,26 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 require('dotenv').config(); // fallback for process cwd
 
+function stripSlash(value) {
+  return String(value || '').replace(/\/$/, '');
+}
+
+function isLocalhostUrl(value) {
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  } catch {
+    return !value;
+  }
+}
+
+const PUBLIC_APP_URL = 'https://jeanmicheltawk.github.io/bookd';
+const rawAppUrl = stripSlash(process.env.APP_URL);
+const onRender = Boolean(process.env.RENDER || process.env.RENDER_EXTERNAL_URL);
+const appUrl = (!rawAppUrl || isLocalhostUrl(rawAppUrl)) && (process.env.NODE_ENV === 'production' || onRender)
+  ? PUBLIC_APP_URL
+  : (rawAppUrl || 'http://localhost:4200');
+
 module.exports = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
@@ -30,12 +50,12 @@ module.exports = {
     email: process.env.ADMIN_EMAIL || 'admin@bookd.com',
     password: process.env.ADMIN_PASSWORD || 'bookdadmin',
   },
-  appUrl: (process.env.APP_URL || 'http://localhost:4200').replace(/\/$/, ''),
-  apiPublicUrl: (
+  appUrl,
+  apiPublicUrl: stripSlash(
     process.env.API_PUBLIC_URL
     || process.env.RENDER_EXTERNAL_URL
     || ''
-  ).replace(/\/$/, ''),
+  ),
   whish: {
     env: (process.env.WHISH_ENV || 'sandbox').toLowerCase() === 'production' ? 'production' : 'sandbox',
     channel: process.env.WHISH_CHANNEL || '',

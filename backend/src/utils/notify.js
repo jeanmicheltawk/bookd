@@ -1,14 +1,15 @@
 const { query } = require('../config/db');
 const { emailUser } = require('./mailer');
 
-async function notify(userId, title, body, link) {
+async function notify(userId, title, body, link, options = {}) {
   if (!userId) return;
   await query(
     `INSERT INTO notifications (user_id, title, body, link)
      VALUES ($1, $2, $3, $4)`,
     [userId, title, body || null, link || null]
   );
-  await emailUser(userId, title, body || title, link || '/dashboard');
+  if (options.email === false) return;
+  await emailUser(userId, title, body || title, link || '/dashboard', options.ctaLabel);
 }
 
 async function displayName(userId) {

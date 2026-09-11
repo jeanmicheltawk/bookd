@@ -143,7 +143,7 @@ async function emailAdmin(subject, text, extraHtml = '') {
   });
 }
 
-async function emailUser(userId, subject, text, path) {
+async function emailUser(userId, subject, text, path, ctaLabel) {
   const result = await query(
     `SELECT email FROM users WHERE id = $1 AND is_active = TRUE`,
     [userId]
@@ -151,11 +151,12 @@ async function emailUser(userId, subject, text, path) {
   const email = result.rows[0]?.email;
   if (!email) return false;
   const url = dashboardUrl(path || '/dashboard');
+  const label = ctaLabel || 'Open dashboard';
   return sendEmail({
     to: email,
     subject,
     text: `${text}\n\nOpen: ${url}`,
-    html: wrapHtml(subject, paragraph(text) + cta(url, 'Open dashboard')),
+    html: wrapHtml(subject, paragraph(text) + cta(url, label)),
   });
 }
 

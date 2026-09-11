@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const { query, getClient } = require('../config/db');
 const { parsePageLimit } = require('../utils/pagination');
 const { emailUser } = require('../utils/mailer');
+const { notify } = require('../utils/notify');
 const {
   isPaidPlan,
   isComplimentary,
@@ -295,9 +296,15 @@ async function updateUser(req, res, next) {
       );
       if (existing.rows[0].approval_status !== 'approved' && existing.rows[0].role === 'member') {
         const liveMessage = isComplimentary({ ...existing.rows[0], membership: nextMembership })
-          ? 'Your BOOK\'D HAUS profile is live. It is complimentary — no payment is required.'
+          ? 'Your BOOK\'D HAUS application was approved. Your profile is live, and it is complimentary — no payment is required.'
           : 'Your BOOK\'D HAUS application was approved. Your 7-day free trial has started — the full period is 1 month + 7 days from today. Your profile is now public.';
-        void emailUser(id, 'Your profile is live', liveMessage, '/dashboard');
+        const note = String(approvalNote || '').trim();
+        void notify(
+          id,
+          'You\'re in — your profile is live',
+          note ? `${liveMessage}\n\nNote from the team:\n${note}` : liveMessage,
+          '/dashboard'
+        );
       }
     } else if (approvalStatus === 'rejected' || approvalStatus === 'pending') {
       await query(
@@ -305,11 +312,16 @@ async function updateUser(req, res, next) {
         [id]
       );
       if (approvalStatus === 'rejected' && existing.rows[0].approval_status !== 'rejected') {
-        void emailUser(
+        const note = String(approvalNote || '').trim();
+        const rejectMessage = note
+          ? `Your BOOK'D HAUS application was not approved.\n\nNote from the team:\n${note}\n\nYou can contact us if you have questions.`
+          : 'Your BOOK\'D HAUS application was not approved. You can contact us if you have questions.';
+        void notify(
           id,
-          'Application update',
-          'Your BOOK\'D HAUS application was not approved. You can contact us if you have questions.',
-          '/contact'
+          'Update on your application',
+          rejectMessage,
+          '/contact',
+          { ctaLabel: 'Contact us' }
         );
       }
     }
