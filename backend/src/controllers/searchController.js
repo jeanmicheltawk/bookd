@@ -1,5 +1,6 @@
 const { query } = require('../config/db');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
+const { parsePageLimit, paginationMeta } = require('../utils/pagination');
 
 function shuffle(arr) {
   const a = [...arr];
@@ -22,8 +23,6 @@ async function searchProfiles(req, res, next) {
       gender,
       ageMin,
       ageMax,
-      page = 1,
-      limit = 24,
     } = req.query;
 
     const params = [];
@@ -67,34 +66,40 @@ async function searchProfiles(req, res, next) {
       where.push(`p.age <= $${params.length}`);
     }
 
-    const sql = `
-      SELECT p.id, p.full_name, p.professional_name, p.country, p.city, p.profile_photo_url,
-             p.availability, p.custom_url, u.membership, u.is_verified,
-             c.slug AS category_slug, c.name AS category_name
+    const fromWhere = `
       FROM profiles p
       JOIN users u ON u.id = p.user_id
       LEFT JOIN categories c ON c.id = p.category_id
       WHERE ${where.join(' AND ')}
     `;
-    const result = await query(sql, params);
-    const premium = shuffle(result.rows.filter((r) => r.membership === 'premium'));
-    const rest = shuffle(result.rows.filter((r) => r.membership !== 'premium'));
-    let ordered = [...premium, ...rest];
+    const countRes = await query(`SELECT COUNT(*)::int AS total ${fromWhere}`, params);
+    const total = countRes.rows[0]?.total || 0;
+    const { page, limit, offset } = parsePageLimit(req.query, { limit: 20, maxLimit: 50 });
 
-    const pageNum = Math.max(1, parseInt(page, 10));
-    const lim = Math.min(50, Math.max(1, parseInt(limit, 10)));
-    const start = (pageNum - 1) * lim;
-    const data = ordered.slice(start, start + lim);
-
-    await query(
-      `INSERT INTO analytics_events (event_type, path, user_id, metadata)
-       VALUES ('search', '/api/search', $1, $2::jsonb)`,
-      [req.user?.id || null, JSON.stringify({ q, category, results: ordered.length })]
+    const listParams = [...params, limit, offset];
+    const result = await query(
+      `SELECT p.id, p.full_name, p.professional_name, p.country, p.city, p.profile_photo_url,
+              p.availability, p.custom_url, u.membership, u.is_verified,
+              c.slug AS category_slug, c.name AS category_name
+       ${fromWhere}
+       ORDER BY CASE WHEN u.membership = 'premium' THEN 0 ELSE 1 END,
+                md5(p.id::text || to_char(CURRENT_DATE, 'YYYY-MM-DD')),
+                p.id
+       LIMIT $${listParams.length - 1} OFFSET $${listParams.length}`,
+      listParams
     );
 
+    if (page === 1) {
+      await query(
+        `INSERT INTO analytics_events (event_type, path, user_id, metadata)
+         VALUES ('search', '/api/search', $1, $2::jsonb)`,
+        [req.user?.id || null, JSON.stringify({ q, category, results: total })]
+      );
+    }
+
     res.json({
-      data,
-      pagination: { page: pageNum, limit: lim, total: ordered.length, totalPages: Math.ceil(ordered.length / lim) },
+      data: result.rows,
+      pagination: paginationMeta(page, limit, total),
     });
   } catch (err) {
     next(err);

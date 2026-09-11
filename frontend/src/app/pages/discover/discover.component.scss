@@ -81,26 +81,10 @@
   @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 48px;
-
-  button {
-    background: transparent;
-    border: 1px solid currentColor;
-    color: var(--text);
-    padding: 10px 20px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    &:hover:not(:disabled) { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
-    &:disabled { opacity: 0.35; cursor: not-allowed; }
-  }
-  span { font-size: 0.85rem; color: var(--text); }
+.load-more-sentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
 }
 
 .empty-state {

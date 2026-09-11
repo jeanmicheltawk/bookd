@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,6 +14,8 @@ import { LoadingScreenComponent } from '../../shared/components/loading-screen/l
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 import { toGenderValue } from '../../core/utils/gender';
 
+const PAGE_SIZE = 20;
+
 @Component({
   selector: 'app-discover',
   standalone: true,
@@ -21,7 +23,7 @@ import { toGenderValue } from '../../core/utils/gender';
   templateUrl: './discover.component.html',
   styleUrl: './discover.component.scss',
 })
-export class DiscoverComponent implements OnInit {
+export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   private searchService = inject(SearchService);
   private categoryService = inject(CategoryService);
   private countryService = inject(CountryService);
@@ -29,13 +31,17 @@ export class DiscoverComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
+  @ViewChild('loadMoreSentinel') loadMoreSentinel?: ElementRef<HTMLElement>;
+
   categories = signal<Category[]>([]);
   countries = signal<Country[]>([]);
   results = signal<SearchResult[]>([]);
   loading = signal(true);
+  loadingMore = signal(false);
   total = signal(0);
   page = signal(1);
-  totalPages = signal(1);
+
+  hasMore = computed(() => this.results().length < this.total());
 
   filters = {
     category: '',
@@ -66,6 +72,9 @@ export class DiscoverComponent implements OnInit {
     { value: 'Female', label: 'Female' },
   ];
 
+  private observer?: IntersectionObserver;
+  private searchSeq = 0;
+
   get isModelsOrTalents(): boolean {
     return ['models', 'talents'].includes(this.filters.category);
   }
@@ -80,13 +89,27 @@ export class DiscoverComponent implements OnInit {
       this.filters.availability = params.get('availability') || '';
       this.filters.verified = params.get('verified') === 'true';
       this.filters.gender = toGenderValue(params.get('gender'));
-      this.page.set(Number(params.get('page')) || 1);
-      this.runSearch();
+      this.page.set(1);
+      this.runSearch(false);
     });
   }
 
+  ngAfterViewInit(): void {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) this.loadNextPage();
+      },
+      { root: null, rootMargin: '800px 0px', threshold: 0 },
+    );
+    const el = this.loadMoreSentinel?.nativeElement;
+    if (el) this.observer.observe(el);
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+  }
+
   applyFilters(): void {
-    this.page.set(1);
     this.syncUrl();
   }
 
@@ -95,11 +118,17 @@ export class DiscoverComponent implements OnInit {
     this.applyFilters();
   }
 
-  goToPage(p: number): void {
-    if (p < 1 || p > this.totalPages()) return;
-    this.page.set(p);
-    this.syncUrl();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  private loadNextPage(): void {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) return;
+    this.page.update((p) => p + 1);
+    this.runSearch(true);
+  }
+
+  private loadNextIfVisible(): void {
+    const el = this.loadMoreSentinel?.nativeElement;
+    if (!el || this.loading() || this.loadingMore() || !this.hasMore()) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top <= window.innerHeight + 800) this.loadNextPage();
   }
 
   private syncUrl(): void {
@@ -111,19 +140,25 @@ export class DiscoverComponent implements OnInit {
         availability: this.filters.availability || null,
         verified: this.filters.verified ? 'true' : null,
         gender: this.isModelsOrTalents && this.filters.gender ? this.filters.gender : null,
-        page: this.page() > 1 ? this.page() : null,
+        page: null,
         q: null,
       },
       queryParamsHandling: 'merge',
     });
   }
 
-  private runSearch(): void {
-    this.loading.set(true);
-    this.analytics.trackPageview('/discover', undefined, {
-      category: this.filters.category,
-      country: this.filters.country,
-    });
+  private runSearch(append: boolean): void {
+    const seq = ++this.searchSeq;
+    if (append) {
+      this.loadingMore.set(true);
+    } else {
+      this.loading.set(true);
+      this.results.set([]);
+      this.analytics.trackPageview('/discover', undefined, {
+        category: this.filters.category,
+        country: this.filters.country,
+      });
+    }
 
     this.searchService
       .search({
@@ -133,14 +168,16 @@ export class DiscoverComponent implements OnInit {
         verified: this.filters.verified || undefined,
         gender: this.isModelsOrTalents ? this.filters.gender : undefined,
         page: this.page(),
-        limit: 24,
+        limit: PAGE_SIZE,
       })
-      .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 24, total: 0, totalPages: 0 } })))
+      .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 0 } })))
       .subscribe((res) => {
-        this.results.set(res.data);
+        if (seq !== this.searchSeq) return;
+        this.results.update((list) => (append ? [...list, ...res.data] : res.data));
         this.total.set(res.pagination.total);
-        this.totalPages.set(res.pagination.totalPages || 1);
         this.loading.set(false);
+        this.loadingMore.set(false);
+        setTimeout(() => this.loadNextIfVisible());
       });
   }
 }

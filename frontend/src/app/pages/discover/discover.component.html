@@ -39,12 +39,8 @@
           }
         </div>
 
-        @if (totalPages() > 1) {
-          <div class="pagination">
-            <button (click)="goToPage(page() - 1)" [disabled]="page() === 1">← Prev</button>
-            <span>Page {{ page() }} of {{ totalPages() }}</span>
-            <button (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">Next →</button>
-          </div>
+        @if (loadingMore()) {
+          <app-loading-screen [fullscreen]="false" label="LOADING MORE..." />
         }
       } @else {
         <div class="empty-state">
@@ -53,5 +49,7 @@
         </div>
       }
     }
+
+    <div #loadMoreSentinel class="load-more-sentinel" aria-hidden="true"></div>
   </div>
 </section>
