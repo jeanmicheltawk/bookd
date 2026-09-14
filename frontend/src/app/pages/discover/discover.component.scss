@@ -1,6 +1,16 @@
 .discover-hero {
-  padding: 56px 0 40px;
+  padding: 0 0 20px;
   background: transparent;
+}
+
+.discover-hero__inner {
+  padding-top: 16px;
+  padding-bottom: 8px;
+}
+
+.discover-hero h1 {
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
+  margin-bottom: 0;
 }
 
 .filter-bar {
@@ -8,8 +18,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 18px 0;
-  margin-top: 32px;
+  padding: 14px 0;
+  margin-top: 0;
   background: transparent;
   border: none;
   border-top: 1px solid currentColor;
@@ -60,6 +70,87 @@
     text-transform: uppercase;
     &:hover { background: transparent; color: var(--acid-lime); border-color: var(--acid-lime); }
   }
+}
+
+.results {
+  padding-top: 28px;
+}
+
+.home-announcements {
+  padding: 8px 0 12px;
+}
+
+.home-announcements__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.home-announcements__all {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--acid-lime);
+  &:hover { text-decoration: underline; }
+}
+
+.home-announcements__row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.home-announcements__card {
+  flex: 0 0 auto;
+  width: min(240px, 74vw);
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid currentColor;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+
+  span {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  strong {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &:hover { background: var(--electric-blue); color: #ffffff; }
+}
+
+.home-onboard {
+  padding: 16px 0 8px;
+}
+
+.home-onboard__row {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.home-onboard__card {
+  flex: 0 0 auto;
+  width: min(220px, 68vw);
 }
 
 .results__head {

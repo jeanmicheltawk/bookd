@@ -14,12 +14,16 @@ function isLocalhostUrl(value) {
   }
 }
 
-const PUBLIC_APP_URL = 'https://jeanmicheltawk.github.io/bookd';
+const PUBLIC_APP_URL = 'https://bookdhaus.com';
 const rawAppUrl = stripSlash(process.env.APP_URL);
 const onRender = Boolean(process.env.RENDER || process.env.RENDER_EXTERNAL_URL);
 const appUrl = (!rawAppUrl || isLocalhostUrl(rawAppUrl)) && (process.env.NODE_ENV === 'production' || onRender)
   ? PUBLIC_APP_URL
   : (rawAppUrl || 'http://localhost:4200');
+const rawEmailAppUrl = stripSlash(process.env.EMAIL_APP_URL || process.env.APP_URL);
+const emailAppUrl = (!rawEmailAppUrl || isLocalhostUrl(rawEmailAppUrl))
+  ? PUBLIC_APP_URL
+  : rawEmailAppUrl;
 
 module.exports = {
   env: process.env.NODE_ENV || 'development',
@@ -51,6 +55,7 @@ module.exports = {
     password: process.env.ADMIN_PASSWORD || 'bookdadmin',
   },
   appUrl,
+  emailAppUrl,
   apiPublicUrl: stripSlash(
     process.env.API_PUBLIC_URL
     || process.env.RENDER_EXTERNAL_URL

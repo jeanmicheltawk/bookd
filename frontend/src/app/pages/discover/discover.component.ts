@@ -1,17 +1,20 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { SearchService } from '../../core/services/search.service';
 import { CategoryService } from '../../core/services/category.service';
 import { CountryService } from '../../core/services/country.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
-import { Category, Country, SearchResult } from '../../core/models';
+import { AnnouncementService } from '../../core/services/announcement.service';
+import { CreativesOnBoardService } from '../../core/services/creatives-on-board.service';
+import { Category, Country, SearchResult, Announcement, CreativesOnBoardItem } from '../../core/models';
 import { ProfileCardComponent } from '../../shared/components/profile-card/profile-card.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
+import { NewsTickerComponent } from '../../shared/components/news-ticker/news-ticker.component';
 import { toGenderValue } from '../../core/utils/gender';
 
 const PAGE_SIZE = 20;
@@ -19,7 +22,7 @@ const PAGE_SIZE = 20;
 @Component({
   selector: 'app-discover',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProfileCardComponent, LoadingScreenComponent, SelectComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ProfileCardComponent, LoadingScreenComponent, SelectComponent, NewsTickerComponent],
   templateUrl: './discover.component.html',
   styleUrl: './discover.component.scss',
 })
@@ -28,6 +31,8 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private countryService = inject(CountryService);
   private analytics = inject(AnalyticsService);
+  private announcementService = inject(AnnouncementService);
+  private onBoardService = inject(CreativesOnBoardService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -36,6 +41,8 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   categories = signal<Category[]>([]);
   countries = signal<Country[]>([]);
   results = signal<SearchResult[]>([]);
+  announcements = signal<Announcement[]>([]);
+  onBoard = signal<CreativesOnBoardItem[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
   total = signal(0);
@@ -74,6 +81,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private observer?: IntersectionObserver;
   private searchSeq = 0;
+  private shuffleSeed = '';
 
   get isModelsOrTalents(): boolean {
     return ['models', 'talents'].includes(this.filters.category);
@@ -82,6 +90,12 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.categoryService.list({ searchable: true }).pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.categories.set(res.data));
     this.countryService.list().pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.countries.set(res.data));
+    this.announcementService.list({ limit: 8 })
+      .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 8, total: 0, totalPages: 0 } })))
+      .subscribe((res) => this.announcements.set(res.data));
+    this.onBoardService.list()
+      .pipe(catchError(() => of({ data: [] })))
+      .subscribe((res) => this.onBoard.set(res.data));
 
     this.route.queryParamMap.subscribe((params) => {
       this.filters.category = params.get('category') || '';
@@ -118,6 +132,13 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
     this.applyFilters();
   }
 
+  private createShuffleSeed(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID().replace(/-/g, '');
+    }
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+  }
+
   private loadNextPage(): void {
     if (this.loading() || this.loadingMore() || !this.hasMore()) return;
     this.page.update((p) => p + 1);
@@ -152,6 +173,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
     if (append) {
       this.loadingMore.set(true);
     } else {
+      this.shuffleSeed = this.createShuffleSeed();
       this.loading.set(true);
       this.results.set([]);
       this.analytics.trackPageview('/discover', undefined, {
@@ -169,6 +191,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
         gender: this.isModelsOrTalents ? this.filters.gender : undefined,
         page: this.page(),
         limit: PAGE_SIZE,
+        seed: this.shuffleSeed,
       })
       .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 0 } })))
       .subscribe((res) => {

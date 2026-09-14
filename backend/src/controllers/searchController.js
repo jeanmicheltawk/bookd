@@ -11,6 +11,13 @@ function shuffle(arr) {
   return a;
 }
 
+/** Stable per-visit shuffle key so pagination does not reshuffle between pages. */
+function parseShuffleSeed(raw) {
+  const value = String(raw || '').trim();
+  if (/^[a-zA-Z0-9_-]{8,64}$/.test(value)) return value;
+  return new Date().toISOString().slice(0, 10);
+}
+
 async function searchProfiles(req, res, next) {
   try {
     await expireOverdueSubscriptions();
@@ -76,16 +83,18 @@ async function searchProfiles(req, res, next) {
     const total = countRes.rows[0]?.total || 0;
     const { page, limit, offset } = parsePageLimit(req.query, { limit: 20, maxLimit: 50 });
 
-    const listParams = [...params, limit, offset];
+    const shuffleSeed = parseShuffleSeed(req.query.seed);
+    const listParams = [...params, shuffleSeed, limit, offset];
+    const seedIdx = params.length + 1;
     const result = await query(
       `SELECT p.id, p.full_name, p.professional_name, p.country, p.city, p.profile_photo_url,
               p.availability, p.custom_url, u.membership, u.is_verified,
               c.slug AS category_slug, c.name AS category_name
        ${fromWhere}
        ORDER BY CASE WHEN u.membership = 'premium' THEN 0 ELSE 1 END,
-                md5(p.id::text || to_char(CURRENT_DATE, 'YYYY-MM-DD')),
+                md5(p.id::text || $${seedIdx}),
                 p.id
-       LIMIT $${listParams.length - 1} OFFSET $${listParams.length}`,
+       LIMIT $${seedIdx + 1} OFFSET $${seedIdx + 2}`,
       listParams
     );
 
@@ -126,10 +135,10 @@ async function getSpotlight(req, res, next) {
          AND u.is_active = TRUE
          AND u.role = 'member'
          AND u.approval_status = 'approved'
-       ORDER BY RANDOM()
+       ORDER BY CASE WHEN u.membership = 'premium' THEN 0 ELSE 1 END, RANDOM()
        LIMIT 16`
     );
-    res.json({ data: shuffle(result.rows) });
+    res.json({ data: result.rows });
   } catch (err) {
     next(err);
   }

@@ -19,7 +19,21 @@ export class AnnouncementService {
     return this.api.get('/announcements/mine');
   }
 
-  create(payload: Partial<Announcement> & { announcementType: string; title: string }): Observable<Announcement> {
+  create(payload: {
+    title: string;
+    announcementType: string;
+    description?: string;
+    budget?: number;
+    isPaid?: boolean;
+    location?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    deadline?: string;
+    requiredCategoryId?: string;
+    requiredCategorySlug?: string;
+    peopleNeeded?: number;
+    moodboardUrls?: string[];
+  }): Observable<Announcement> {
     return this.api.post('/announcements', payload);
   }
 
@@ -29,6 +43,14 @@ export class AnnouncementService {
 
   listApplications(id: string): Observable<{ data: AnnouncementApplication[] }> {
     return this.api.get(`/announcements/${id}/applications`);
+  }
+
+  listIncomingApplications(): Observable<{ data: AnnouncementApplication[] }> {
+    return this.api.get('/announcements/mine/applications');
+  }
+
+  listIncomingApplicationsAdmin(): Observable<{ data: AnnouncementApplication[] }> {
+    return this.api.get('/admin/announcements/applications');
   }
 
   listAllAdmin(params?: QueryParams): Observable<Paginated<Announcement>> {

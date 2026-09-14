@@ -1,30 +1,43 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { DashboardService } from '../../core/services/dashboard.service';
+import { AlertService } from '../../core/services/alert.service';
+import { DashboardNotification } from '../../core/models';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 
 @Component({
   selector: 'app-dashboard-notifications',
   standalone: true,
-  imports: [CommonModule, DashboardNavComponent, LoadingScreenComponent],
+  imports: [CommonModule, RouterLink, DashboardNavComponent, LoadingScreenComponent],
   templateUrl: './dashboard-notifications.component.html',
   styleUrl: './dashboard-notifications.component.scss',
 })
 export class DashboardNotificationsComponent implements OnInit {
   private dashboardService = inject(DashboardService);
+  private alerts = inject(AlertService);
 
-  unreadCount = signal(0);
+  notifications = signal<DashboardNotification[]>([]);
   loading = signal(true);
 
   ngOnInit(): void {
-    this.dashboardService.getMine()
-      .pipe(catchError(() => of(null)))
+    this.dashboardService
+      .listNotifications()
+      .pipe(catchError(() => of({ data: [] as DashboardNotification[] })))
       .subscribe((res) => {
-        this.unreadCount.set(res?.notifications.unread || 0);
+        this.notifications.set(res.data);
         this.loading.set(false);
+        if (res.data.some((n) => !n.is_read)) this.markOpenedRead();
       });
+  }
+
+  private markOpenedRead(): void {
+    this.dashboardService
+      .markNotificationsRead()
+      .pipe(catchError(() => of(null)))
+      .subscribe(() => this.alerts.refresh());
   }
 }

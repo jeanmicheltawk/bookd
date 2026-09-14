@@ -27,7 +27,8 @@ export class AdminOverviewComponent implements OnInit {
     { label: 'Manage Categories', path: '/admin/categories', icon: '☰' },
     { label: 'Manage Countries', path: '/admin/countries', icon: '◎' },
     { label: 'Review Applications', path: '/admin/users', icon: '⌘' },
-    // FUTURE: { label: 'Moderate Announcements', path: '/admin/announcements', icon: '📣' },
+    { label: 'Moderate Announcements', path: '/admin/announcements', icon: '📣' },
+    { label: 'Creatives on Board', path: '/admin/creatives-on-board', icon: '★' },
   ];
 
   ngOnInit(): void {

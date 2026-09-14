@@ -75,6 +75,16 @@ function subscriptionStatus(user) {
   return 'active';
 }
 
+/** First payment (pending application) or renewal starting 5 days before the period ends. */
+function isPaymentDue(user) {
+  if (!user || (user.role && user.role !== 'member')) return false;
+  if (isComplimentary(user) || !isPaidPlan(user.membership)) return false;
+  if (user.approval_status === 'pending') return true;
+  if (user.approval_status && user.approval_status !== 'approved') return false;
+  const status = subscriptionStatus(user);
+  return status === 'ending_soon' || status === 'expired' || status === 'none';
+}
+
 function withSubscription(user) {
   if (!user) return user;
   if (user.approval_status && user.approval_status !== 'approved') {
@@ -92,6 +102,7 @@ function withSubscription(user) {
         in_trial: false,
         can_end: false,
         needs_reminder: false,
+        payment_due: isPaymentDue(user),
       },
     };
   }
@@ -111,6 +122,7 @@ function withSubscription(user) {
       in_trial: status === 'trial',
       can_end: status === 'trial',
       needs_reminder: status === 'trial' || status === 'ending_soon',
+      payment_due: isPaymentDue(user),
     },
   };
 }
@@ -419,6 +431,7 @@ module.exports = {
   planLabel,
   effectiveMembership,
   subscriptionStatus,
+  isPaymentDue,
   withSubscription,
   startPaidPeriod,
   extendPaidPeriod,

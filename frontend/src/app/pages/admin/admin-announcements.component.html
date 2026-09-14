@@ -1,34 +1,138 @@
 <div class="admin-page">
   <div class="admin-page__head">
-    <span class="eyebrow">MODERATION</span>
-    <h1 class="display-lg">ANNOUNCEMENTS <span class="text-gradient">QUEUE</span></h1>
+    <div>
+      <span class="eyebrow">MODERATION</span>
+      <h1 class="display-lg">ANNOUNCEMENTS <span class="text-gradient">QUEUE</span></h1>
+      <p class="admin-page__hint">Premium posts wait here. Your own posts go live immediately.</p>
+    </div>
+    <div class="admin-page__actions">
+      <app-animated-button [variant]="activeTab() === 'applicants' ? 'primary' : 'outline'" (clicked)="filterByTab('applicants')">
+        Applicants
+      </app-animated-button>
+      <app-animated-button variant="primary" (clicked)="showForm() ? cancelForm() : startCreate()">
+        {{ showForm() ? 'Cancel' : '+ New Announcement' }}
+      </app-animated-button>
+    </div>
   </div>
+
+  @if (showForm()) {
+    <form class="crud-form glass-panel animate-scale-in" #f="ngForm" (ngSubmit)="submit(f)">
+      <div class="form-grid">
+        <div class="form-field"><label>Title *</label><input type="text" name="title" [(ngModel)]="form.title" required /></div>
+        <div class="form-field"><label>Type *</label><input type="text" name="announcementType" [(ngModel)]="form.announcementType" placeholder="e.g. Photoshoot, Campaign" required /></div>
+        <div class="form-field"><label>Location</label><input type="text" name="location" [(ngModel)]="form.location" /></div>
+        <div class="form-field"><label>Email to contact *</label><input type="email" name="contactEmail" [(ngModel)]="form.contactEmail" placeholder="name@example.com" required /></div>
+        <div class="form-field"><label>Phone number / WhatsApp *</label><input type="tel" name="contactPhone" [(ngModel)]="form.contactPhone" placeholder="+961 ..." required /></div>
+        <div class="form-field"><label>Budget ($)</label><input type="number" name="budget" [(ngModel)]="form.budget" min="0" /></div>
+        <div class="form-field"><label>People Needed</label><input type="number" name="peopleNeeded" [(ngModel)]="form.peopleNeeded" min="1" /></div>
+        <div class="form-field"><label>Deadline</label><input type="date" name="deadline" [(ngModel)]="form.deadline" /></div>
+        <div class="form-field checkbox-field"><label><input type="checkbox" name="isPaid" [(ngModel)]="form.isPaid" /> Paid opportunity</label></div>
+      </div>
+      <div class="form-field"><label>Details</label><textarea name="description" [(ngModel)]="form.description" rows="4"></textarea></div>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+      <app-animated-button type="submit" variant="primary" [loading]="saving()">Publish Announcement</app-animated-button>
+    </form>
+  }
 
   <div class="status-chips">
     @for (s of statuses; track s) {
-      <button class="chip" [class.active]="activeStatus() === s" (click)="filterByStatus(s)">{{ s }}</button>
+      <button class="chip" [class.active]="activeTab() === s" (click)="filterByTab(s)">{{ s }}</button>
     }
   </div>
 
   @if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (activeTab() === 'applicants') {
+    @if (incoming().length) {
+      <div class="mod-list">
+        @for (app of incoming(); track app.id) {
+          <div class="mod-app mod-app--card">
+            <div>
+              <strong>{{ applicantName(app) }}</strong>
+              <span>Applied for {{ app.announcement_title || 'Announcement' }} · {{ app.created_at | date: 'MMM d, y' }}</span>
+              @if (app.message) { <p>{{ app.message }}</p> }
+            </div>
+            <div class="mod-app__links">
+              <a [routerLink]="['/announcements', app.announcement_id]">View announcement</a>
+              @if (profileLink(app); as link) {
+                <a [routerLink]="['/profile', link]">View profile</a>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <h3>No applicants yet.</h3>
+      </div>
+    }
   } @else if (announcements().length) {
     <div class="mod-list">
       @for (a of announcements(); track a.id) {
         <div class="mod-row">
           <div class="mod-row__info">
             <strong>{{ a.title }}</strong>
-            <span>{{ a.announcement_type }} · by {{ a.author_name }} {{ a.required_category_name ? '· ' + a.required_category_name : '' }}</span>
-            <p>{{ a.description || 'No description' }}</p>
+            <span class="mod-row__meta">{{ a.announcement_type }} · by {{ a.author_professional_name || a.author_name }} · submitted {{ a.created_at | date: 'MMM d, y' }}</span>
+            <dl class="mod-row__details">
+              <div><dt>Category</dt><dd>{{ a.required_category_name || 'Any' }}</dd></div>
+              <div><dt>Location</dt><dd>{{ a.location || '—' }}</dd></div>
+              <div><dt>Email to contact</dt><dd>{{ a.contact_email || '—' }}</dd></div>
+              <div><dt>Phone / WhatsApp</dt><dd>{{ a.contact_phone || '—' }}</dd></div>
+              <div><dt>Budget</dt><dd>{{ a.budget != null ? '$' + a.budget : '—' }}</dd></div>
+              <div><dt>People needed</dt><dd>{{ a.people_needed }}</dd></div>
+              <div><dt>Deadline</dt><dd>{{ a.deadline ? (a.deadline | date: 'MMM d, y') : '—' }}</dd></div>
+              <div class="mod-row__paid-field">
+                <dt>Paid opportunity</dt>
+                <dd>
+                  <label class="mod-row__check">
+                    <input type="checkbox" [checked]="a.is_paid" disabled />
+                    {{ a.is_paid ? 'Yes, paid' : 'No, unpaid' }}
+                  </label>
+                </dd>
+              </div>
+            </dl>
+            <p class="mod-row__desc">{{ a.description || 'No description' }}</p>
+            @if (a.moodboard_urls?.length) {
+              <div class="mod-row__mood">
+                <span>Moodboard</span>
+                @for (url of a.moodboard_urls; track url) {
+                  <a [href]="url" target="_blank" rel="noopener">{{ url }}</a>
+                }
+              </div>
+            }
+            @if ((a.application_count || 0) > 0) {
+              <div class="mod-row__apps">
+                <span>{{ a.application_count }} applicant{{ a.application_count === 1 ? '' : 's' }}</span>
+                @if (!applicants()[a.id]) {
+                  <p>Loading applicants...</p>
+                } @else {
+                  @for (app of applicantsFor(a.id); track app.id) {
+                    <div class="mod-app">
+                      <div>
+                        <strong>{{ applicantName(app) }}</strong>
+                        <span>{{ app.category_name || 'Talent' }} · {{ app.created_at | date: 'MMM d, y' }}</span>
+                        @if (app.message) { <p>{{ app.message }}</p> }
+                      </div>
+                      <div class="mod-app__links">
+                        <a [routerLink]="['/announcements', a.id]">View announcement</a>
+                        @if (profileLink(app); as link) {
+                          <a [routerLink]="['/profile', link]">View profile</a>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            }
           </div>
           <div class="mod-row__actions">
             @if (a.status === 'pending') {
-              <button class="approve-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'approved')">Approve</button>
-              <button class="reject-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'rejected')">Reject</button>
+              <button type="button" class="approve-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'approved')">Approve</button>
+              <button type="button" class="reject-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'rejected')">Reject</button>
             } @else if (a.status === 'approved') {
-              <button class="close-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'closed')">Close</button>
+              <button type="button" class="close-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'closed')">Close</button>
             } @else {
-              <button class="approve-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'approved')">Re-approve</button>
+              <button type="button" class="approve-btn" [disabled]="actioningId() === a.id" (click)="moderate(a, 'approved')">Re-approve</button>
             }
           </div>
         </div>
@@ -36,7 +140,7 @@
     </div>
   } @else {
     <div class="empty-state">
-      <h3>No {{ activeStatus() }} announcements.</h3>
+      <h3>No {{ activeTab() === 'all' ? '' : activeTab() + ' ' }}announcements.</h3>
     </div>
   }
 </div>

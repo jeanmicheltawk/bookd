@@ -29,7 +29,7 @@ services:
       - key: JWT_REFRESH_EXPIRES_IN
         value: 30d
       - key: CORS_ORIGIN
-        value: https://jeanmicheltawk.github.io
+        value: https://bookdhaus.com
       - key: ADMIN_EMAIL
         value: admin@bookd.com
       - key: ADMIN_PASSWORD
@@ -37,7 +37,9 @@ services:
       - key: UPLOAD_DIR
         value: uploads
       - key: APP_URL
-        value: https://jeanmicheltawk.github.io/bookd
+        value: https://bookdhaus.com
+      - key: EMAIL_APP_URL
+        value: https://bookdhaus.com
       - key: SMTP_HOST
         value: smtp.office365.com
       - key: SMTP_PORT

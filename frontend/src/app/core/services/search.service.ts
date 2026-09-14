@@ -14,6 +14,7 @@ export interface SearchFilters extends QueryParams {
   ageMax?: number;
   page?: number;
   limit?: number;
+  seed?: string;
 }
 
 @Injectable({ providedIn: 'root' })

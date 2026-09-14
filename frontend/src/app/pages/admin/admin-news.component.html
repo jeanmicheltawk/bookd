@@ -1,0 +1,63 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">MANAGE</span>
+      <h1 class="display-lg">HOME <span class="text-gradient">NEWS</span></h1>
+      <p class="admin-page__hint">Shown as a left-right scroller on the homepage. Titles open a details popup.</p>
+    </div>
+    <app-animated-button variant="primary" (clicked)="showForm() ? cancelForm() : startCreate()">
+      {{ showForm() ? 'Cancel' : '+ New News' }}
+    </app-animated-button>
+  </div>
+
+  @if (showForm()) {
+    <form class="crud-form glass-panel animate-scale-in" #f="ngForm" (ngSubmit)="submit(f)">
+      <div class="form-grid">
+        <div class="form-field"><label>Title *</label><input type="text" name="title" [(ngModel)]="form.title" required maxlength="255" /></div>
+        <div class="form-field checkbox-field"><label><input type="checkbox" name="isPublished" [(ngModel)]="form.isPublished" /> Published</label></div>
+      </div>
+      <div class="form-field">
+        <label>Image</label>
+        @if (imagePreview) {
+          <img class="news-image-preview" [src]="imagePreview" alt="News image preview" />
+        }
+        <div class="news-image-actions">
+          <label class="upload-btn">
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onImageSelected($event)" />
+            {{ imagePreview ? 'Change image' : 'Upload image' }}
+          </label>
+          @if (imagePreview) {
+            <button type="button" class="remove-image-btn" (click)="clearImage()">Remove</button>
+          }
+        </div>
+        <p class="news-image-hint">JPG, PNG, GIF, or WebP. The file is stored in the database.</p>
+      </div>
+      <div class="form-field"><label>Details</label><textarea name="body" [(ngModel)]="form.body" rows="6"></textarea></div>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+      <app-animated-button type="submit" variant="primary" [loading]="saving()">{{ editingId() ? 'Update' : 'Publish' }} News</app-animated-button>
+    </form>
+  }
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (items().length) {
+    <div class="crud-table">
+      <div class="crud-table__row crud-table__row--head">
+        <span>Title</span><span>Created</span><span>Published</span><span></span>
+      </div>
+      @for (item of items(); track item.id) {
+        <div class="crud-table__row">
+          <span>{{ item.title }}</span>
+          <span>{{ item.created_at | date: 'MMM d, y' }}</span>
+          <span [class.yes]="item.is_published" [class.no]="!item.is_published">{{ item.is_published ? 'Yes' : 'No' }}</span>
+          <span class="row-actions">
+            <button type="button" (click)="startEdit(item)">Edit</button>
+            <button type="button" class="danger" (click)="remove(item)">Delete</button>
+          </span>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state"><h3>No news yet.</h3></div>
+  }
+</div>

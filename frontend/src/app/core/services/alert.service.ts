@@ -6,7 +6,7 @@ import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 import { membershipFromSubscription } from '../utils/subscription';
 
-const EMPTY: DashboardAlerts = { unreadMessages: 0, newBookings: 0, bookingUpdates: 0, subscription: null };
+const EMPTY: DashboardAlerts = { unreadMessages: 0, newBookings: 0, bookingUpdates: 0, unreadNotifications: 0, subscription: null };
 
 @Injectable({ providedIn: 'root' })
 export class AlertService {

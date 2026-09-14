@@ -7,6 +7,12 @@
         <p class="pay-pending-note">Your Whish payment is confirmed. The 7-day free trial starts when an admin approves your profile.</p>
       } @else if (auth.isPending()) {
         <p class="pay-pending-note">Your application is still under review. You can pay with Whish now. The trial starts when you're approved, not when payment is confirmed.</p>
+      } @else if (!isPaymentDue) {
+        <p class="pay-pending-note">
+          You're already paid
+          @if (paidUntil) { until {{ paidUntil | date: 'mediumDate' }} }.
+          Checkout opens again 5 days before that date.
+        </p>
       }
     </div>
   </div>
@@ -23,7 +29,25 @@
     <app-loading-screen [fullscreen]="false" label="LOADING PAYMENT..." />
   } @else {
     @if (info(); as whish) {
-      @if (isPaymentConfirmed) {
+      @if (auth.isPending() && isPaymentConfirmed) {
+        <div class="pay-status pay-status--confirmed">
+          <span class="pay-status__pill">PAYMENT CONFIRMED</span>
+          <h2>Whish received</h2>
+          <p>
+            Your payment for {{ whish.plan_label }} is confirmed. Your 7-day free trial starts when an admin approves your profile.
+          </p>
+        </div>
+      } @else if (!isPaymentDue) {
+        <div class="pay-status pay-status--confirmed">
+          <span class="pay-status__pill">PAID</span>
+          <h2>No payment due yet</h2>
+          <p>
+            Your {{ whish.plan_label }} is already paid
+            @if (paidUntil) { until {{ paidUntil | date: 'mediumDate' }} }.
+            You can pay again 5 days before the period ends.
+          </p>
+        </div>
+      } @else if (isPaymentConfirmed) {
         <div class="pay-status pay-status--confirmed">
           <span class="pay-status__pill">PAYMENT CONFIRMED</span>
           <h2>Whish received</h2>
@@ -72,31 +96,33 @@
         </div>
       }
 
-      <div class="pay-grid">
-        <div class="pay-card">
-          <span class="pay-card__label">Amount</span>
-          <strong>{{ whish.amount | currency: whish.currency:'symbol':'1.2-2' }}</strong>
-          <p>{{ whish.plan_label }} · 1 month</p>
+      @if (isPaymentDue) {
+        <div class="pay-grid">
+          <div class="pay-card">
+            <span class="pay-card__label">Amount</span>
+            <strong>{{ whish.amount | currency: whish.currency:'symbol':'1.2-2' }}</strong>
+            <p>{{ whish.plan_label }} · 1 month</p>
+          </div>
+          <div class="pay-card pay-card--number">
+            <span class="pay-card__label">Method</span>
+            <strong>Whish Pay</strong>
+            <p>Hosted checkout from your Whish balance</p>
+          </div>
+          <div class="pay-card">
+            <span class="pay-card__label">Reference</span>
+            <strong>{{ whish.payment?.reference }}</strong>
+          </div>
         </div>
-        <div class="pay-card pay-card--number">
-          <span class="pay-card__label">Method</span>
-          <strong>Whish Pay</strong>
-          <p>Hosted checkout from your Whish balance</p>
-        </div>
-        <div class="pay-card">
-          <span class="pay-card__label">Reference</span>
-          <strong>{{ whish.payment?.reference }}</strong>
-        </div>
-      </div>
 
-      <ol class="pay-steps">
-        <li>Tap <strong>Pay with Whish</strong> to open the hosted payment page.</li>
-        <li>Confirm <strong>{{ whish.amount | currency: whish.currency:'symbol':'1.2-2' }}</strong> from your Whish balance.</li>
-        <li>Whish sends a one-time code in the app. Enter it on the payment page.</li>
-        @if (!isPaymentConfirmed) {
-          <li>You'll return here when you're done. We confirm the payment with Whish automatically.</li>
-        }
-      </ol>
+        <ol class="pay-steps">
+          <li>Tap <strong>Pay with Whish</strong> to open the hosted payment page.</li>
+          <li>Confirm <strong>{{ whish.amount | currency: whish.currency:'symbol':'1.2-2' }}</strong> from your Whish balance.</li>
+          <li>Whish sends a one-time code in the app. Enter it on the payment page.</li>
+          @if (!isPaymentConfirmed) {
+            <li>You'll return here when you're done. We confirm the payment with Whish automatically.</li>
+          }
+        </ol>
+      }
     } @else if (error()) {
       <p class="form-error">{{ error() }}</p>
     }

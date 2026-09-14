@@ -1,0 +1,3 @@
+ALTER TABLE announcements
+  ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255),
+  ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(64);

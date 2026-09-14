@@ -1,0 +1,95 @@
+@if (visible()) {
+  <div class="news-ticker">
+    <div class="container news-ticker__head">
+      <span class="eyebrow">NEWS</span>
+      @if (auth.isAdmin()) {
+        <button type="button" class="news-ticker__add" (click)="startAdd()">+ Add news</button>
+      }
+    </div>
+
+    @if (news().length) {
+      <div class="container news-ticker__row">
+        <button type="button" class="news-ticker__nav" (click)="scroll(-1)" aria-label="Scroll news left">‹</button>
+        <div class="news-ticker__scroller" #scroller tabindex="0" aria-label="News">
+          @for (item of news(); track item.id) {
+            <button type="button" class="news-ticker__card" (click)="open(item)">
+              @if (auth.isAdmin() && item.is_published === false) {
+                <span class="news-ticker__draft">Draft</span>
+              }
+              <span class="news-ticker__title">{{ item.title }}</span>
+            </button>
+          }
+        </div>
+        <button type="button" class="news-ticker__nav" (click)="scroll(1)" aria-label="Scroll news right">›</button>
+      </div>
+    } @else {
+      <p class="container news-ticker__empty">No news yet — add the first item.</p>
+    }
+  </div>
+}
+
+@if (selected(); as item) {
+  <div class="news-popup" (click)="close()" role="dialog" aria-modal="true" [attr.aria-label]="item.title">
+    <div class="news-popup__panel" (click)="$event.stopPropagation()">
+      <button type="button" class="news-popup__close" (click)="close()" aria-label="Close">✕</button>
+      <span class="eyebrow">NEWS</span>
+      <h2>{{ item.title }}</h2>
+      <time>{{ item.created_at | date: 'MMMM d, y' }}</time>
+      @if (item.image_url) {
+        <img [src]="api.assetUrl(item.image_url)" [alt]="item.title" />
+      }
+      @if (item.body) {
+        <p class="news-popup__body">{{ item.body }}</p>
+      } @else {
+        <p class="news-popup__body news-popup__body--empty">No details yet.</p>
+      }
+      @if (auth.isAdmin()) {
+        <div class="news-popup__admin">
+          <button type="button" (click)="startEdit(item)">Edit</button>
+          <button type="button" class="danger" (click)="remove(item)">Delete</button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (showForm()) {
+  <div class="news-popup" (click)="closeForm()" role="dialog" aria-modal="true" aria-label="Add news">
+    <form class="news-popup__panel news-popup__panel--form" #f="ngForm" (click)="$event.stopPropagation()" (ngSubmit)="submit(f)">
+      <button type="button" class="news-popup__close" (click)="closeForm()" aria-label="Close">✕</button>
+      <span class="eyebrow">{{ editingId() ? 'EDIT NEWS' : 'ADD NEWS' }}</span>
+      <h2>{{ editingId() ? 'Update story' : 'New story' }}</h2>
+      <div class="form-field">
+        <label for="news-title">Title *</label>
+        <input id="news-title" type="text" name="title" [(ngModel)]="form.title" required maxlength="255" />
+      </div>
+      <div class="form-field">
+        <label for="news-body">Details</label>
+        <textarea id="news-body" name="body" [(ngModel)]="form.body" rows="6"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Image</label>
+        @if (imagePreview) {
+          <img class="news-image-preview" [src]="imagePreview" [alt]="form.title || 'News image preview'" />
+        }
+        <div class="news-image-actions">
+          <label class="upload-btn">
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onImageSelected($event)" />
+            {{ imagePreview ? 'Change image' : 'Upload image' }}
+          </label>
+          @if (imagePreview) {
+            <button type="button" class="remove-image-btn" (click)="clearImage()">Remove</button>
+          }
+        </div>
+        <p class="news-image-hint">JPG, PNG, GIF, or WebP.</p>
+      </div>
+      <div class="form-field checkbox-field">
+        <label><input type="checkbox" name="isPublished" [(ngModel)]="form.isPublished" /> Published</label>
+      </div>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+      <app-animated-button type="submit" variant="primary" [loading]="saving()">
+        {{ editingId() ? 'Update' : 'Publish' }}
+      </app-animated-button>
+    </form>
+  </div>
+}

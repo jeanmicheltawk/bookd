@@ -1,7 +1,20 @@
 const { query } = require('../config/db');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
 const { notify, displayName } = require('../utils/notify');
-const { emailAdmin } = require('../utils/mailer');
+const { emailAdmin, cta, dashboardUrl } = require('../utils/mailer');
+const { loadUserSubscription, effectiveMembership } = require('../utils/subscription');
+
+async function notifyAdmins(title, body, link) {
+  const admins = await query(`SELECT id FROM users WHERE role = 'admin' AND is_active = TRUE`);
+  await Promise.all(
+    admins.rows.map((row) => notify(row.id, title, body, link, { email: false }))
+  );
+}
+
+const AUTHOR_JOIN = `LEFT JOIN profiles p ON p.user_id = a.author_id`;
+const AUTHOR_SELECT = `COALESCE(p.professional_name, p.full_name, 'BOOK''D HAUS') AS author_name,
+              p.professional_name AS author_professional_name,
+              p.profile_photo_url AS author_photo`;
 
 async function listApproved(req, res, next) {
   try {
@@ -36,11 +49,10 @@ async function listApproved(req, res, next) {
       `SELECT a.id, a.title, a.announcement_type, a.description, a.budget, a.is_paid,
               a.location, a.deadline, a.people_needed, a.moodboard_urls, a.status, a.created_at,
               c.slug AS required_category_slug, c.name AS required_category_name,
-              p.full_name AS author_name, p.professional_name AS author_professional_name,
-              p.profile_photo_url AS author_photo
+              ${AUTHOR_SELECT}
        FROM announcements a
        LEFT JOIN categories c ON c.id = a.required_category_id
-       JOIN profiles p ON p.user_id = a.author_id
+       ${AUTHOR_JOIN}
        ${whereSql}
        ORDER BY a.created_at DESC
        LIMIT $${params.length - 1} OFFSET $${params.length}`,
@@ -57,11 +69,10 @@ async function getAnnouncement(req, res, next) {
   try {
     const result = await query(
       `SELECT a.*, c.slug AS required_category_slug, c.name AS required_category_name,
-              p.full_name AS author_name, p.professional_name AS author_professional_name,
-              p.profile_photo_url AS author_photo
+              ${AUTHOR_SELECT}
        FROM announcements a
        LEFT JOIN categories c ON c.id = a.required_category_id
-       JOIN profiles p ON p.user_id = a.author_id
+       ${AUTHOR_JOIN}
        WHERE a.id = $1`,
       [req.params.id]
     );
@@ -81,9 +92,26 @@ async function createAnnouncement(req, res, next) {
     const {
       title, announcementType, description, budget, isPaid, location,
       deadline, requiredCategoryId, requiredCategorySlug, peopleNeeded, moodboardUrls,
+      contactEmail, contactPhone,
     } = req.body;
     if (!title?.trim() || !announcementType?.trim()) {
       return res.status(400).json({ error: 'title and announcementType required' });
+    }
+    const email = String(contactEmail || '').trim();
+    const phone = String(contactPhone || '').trim();
+    if (!email || !phone) {
+      return res.status(400).json({ error: 'Contact email and phone / WhatsApp are required' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Enter a valid contact email' });
+    }
+
+    const isAdmin = req.user.role === 'admin';
+    if (!isAdmin) {
+      const subscriber = await loadUserSubscription(req.user.id);
+      if (!subscriber || effectiveMembership(subscriber) !== 'premium') {
+        return res.status(403).json({ error: 'Premium plan required to post announcements.' });
+      }
     }
 
     let categoryId = requiredCategoryId || null;
@@ -92,11 +120,13 @@ async function createAnnouncement(req, res, next) {
       categoryId = cat.rows[0]?.id || null;
     }
 
+    const status = isAdmin ? 'approved' : 'pending';
     const result = await query(
       `INSERT INTO announcements (
          author_id, title, announcement_type, description, budget, is_paid, location,
-         deadline, required_category_id, people_needed, moodboard_urls, status
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending')
+         deadline, required_category_id, people_needed, moodboard_urls, status,
+         contact_email, contact_phone
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING *`,
       [
         req.user.id,
@@ -110,12 +140,27 @@ async function createAnnouncement(req, res, next) {
         categoryId,
         peopleNeeded ?? 1,
         moodboardUrls || null,
+        status,
+        email.slice(0, 255),
+        phone.slice(0, 64),
       ]
     );
-    void emailAdmin(
-      'New announcement submitted',
-      `"${title.trim()}" was submitted and is waiting for review.`
-    );
+
+    if (!isAdmin) {
+      const authorName = await displayName(req.user.id);
+      const reviewUrl = dashboardUrl('/admin/announcements');
+      void emailAdmin(
+        'New announcement to approve',
+        `${authorName} submitted "${title.trim()}" (${announcementType.trim()}). Open the admin queue to approve or reject it.`,
+        cta(reviewUrl, 'Approve or reject')
+      );
+      void notifyAdmins(
+        'New announcement to review',
+        `${authorName} submitted "${title.trim()}". Approve or reject it in the admin queue.`,
+        '/admin/announcements'
+      );
+    }
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     next(err);
@@ -150,7 +195,7 @@ async function applyToAnnouncement(req, res, next) {
       ann.rows[0].author_id,
       'New announcement application',
       `${applicantName} applied to your announcement.`,
-      '/dashboard'
+      '/dashboard/announcements'
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -176,9 +221,10 @@ async function listAllAdmin(req, res, next) {
 
     params.push(limit, offset);
     const result = await query(
-      `SELECT a.*, p.full_name AS author_name, c.name AS required_category_name
+      `SELECT a.*, ${AUTHOR_SELECT}, c.name AS required_category_name,
+              (SELECT COUNT(*)::int FROM announcement_applications aa WHERE aa.announcement_id = a.id) AS application_count
        FROM announcements a
-       JOIN profiles p ON p.user_id = a.author_id
+       ${AUTHOR_JOIN}
        LEFT JOIN categories c ON c.id = a.required_category_id
        ${whereSql}
        ORDER BY a.created_at DESC
@@ -206,7 +252,23 @@ async function moderateAnnouncement(req, res, next) {
       [status, id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Announcement not found' });
-    res.json(result.rows[0]);
+    const row = result.rows[0];
+    if (status === 'approved') {
+      void notify(
+        row.author_id,
+        'Announcement approved',
+        `"${row.title}" is now live.`,
+        `/announcements/${row.id}`
+      );
+    } else if (status === 'rejected') {
+      void notify(
+        row.author_id,
+        'Announcement not approved',
+        `"${row.title}" was rejected by an admin.`,
+        '/dashboard/announcements'
+      );
+    }
+    res.json(row);
   } catch (err) {
     next(err);
   }
@@ -215,7 +277,11 @@ async function moderateAnnouncement(req, res, next) {
 async function listMyAnnouncements(req, res, next) {
   try {
     const result = await query(
-      `SELECT * FROM announcements WHERE author_id = $1 ORDER BY created_at DESC`,
+      `SELECT a.*,
+              (SELECT COUNT(*)::int FROM announcement_applications aa WHERE aa.announcement_id = a.id) AS application_count
+       FROM announcements a
+       WHERE a.author_id = $1
+       ORDER BY a.created_at DESC`,
       [req.user.id]
     );
     res.json({ data: result.rows });
@@ -233,13 +299,53 @@ async function listApplications(req, res, next) {
     }
 
     const result = await query(
-      `SELECT aa.*, p.full_name, p.professional_name, p.profile_photo_url, c.name AS category_name
+      `SELECT aa.*,
+              p.id AS profile_id,
+              p.full_name,
+              p.professional_name,
+              p.profile_photo_url,
+              p.custom_url,
+              c.name AS category_name,
+              u.email AS applicant_email
        FROM announcement_applications aa
-       JOIN profiles p ON p.user_id = aa.applicant_id
+       JOIN users u ON u.id = aa.applicant_id
+       LEFT JOIN profiles p ON p.user_id = aa.applicant_id
        LEFT JOIN categories c ON c.id = p.category_id
        WHERE aa.announcement_id = $1
        ORDER BY aa.created_at DESC`,
       [req.params.id]
+    );
+    res.json({ data: result.rows });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listIncomingApplications(req, res, next) {
+  try {
+    const adminAll = req.user.role === 'admin' && req.path.startsWith('/admin/');
+    const params = [];
+    const where = adminAll ? '' : (params.push(req.user.id), 'WHERE a.author_id = $1');
+    const result = await query(
+      `SELECT aa.*,
+              a.title AS announcement_title,
+              a.announcement_type,
+              a.status AS announcement_status,
+              p.id AS profile_id,
+              p.full_name,
+              p.professional_name,
+              p.profile_photo_url,
+              p.custom_url,
+              c.name AS category_name,
+              u.email AS applicant_email
+       FROM announcement_applications aa
+       JOIN announcements a ON a.id = aa.announcement_id
+       JOIN users u ON u.id = aa.applicant_id
+       LEFT JOIN profiles p ON p.user_id = aa.applicant_id
+       LEFT JOIN categories c ON c.id = p.category_id
+       ${where}
+       ORDER BY aa.created_at DESC`,
+      params
     );
     res.json({ data: result.rows });
   } catch (err) {
@@ -256,4 +362,5 @@ module.exports = {
   moderateAnnouncement,
   listMyAnnouncements,
   listApplications,
+  listIncomingApplications,
 };

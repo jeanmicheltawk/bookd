@@ -32,6 +32,7 @@ export class ProfilePublicComponent implements OnInit {
   loading = signal(true);
   notFound = signal(false);
   lightboxIndex = signal<number | null>(null);
+  photoLightboxIndex = signal<number | null>(null);
 
   ngOnInit(): void {
     const idOrSlug = this.route.snapshot.paramMap.get('id')!;
@@ -56,6 +57,18 @@ export class ProfilePublicComponent implements OnInit {
     return this.profile()?.portfolio || [];
   }
 
+  profilePhotoItems(): PortfolioItem[] {
+    const p = this.profile();
+    if (!p?.profile_photo_url) return [];
+    return [{
+      id: 'profile-photo',
+      media_type: 'image',
+      url: p.profile_photo_url,
+      title: p.professional_name || p.full_name,
+      sort_order: 0,
+    }];
+  }
+
   isPdf(item: PortfolioItem): boolean {
     return isPortfolioPdf(item);
   }
@@ -65,7 +78,14 @@ export class ProfilePublicComponent implements OnInit {
   }
 
   openLightbox(index: number): void {
+    this.photoLightboxIndex.set(null);
     this.lightboxIndex.set(index);
+  }
+
+  openPhotoLightbox(): void {
+    if (!this.profile()?.profile_photo_url) return;
+    this.lightboxIndex.set(null);
+    this.photoLightboxIndex.set(0);
   }
 
   showPublicNumbers(profile: Profile): boolean {

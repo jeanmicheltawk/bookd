@@ -53,6 +53,11 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this.userSignal());
   readonly isAdmin = computed(() => this.userSignal()?.role === 'admin');
   readonly isBrand = computed(() => this.userSignal()?.role === 'brand');
+  readonly isPremium = computed(() => {
+    const user = this.userSignal();
+    if (!user || user.role !== 'member') return false;
+    return (user.effective_membership || user.membership) === 'premium';
+  });
   readonly isPending = computed(() => {
     const user = this.userSignal();
     return !!user && user.role !== 'admin' && user.role !== 'brand' && user.approval_status === 'pending';

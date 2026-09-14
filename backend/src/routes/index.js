@@ -16,6 +16,8 @@ const booking = require('../controllers/bookingController');
 const message = require('../controllers/messageController');
 const event = require('../controllers/eventController');
 const learning = require('../controllers/learningController');
+const news = require('../controllers/newsController');
+const creativesOnBoard = require('../controllers/creativesOnBoardController');
 const dashboard = require('../controllers/dashboardController');
 const pricing = require('../controllers/pricingController');
 const adminUsers = require('../controllers/adminUserController');
@@ -109,10 +111,12 @@ router.get('/profiles/:idOrSlug', optionalAuth, profile.getPublicProfile);
 // Announcements
 router.get('/announcements', announcement.listApproved);
 router.get('/announcements/mine', ...approved, announcement.listMyAnnouncements);
+router.get('/announcements/mine/applications', ...approved, announcement.listIncomingApplications);
 router.get('/announcements/:id', optionalAuth, announcement.getAnnouncement);
 router.post('/announcements', ...approved, announcement.createAnnouncement);
 router.post('/announcements/:id/apply', ...approved, announcement.applyToAnnouncement);
 router.get('/announcements/:id/applications', ...approved, announcement.listApplications);
+router.get('/admin/announcements/applications', ...admin, announcement.listIncomingApplications);
 router.get('/admin/announcements', ...admin, announcement.listAllAdmin);
 router.patch('/admin/announcements/:id', ...admin, announcement.moderateAnnouncement);
 
@@ -152,12 +156,40 @@ router.post('/admin/learn', ...admin, learning.createArticle);
 router.patch('/admin/learn/:id', ...admin, learning.updateArticle);
 router.delete('/admin/learn/:id', ...admin, learning.deleteArticle);
 
+// News (homepage ticker — admin-authored)
+router.get('/news', news.listPublished);
+router.get('/news/:id', optionalAuth, news.getNews);
+router.get('/admin/news', ...admin, news.listAllAdmin);
+router.post(
+  '/admin/news',
+  ...admin,
+  forceUploadFolder('news'),
+  imageUpload.single('file'),
+  news.createNews
+);
+router.patch(
+  '/admin/news/:id',
+  ...admin,
+  forceUploadFolder('news'),
+  imageUpload.single('file'),
+  news.updateNews
+);
+router.delete('/admin/news/:id', ...admin, news.deleteNews);
+
+router.get('/creatives-on-board', creativesOnBoard.listPublic);
+router.get('/admin/creatives-on-board', ...admin, creativesOnBoard.listAdmin);
+router.get('/admin/creatives-on-board/candidates', ...admin, creativesOnBoard.listCandidates);
+router.post('/admin/creatives-on-board', ...admin, creativesOnBoard.addToBoard);
+router.patch('/admin/creatives-on-board/:id', ...admin, creativesOnBoard.moveOnBoard);
+router.delete('/admin/creatives-on-board/:id', ...admin, creativesOnBoard.removeFromBoard);
+
 // Pricing
 router.post('/pricing/estimate', pricing.estimatePrice);
 
 // Dashboard
 router.get('/dashboard/me', authenticate, dashboard.getMyDashboard);
 router.get('/dashboard/alerts', authenticate, dashboard.getAlerts);
+router.get('/dashboard/notifications', ...approved, dashboard.listNotifications);
 router.post('/dashboard/notifications/read', ...approved, dashboard.markNotificationsRead);
 router.post('/dashboard/subscription/end', ...approved, dashboard.endMySubscription);
 router.get('/payments/whish/callback/success', payments.whishSuccessCallback);

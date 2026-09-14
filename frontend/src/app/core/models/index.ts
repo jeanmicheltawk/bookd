@@ -18,6 +18,7 @@ export interface SubscriptionInfo {
   in_trial: boolean;
   can_end: boolean;
   needs_reminder: boolean;
+  payment_due?: boolean;
 }
 
 export interface User {
@@ -93,6 +94,8 @@ export interface WhishPaymentInstructions {
   sandbox?: boolean;
   sandbox_test?: WhishSandboxTest | null;
   configured?: boolean;
+  payment_due?: boolean;
+  paid_until?: string | null;
 }
 
 export type CancellationBy = 'self' | 'admin';
@@ -210,6 +213,12 @@ export interface SearchResult {
   bio?: string;
 }
 
+export interface CreativesOnBoardItem extends SearchResult {
+  board_id: string;
+  sort_order: number;
+  boarded_at?: string;
+}
+
 export interface Paginated<T> {
   data: T[];
   pagination: {
@@ -305,6 +314,8 @@ export interface Announcement {
   budget?: number;
   is_paid: boolean;
   location?: string;
+  contact_email?: string | null;
+  contact_phone?: string | null;
   deadline?: string;
   people_needed: number;
   moodboard_urls?: string[];
@@ -316,6 +327,7 @@ export interface Announcement {
   author_photo?: string;
   author_id?: string;
   created_at: string;
+  application_count?: number;
 }
 
 export interface AnnouncementApplication {
@@ -326,7 +338,12 @@ export interface AnnouncementApplication {
   full_name?: string;
   professional_name?: string;
   profile_photo_url?: string;
+  custom_url?: string;
+  profile_id?: string;
   category_name?: string;
+  applicant_email?: string;
+  announcement_title?: string;
+  announcement_status?: string;
   created_at: string;
 }
 
@@ -353,6 +370,17 @@ export interface LearningArticle {
   cover_image?: string;
   video_url?: string;
   is_published?: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface NewsItem {
+  id: string;
+  title: string;
+  body?: string;
+  image_url?: string;
+  is_published?: boolean;
+  sort_order?: number;
   created_at: string;
   updated_at?: string;
 }
@@ -425,10 +453,20 @@ export interface Message {
   created_at: string;
 }
 
+export interface DashboardNotification {
+  id: string;
+  title: string;
+  body?: string | null;
+  link?: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
 export interface DashboardAlerts {
   unreadMessages: number;
   newBookings: number;
   bookingUpdates: number;
+  unreadNotifications?: number;
   subscription?: SubscriptionInfo | null;
 }
 
@@ -479,6 +517,7 @@ export interface AdminAnalytics {
     monthlyAmount: number;
     activeMemberships: number;
     pendingPayments?: number;
+    pendingAnnouncements?: number;
   };
   topProfiles: Array<{
     id: string;

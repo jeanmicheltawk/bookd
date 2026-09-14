@@ -3,8 +3,10 @@
     <span class="eyebrow">LIVE GIGS &amp; CALLS</span>
     <div class="ann-hero__row">
       <h1 class="display-lg">GET <span class="text-gradient-acid">DISCOVERED</span> TODAY</h1>
-      @if (auth.isAuthenticated()) {
+      @if (auth.isAdmin() || auth.isPremium()) {
         <app-animated-button routerLink="/dashboard/announcements" variant="outline">Post an Announcement</app-animated-button>
+      } @else if (auth.isAuthenticated()) {
+        <app-animated-button routerLink="/pricing" variant="outline">Premium to Post</app-animated-button>
       }
     </div>
 

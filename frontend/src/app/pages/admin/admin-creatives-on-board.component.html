@@ -1,0 +1,74 @@
+<div class="admin-page">
+  <div class="admin-page__head">
+    <div>
+      <span class="eyebrow">HOMEPAGE</span>
+      <h1 class="display-lg">CREATIVES <span class="text-gradient">ON BOARD</span></h1>
+      <p class="admin-page__hint">Pick approved profiles to show under Announcements on Discover. Only people you add appear there.</p>
+    </div>
+    <app-animated-button variant="primary" (clicked)="openPicker()">Show all profiles</app-animated-button>
+  </div>
+
+  @if (loading()) {
+    <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (items().length) {
+    <div class="mod-list">
+      @for (item of items(); track item.board_id; let i = $index) {
+        <div class="mod-app mod-app--card">
+          <div class="board-person">
+            <img [src]="api.assetUrl(item.profile_photo_url) || 'assets/placeholder-avatar.svg'" [alt]="name(item)" />
+            <div>
+              <strong>{{ name(item) }}</strong>
+              <span>{{ item.category_name || 'Creative' }}{{ item.city || item.country ? ' · ' + (item.city ? item.city + ', ' : '') + (item.country || '') : '' }}</span>
+            </div>
+          </div>
+          <div class="board-actions">
+            <a [routerLink]="['/profile', item.custom_url || item.id]">View</a>
+            <button type="button" class="close-btn" [disabled]="i === 0 || actioningId() === item.board_id" (click)="move(item, 'up')">Up</button>
+            <button type="button" class="close-btn" [disabled]="i === items().length - 1 || actioningId() === item.board_id" (click)="move(item, 'down')">Down</button>
+            <button type="button" class="reject-btn" [disabled]="actioningId() === item.board_id" (click)="remove(item)">Remove</button>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <h3>No creatives on board yet.</h3>
+      <p>Open Show all profiles and add the creatives you want on Discover.</p>
+    </div>
+  }
+</div>
+
+@if (pickerOpen()) {
+  <div class="board-popup" (click)="closePicker()" role="dialog" aria-modal="true" aria-label="All profiles">
+    <div class="board-popup__panel" (click)="$event.stopPropagation()">
+      <button type="button" class="board-popup__close" (click)="closePicker()" aria-label="Close">✕</button>
+      <h2>All profiles</h2>
+      <form class="board-search" (ngSubmit)="search()">
+        <input type="text" name="query" [(ngModel)]="query" placeholder="Filter by name..." />
+        <app-animated-button type="submit" variant="primary" [loading]="searching()">Search</app-animated-button>
+      </form>
+      @if (error()) { <p class="form-error">{{ error() }}</p> }
+
+      @if (searching() && !results().length) {
+        <app-loading-screen [fullscreen]="false" label="LOADING PROFILES..." />
+      } @else if (results().length) {
+        <div class="mod-list">
+          @for (p of results(); track p.id) {
+            <div class="mod-app mod-app--card">
+              <div class="board-person">
+                <img [src]="api.assetUrl(p.profile_photo_url) || 'assets/placeholder-avatar.svg'" [alt]="name(p)" />
+                <div>
+                  <strong>{{ name(p) }}</strong>
+                  <span>{{ p.category_name || 'Creative' }}{{ p.city || p.country ? ' · ' + (p.city ? p.city + ', ' : '') + (p.country || '') : '' }}</span>
+                </div>
+              </div>
+              <button type="button" class="approve-btn" [disabled]="actioningId() === p.id" (click)="add(p)">Add</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="board-empty-hint">{{ query.trim() ? 'No matching profiles left to add.' : 'Every approved profile is already on board.' }}</p>
+      }
+    </div>
+  </div>
+}

@@ -25,13 +25,15 @@ export class AdminLayoutComponent {
 
   navItems: AdminNavItem[] = [
     { label: 'Overview', path: '/admin', icon: '◆' },
+    { label: 'News', path: '/admin/news', icon: '✦' },
+    { label: 'Announcements', path: '/admin/announcements', icon: '📣' },
+    { label: 'On Board', path: '/admin/creatives-on-board', icon: '★' },
     // FUTURE: { label: 'Content (CMS)', path: '/admin/content', icon: '✎' },
     { label: 'Theme', path: '/admin/theme', icon: '◐' },
     // FUTURE: { label: 'Media Library', path: '/admin/media', icon: '▦' },
     { label: 'Contacts', path: '/admin/contacts', icon: '✉' },
     { label: 'Categories', path: '/admin/categories', icon: '☰' },
     { label: 'Countries', path: '/admin/countries', icon: '◎' },
-    // FUTURE: { label: 'Announcements', path: '/admin/announcements', icon: '📣' },
     // FUTURE: { label: 'Events & Challenges', path: '/admin/events', icon: '★' },
     // FUTURE: { label: 'Learning Hub', path: '/admin/learn', icon: '▤' },
     { label: 'Users', path: '/admin/users', icon: '⌘' },

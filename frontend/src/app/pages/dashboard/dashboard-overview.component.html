@@ -21,7 +21,7 @@
         <h2 class="display-lg">APPLICATION <span class="text-gradient">UNDER REVIEW</span></h2>
         <p>
           Thanks for applying to BOOK'D HAUS. An admin is reviewing your profile.
-          You'll get an email when a decision is made. Until then you can update your info —
+          You'll get an email when a decision is made (check spam/junk too). Until then you can update your info —
           nothing goes live until you're accepted.
         </p>
         <app-animated-button routerLink="/dashboard/settings" variant="primary">Update Profile</app-animated-button>
@@ -70,62 +70,6 @@
   } @else if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING DASHBOARD..." />
   } @else {
-  @if (!auth.isBrand() && subscription(); as sub) {
-    @if (sub.status === 'complimentary' || auth.isComplimentary()) {
-      <div class="sub-card">
-        <div>
-          <span class="sub-card__label">Subscription</span>
-          <strong>{{ sub.plan_label }} · complimentary</strong>
-          <p>Your profile is free. You do not need to pay to stay public.</p>
-        </div>
-      </div>
-    } @else if (sub.status !== 'none') {
-      <div class="sub-card" [class.sub-card--alert]="sub.needs_reminder || sub.status === 'expired'">
-        <div>
-          <span class="sub-card__label">Subscription</span>
-          <strong>{{ sub.plan_label }} · {{ statusLabel(sub) }}</strong>
-          <p>
-            @if (sub.in_trial) {
-              Your 7-day free trial ends {{ formatDate(sub.trial_ends_at) }}
-              (it started when your application was accepted). You can end it anytime during these 7 days.
-            } @else {
-              7-day free trial
-              @if (sub.trial_ends_at) { until {{ formatDate(sub.trial_ends_at) }} }
-              · full period ends {{ formatDate(sub.ends_at) }}
-              @if (sub.days_remaining != null && sub.status !== 'expired') { ({{ sub.days_remaining }} day{{ sub.days_remaining === 1 ? '' : 's' }} left) }
-            }
-          </p>
-        </div>
-        <div class="sub-card__actions">
-          @if (sub.status === 'expired' || sub.status === 'ending_soon' || sub.in_trial || sub.status === 'active') {
-            <app-animated-button routerLink="/dashboard/pay" variant="primary" size="sm">Pay with Whish</app-animated-button>
-          }
-          @if (sub.can_end) {
-            <app-animated-button variant="outline" size="sm" [loading]="ending()" [disabled]="ending()" (clicked)="endTrial()">
-              End subscription
-            </app-animated-button>
-          }
-        </div>
-      </div>
-      @if (endError()) {
-        <p class="form-error">{{ endError() }}</p>
-      }
-
-      @if (payment(); as pay) {
-        <div class="pending-pay">
-          <app-whish-pay-instructions
-            [amount]="pay.amount"
-            [currency]="pay.currency"
-            [planLabel]="pay.plan_label"
-            [sandbox]="!!pay.sandbox"
-            [sandboxTest]="pay.sandbox_test || null"
-            [showCta]="true"
-          />
-        </div>
-      }
-    }
-  }
-
   @if (summary(); as s) {
     <div class="stats-grid">
       <a class="stat-card" routerLink="/dashboard/bookings" [class.has-alert]="!auth.isBrand() && s.alerts?.newBookings">
@@ -180,6 +124,63 @@
         <p class="empty-hint">No bookings yet. Once you start booking or getting booked, they'll show up here.</p>
       }
     </div>
+  }
+
+  @if (!auth.isBrand() && subscription(); as sub) {
+    @if (sub.status === 'complimentary' || auth.isComplimentary()) {
+      <div class="sub-card">
+        <div>
+          <span class="sub-card__label">Subscription</span>
+          <strong>{{ sub.plan_label }} · complimentary</strong>
+          <p>Your profile is free. You do not need to pay to stay public.</p>
+        </div>
+      </div>
+    } @else if (sub.status !== 'none') {
+      <div class="sub-card" [class.sub-card--alert]="sub.needs_reminder || sub.status === 'expired'">
+        <div>
+          <span class="sub-card__label">Subscription</span>
+          <strong>{{ sub.plan_label }} · {{ statusLabel(sub) }}</strong>
+          <p>
+            @if (sub.in_trial) {
+              Your 7-day free trial ends {{ formatDate(sub.trial_ends_at) }}
+              (it started when your application was accepted). You already paid for this period —
+              next payment opens 5 days before {{ formatDate(sub.ends_at) }}. You can end the trial anytime during these 7 days.
+            } @else {
+              7-day free trial
+              @if (sub.trial_ends_at) { until {{ formatDate(sub.trial_ends_at) }} }
+              · full period ends {{ formatDate(sub.ends_at) }}
+              @if (sub.days_remaining != null && sub.status !== 'expired') { ({{ sub.days_remaining }} day{{ sub.days_remaining === 1 ? '' : 's' }} left) }
+            }
+          </p>
+        </div>
+        <div class="sub-card__actions">
+          @if (sub.payment_due || sub.status === 'expired' || sub.status === 'ending_soon') {
+            <app-animated-button routerLink="/dashboard/pay" variant="primary" size="sm">Pay with Whish</app-animated-button>
+          }
+          @if (sub.can_end) {
+            <app-animated-button variant="outline" size="sm" [loading]="ending()" [disabled]="ending()" (clicked)="endTrial()">
+              End subscription
+            </app-animated-button>
+          }
+        </div>
+      </div>
+      @if (endError()) {
+        <p class="form-error">{{ endError() }}</p>
+      }
+
+      @if (payment(); as pay) {
+        <div class="pending-pay">
+          <app-whish-pay-instructions
+            [amount]="pay.amount"
+            [currency]="pay.currency"
+            [planLabel]="pay.plan_label"
+            [sandbox]="!!pay.sandbox"
+            [sandboxTest]="pay.sandbox_test || null"
+            [showCta]="true"
+          />
+        </div>
+      }
+    }
   }
   }
 </section>

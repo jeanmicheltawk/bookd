@@ -58,6 +58,10 @@ export class ApiService {
     return this.http.put<T>(`${this.base}${path}`, formData);
   }
 
+  patchForm<T>(path: string, formData: FormData): Observable<T> {
+    return this.http.patch<T>(`${this.base}${path}`, formData);
+  }
+
   /** Absolute URL builder for uploaded assets served outside /api (e.g. /uploads/...). */
   assetUrl(path?: string | null): string {
     if (!path) return '';

@@ -93,9 +93,7 @@ export class DashboardOverviewComponent implements OnInit {
         this.ending.set(false);
         this.summary.update((current) => current ? { ...current, subscription: sub } : current);
         this.alerts.apply({
-          unreadMessages: this.alerts.alerts().unreadMessages,
-          newBookings: this.alerts.alerts().newBookings,
-          bookingUpdates: this.alerts.alerts().bookingUpdates,
+          ...this.alerts.alerts(),
           subscription: sub,
         });
         this.auth.updateStoredUser({

@@ -195,6 +195,11 @@ async function getAdminDashboard(_req, res, next) {
          FROM subscription_payments
          WHERE status IN ('pending', 'awaiting')`
       ),
+      query(
+        `SELECT COUNT(*)::int AS pending
+         FROM announcements
+         WHERE status = 'pending'`
+      ),
     ]);
 
     settled.forEach((result, i) => {
@@ -229,6 +234,7 @@ async function getAdminDashboard(_req, res, next) {
         monthlyAmount: Number(stats.monthly_amount) || 0,
         activeMemberships: Number(stats.active_memberships) || 0,
         pendingPayments: Number(first(6).pending) || 0,
+        pendingAnnouncements: Number(first(7).pending) || 0,
       },
       topProfiles: row(5),
     });

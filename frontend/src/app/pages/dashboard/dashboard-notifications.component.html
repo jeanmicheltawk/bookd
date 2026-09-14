@@ -10,14 +10,32 @@
 
   @if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING..." />
-  } @else {
-    <div class="notif-summary glass-panel">
-      <span class="notif-summary__count text-gradient">{{ unreadCount() }}</span>
-      <p>unread notification{{ unreadCount() === 1 ? '' : 's' }}</p>
+  } @else if (notifications().length) {
+    <div class="notif-list">
+      @for (n of notifications(); track n.id) {
+        @if (n.link) {
+          <a class="notif-item" [class.unread]="!n.is_read" [routerLink]="n.link">
+            <div class="notif-item__main">
+              <strong>{{ n.title }}</strong>
+              @if (n.body) { <p>{{ n.body }}</p> }
+            </div>
+            <span class="notif-item__time">{{ n.created_at | date: 'MMM d, y' }}</span>
+          </a>
+        } @else {
+          <div class="notif-item" [class.unread]="!n.is_read">
+            <div class="notif-item__main">
+              <strong>{{ n.title }}</strong>
+              @if (n.body) { <p>{{ n.body }}</p> }
+            </div>
+            <span class="notif-item__time">{{ n.created_at | date: 'MMM d, y' }}</span>
+          </div>
+        }
+      }
     </div>
+  } @else {
     <div class="empty-state">
-      <h3>Detailed notifications are coming soon.</h3>
-      <p>For now, keep an eye on your bookings and messages tabs — that's where the action is.</p>
+      <h3>No notifications yet.</h3>
+      <p>Booking updates, applications, and account alerts will show up here.</p>
     </div>
   }
 </section>

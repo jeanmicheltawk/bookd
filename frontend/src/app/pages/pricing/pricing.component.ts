@@ -44,6 +44,7 @@ const PLANS: Plan[] = [
       'Up to 15 video links',
       'Priority spotlight placement',
       'Enhanced search visibility',
+      'Post announcements (admin approval)',
     ],
     cta: 'Apply Premium Plan',
     planKey: 'premium',

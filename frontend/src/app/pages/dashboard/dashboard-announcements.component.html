@@ -4,14 +4,31 @@
       <span class="eyebrow">POST A CALL</span>
       <h1 class="display-lg">MY <span class="text-gradient">ANNOUNCEMENTS</span></h1>
     </div>
-    <app-animated-button variant="primary" (clicked)="showForm.set(!showForm())">
-      {{ showForm() ? 'Cancel' : '+ New Announcement' }}
-    </app-animated-button>
+    @if (canPost()) {
+      <app-animated-button variant="primary" (clicked)="showForm.set(!showForm())">
+        {{ showForm() ? 'Cancel' : '+ New Announcement' }}
+      </app-animated-button>
+    }
   </div>
 
   <app-dashboard-nav />
 
-  @if (showForm()) {
+  @if (canPost()) {
+    <div class="status-chips">
+      <button type="button" class="chip" [class.active]="tab() === 'all'" (click)="setTab('all')">All applicants</button>
+      <button type="button" class="chip" [class.active]="tab() === 'posts'" (click)="setTab('posts')">My posts</button>
+    </div>
+  }
+
+  @if (!canPost()) {
+    <div class="empty-state upgrade-panel">
+      <h3>Premium feature</h3>
+      <p>Only Premium members can post announcements. After you submit, an admin approves or rejects it before it goes live.</p>
+      <app-animated-button routerLink="/pricing" variant="primary">See Premium</app-animated-button>
+    </div>
+  }
+
+  @if (canPost() && showForm()) {
     <form class="ann-form glass-panel animate-scale-in" #annForm="ngForm" (ngSubmit)="submit(annForm)">
       <div class="form-grid">
         <div class="form-field">
@@ -29,6 +46,14 @@
         <div class="form-field">
           <label>Location</label>
           <input type="text" name="location" [(ngModel)]="form.location" />
+        </div>
+        <div class="form-field">
+          <label>Email to contact *</label>
+          <input type="email" name="contactEmail" [(ngModel)]="form.contactEmail" placeholder="name@example.com" required />
+        </div>
+        <div class="form-field">
+          <label>Phone number / WhatsApp *</label>
+          <input type="tel" name="contactPhone" [(ngModel)]="form.contactPhone" placeholder="+961 ..." required />
         </div>
         <div class="form-field">
           <label>Budget ($)</label>
@@ -52,29 +77,101 @@
       </div>
 
       @if (formError()) { <p class="form-error">{{ formError() }}</p> }
+      @if (!auth.isAdmin()) {
+        <p class="form-hint">An admin will approve or reject this before it goes live. You'll get a notification either way.</p>
+      }
 
-      <app-animated-button type="submit" variant="primary" [loading]="submitting()">Post Announcement (Pending Review)</app-animated-button>
+      <app-animated-button type="submit" variant="primary" [loading]="submitting()">
+        {{ auth.isAdmin() ? 'Publish Announcement' : 'Submit for Admin Review' }}
+      </app-animated-button>
     </form>
   }
 
   @if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING..." />
+  } @else if (tab() === 'all') {
+    @if (incoming().length) {
+      <div class="my-ann-list">
+        @for (app of incoming(); track app.id) {
+          <div class="app-row app-row--card">
+            <img
+              class="app-row__photo"
+              [src]="api.assetUrl(app.profile_photo_url) || 'assets/placeholder-avatar.svg'"
+              [alt]="applicantName(app)"
+            />
+            <div class="app-row__info">
+              <strong>{{ applicantName(app) }}</strong>
+              <span>Applied for <b>{{ app.announcement_title || 'Announcement' }}</b> · {{ app.created_at | date: 'MMM d, y' }}</span>
+              @if (app.category_name) { <span>{{ app.category_name }}</span> }
+              @if (app.message) { <p>{{ app.message }}</p> }
+            </div>
+            <div class="app-row__actions">
+              <a [routerLink]="['/announcements', app.announcement_id]">View announcement</a>
+              @if (profileLink(app); as link) {
+                <a [routerLink]="['/profile', link]">View profile</a>
+              }
+              <a routerLink="/dashboard/messages" [queryParams]="{ with: app.applicant_id }">Message</a>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (canPost()) {
+      <div class="empty-state">
+        <h3>No applicants yet.</h3>
+        <p>When someone applies to one of your announcements, they'll show up here.</p>
+      </div>
+    }
   } @else if (announcements().length) {
     <div class="my-ann-list">
       @for (a of announcements(); track a.id) {
-        <div class="my-ann-row">
-          <div>
-            <strong>{{ a.title }}</strong>
-            <span>{{ a.announcement_type }}</span>
+        <div class="my-ann-card">
+          <div class="my-ann-row">
+            <div class="my-ann-row__main">
+              <strong>{{ a.title }}</strong>
+              <span>{{ a.announcement_type }}</span>
+            </div>
+            <div class="my-ann-row__side">
+              <span class="apps-count">{{ a.application_count || 0 }} applicant{{ (a.application_count || 0) === 1 ? '' : 's' }}</span>
+              <span class="status-badge status-{{ a.status }}">{{ a.status }}</span>
+            </div>
           </div>
-          <span class="status-badge status-{{ a.status }}">{{ a.status }}</span>
+
+          <div class="apps-panel">
+            @if ((a.application_count || 0) === 0) {
+              <p class="apps-empty">No one has applied yet.</p>
+            } @else if (!applicants()[a.id]) {
+              <p class="apps-empty">Loading applicants...</p>
+            } @else {
+              @for (app of applicantsFor(a.id); track app.id) {
+                <div class="app-row">
+                  <img
+                    class="app-row__photo"
+                    [src]="api.assetUrl(app.profile_photo_url) || 'assets/placeholder-avatar.svg'"
+                    [alt]="applicantName(app)"
+                  />
+                  <div class="app-row__info">
+                    <strong>{{ applicantName(app) }}</strong>
+                    <span>{{ app.category_name || 'Talent' }} · {{ app.created_at | date: 'MMM d, y' }}</span>
+                    @if (app.message) { <p>{{ app.message }}</p> }
+                  </div>
+                  <div class="app-row__actions">
+                    <a [routerLink]="['/announcements', a.id]">View announcement</a>
+                    @if (profileLink(app); as link) {
+                      <a [routerLink]="['/profile', link]">View profile</a>
+                    }
+                    <a routerLink="/dashboard/messages" [queryParams]="{ with: app.applicant_id }">Message</a>
+                  </div>
+                </div>
+              }
+            }
+          </div>
         </div>
       }
     </div>
-  } @else {
+  } @else if (canPost()) {
     <div class="empty-state">
       <h3>You haven't posted any announcements yet.</h3>
-      <p>Post a call for talent and let creatives come to you.</p>
+      <p>Post a call for talent and let creatives come to you. An admin will review it first.</p>
     </div>
   }
 </section>

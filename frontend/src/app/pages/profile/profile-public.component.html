@@ -19,7 +19,14 @@
     <div class="p-header">
       <div class="p-header__photo">
         @if (p.profile_photo_url) {
-          <img [src]="photo(p.profile_photo_url)" [alt]="p.professional_name || p.full_name" />
+          <button
+            type="button"
+            class="p-header__photo-btn"
+            (click)="openPhotoLightbox()"
+            [attr.aria-label]="'View ' + (p.professional_name || p.full_name) + ' photo'"
+          >
+            <img [src]="photo(p.profile_photo_url)" [alt]="p.professional_name || p.full_name" />
+          </button>
         } @else {
           <div class="p-header__placeholder">{{ (p.professional_name || p.full_name).slice(0,2).toUpperCase() }}</div>
         }
@@ -136,5 +143,6 @@
   </section>
 
   <app-portfolio-lightbox [items]="portfolioItems()" [(index)]="lightboxIndex" />
+  <app-portfolio-lightbox [items]="profilePhotoItems()" [(index)]="photoLightboxIndex" />
 }
 }

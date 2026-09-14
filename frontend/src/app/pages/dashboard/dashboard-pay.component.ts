@@ -54,8 +54,18 @@ export class DashboardPayComponent implements OnInit {
     return this.payment?.status === 'confirmed';
   }
 
+  get isPaymentDue(): boolean {
+    if (this.auth.isPending()) return !this.isPaymentConfirmed;
+    if (this.info()?.payment_due != null) return !!this.info()?.payment_due;
+    return !this.isPaymentConfirmed;
+  }
+
+  get paidUntil(): string | null {
+    return this.info()?.paid_until || this.auth.user()?.subscription?.ends_at || this.auth.user()?.membership_ends_at || null;
+  }
+
   get canCheckout(): boolean {
-    return !this.isPaymentConfirmed && !!this.info();
+    return this.isPaymentDue && !this.isPaymentConfirmed && !!this.info();
   }
 
   load(afterReturn = false): void {

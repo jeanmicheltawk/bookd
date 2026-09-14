@@ -10,6 +10,7 @@ import { AnalyticsService } from '../../core/services/analytics.service';
 import { Announcement, Category, HeroSlide } from '../../core/models';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { ProfileCardComponent, ProfileCardData } from '../../shared/components/profile-card/profile-card.component';
+import { NewsTickerComponent } from '../../shared/components/news-ticker/news-ticker.component';
 
 const FALLBACK_SLIDES: HeroSlide[] = [
   { title: "BOOK AND GET BOOK'D", subtitle: 'The bold new home for creative talent & the brands who need them.' },
@@ -27,7 +28,7 @@ const VALUES = [
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, AnimatedButtonComponent, ProfileCardComponent],
+  imports: [CommonModule, RouterLink, AnimatedButtonComponent, ProfileCardComponent, NewsTickerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

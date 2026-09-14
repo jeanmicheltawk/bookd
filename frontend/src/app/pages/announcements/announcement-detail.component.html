@@ -61,6 +61,21 @@
           <ul>
             @if (a.required_category_name) { <li><span>Category</span><strong>{{ a.required_category_name }}</strong></li> }
             @if (a.location) { <li><span>Location</span><strong>{{ a.location }}</strong></li> }
+            @if (a.contact_email) {
+              <li>
+                <span>Email to contact</span>
+                <strong class="contact-value"><a [href]="'mailto:' + a.contact_email">{{ a.contact_email }}</a></strong>
+              </li>
+            }
+            @if (a.contact_phone) {
+              <li>
+                <span>Phone / WhatsApp</span>
+                <strong class="contact-value">
+                  <a [href]="'tel:' + a.contact_phone">{{ a.contact_phone }}</a>
+                  <a class="whatsapp-link" [href]="whatsappHref(a.contact_phone)" target="_blank" rel="noopener">WhatsApp</a>
+                </strong>
+              </li>
+            }
             @if (a.budget) { <li><span>Budget</span><strong>${{ a.budget }}</strong></li> }
             <li><span>People Needed</span><strong>{{ a.people_needed }}</strong></li>
             @if (a.deadline) { <li><span>Deadline</span><strong>{{ a.deadline | date: 'MMM d, y' }}</strong></li> }

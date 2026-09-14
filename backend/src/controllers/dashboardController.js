@@ -5,11 +5,12 @@ const {
   endSubscription,
   isPaidPlan,
   isComplimentary,
+  isPaymentDue,
 } = require('../utils/subscription');
-const { ensureOpenPayment, instructionsFor } = require('../utils/payment');
+const { ensureOpenPayment, instructionsFor, closePrematurePayments } = require('../utils/payment');
 
 async function loadAlerts(userId) {
-  const [messages, incoming, updates] = await Promise.all([
+  const [messages, incoming, updates, notices] = await Promise.all([
     query(
       `SELECT COUNT(*)::int AS unread
        FROM messages m
@@ -29,12 +30,19 @@ async function loadAlerts(userId) {
        WHERE user_id = $1 AND is_read = FALSE AND link = '/dashboard/bookings'`,
       [userId]
     ),
+    query(
+      `SELECT COUNT(*)::int AS unread
+       FROM notifications
+       WHERE user_id = $1 AND is_read = FALSE`,
+      [userId]
+    ),
   ]);
 
   return {
     unreadMessages: messages.rows[0].unread,
     newBookings: incoming.rows[0].count,
     bookingUpdates: updates.rows[0].count,
+    unreadNotifications: notices.rows[0].unread,
   };
 }
 
@@ -49,6 +57,22 @@ async function getAlerts(req, res, next) {
       ...alerts,
       subscription: subscriptionUser?.role === 'member' ? subscriptionUser.subscription : null,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listNotifications(req, res, next) {
+  try {
+    const result = await query(
+      `SELECT id, title, body, link, is_read, created_at
+       FROM notifications
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [req.user.id]
+    );
+    res.json({ data: result.rows });
   } catch (err) {
     next(err);
   }
@@ -134,9 +158,16 @@ async function getMyDashboard(req, res, next) {
       [userId]
     );
 
-    const payment = subscriptionUser?.role === 'member'
+    const needsPayment = subscriptionUser?.role === 'member'
       && isPaidPlan(subscriptionUser.membership)
       && !isComplimentary(subscriptionUser)
+      && isPaymentDue(subscriptionUser);
+
+    if (subscriptionUser?.role === 'member' && !needsPayment) {
+      await closePrematurePayments(subscriptionUser.id);
+    }
+
+    const payment = needsPayment
       ? instructionsFor(subscriptionUser, await ensureOpenPayment(subscriptionUser))
       : null;
 
@@ -168,4 +199,4 @@ async function endMySubscription(req, res, next) {
   }
 }
 
-module.exports = { getMyDashboard, getAlerts, markNotificationsRead, endMySubscription };
+module.exports = { getMyDashboard, getAlerts, listNotifications, markNotificationsRead, endMySubscription };

@@ -6,7 +6,7 @@
 
     <nav class="navbar__links hide-mobile">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Discover</a>
-      <!-- FUTURE: <a routerLink="/announcements" routerLinkActive="active">Announcements</a> -->
+      <a routerLink="/announcements" routerLinkActive="active">Announcements</a>
       <!-- FUTURE: <a routerLink="/challenges" routerLinkActive="active">Challenges</a> -->
       <!-- FUTURE: <a routerLink="/learn" routerLinkActive="active">Learn</a> -->
       <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
@@ -84,7 +84,7 @@
   @if (mobileMenuOpen()) {
     <div class="navbar__mobile-panel animate-slide-down">
       <a routerLink="/" (click)="closeMobileMenu()">Discover</a>
-      <!-- FUTURE: <a routerLink="/announcements" (click)="closeMobileMenu()">Announcements</a> -->
+      <a routerLink="/announcements" (click)="closeMobileMenu()">Announcements</a>
       <!-- FUTURE: <a routerLink="/challenges" (click)="closeMobileMenu()">Challenges</a> -->
       <!-- FUTURE: <a routerLink="/learn" (click)="closeMobileMenu()">Learn</a> -->
       <a routerLink="/pricing" (click)="closeMobileMenu()">Pricing</a>

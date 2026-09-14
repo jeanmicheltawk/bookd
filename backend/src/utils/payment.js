@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { query, getClient } = require('../config/db');
-const { isPaidPlan, planLabel, isComplimentary, extendPaidPeriod, startPaidPeriod, clearPaidPeriod } = require('./subscription');
+const { isPaidPlan, planLabel, isComplimentary, isPaymentDue, extendPaidPeriod, startPaidPeriod, clearPaidPeriod } = require('./subscription');
 const { notify } = require('./notify');
 const { emailAdmin, dashboardUrl, cta } = require('./mailer');
 const whishPay = require('./whishPay');
@@ -39,6 +39,8 @@ function instructionsFor(user, payment) {
     sandbox: whishPay.isSandbox(),
     sandbox_test: whishPay.isSandbox() ? whishPay.SANDBOX_TEST : null,
     configured: whishPay.isConfigured(),
+    payment_due: isPaymentDue(user),
+    paid_until: user.membership_ends_at || null,
   };
 }
 
@@ -104,12 +106,28 @@ async function closeOpenPayments(userId, exec = query) {
   );
 }
 
+async function closePrematurePayments(userId, exec = query) {
+  await exec(
+    `UPDATE subscription_payments
+     SET status = 'rejected',
+         review_note = COALESCE(review_note, 'Closed: next payment is not due yet'),
+         reviewed_at = COALESCE(reviewed_at, NOW()),
+         updated_at = NOW()
+     WHERE user_id = $1 AND status = 'awaiting' AND collect_url IS NULL`,
+    [userId]
+  );
+}
+
 async function ensureOpenPayment(user) {
   if (!user?.id || !isPaidPlan(user.membership) || isComplimentary(user)) return null;
 
   const confirmed = await latestConfirmedPayment(user.id);
   if (confirmed && user.approval_status !== 'approved') {
     return confirmed;
+  }
+
+  if (!isPaymentDue(user)) {
+    return confirmed || null;
   }
 
   const existing = await loadOpenPayment(user.id);
@@ -400,6 +418,7 @@ module.exports = {
   hasConfirmedPayment,
   markPaymentsApplied,
   closeOpenPayments,
+  closePrematurePayments,
   ensureOpenPayment,
   paymentEmailLines,
   applyPaymentDecision,

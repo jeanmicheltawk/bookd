@@ -10,11 +10,12 @@ const {
   createCheckout,
   reconcilePaymentWithWhish,
 } = require('../utils/payment');
-const { isPaidPlan, isComplimentary } = require('../utils/subscription');
+const { isPaidPlan, isComplimentary, isPaymentDue, planLabel } = require('../utils/subscription');
 
 async function loadMember(userId) {
   const result = await query(
     `SELECT u.id, u.email, u.role, u.membership, u.approval_status, u.is_complimentary,
+            u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
             p.full_name, p.professional_name, p.phone
      FROM users u
      LEFT JOIN profiles p ON p.user_id = u.id
@@ -37,7 +38,9 @@ async function getMyWhishPayment(req, res, next) {
     const user = await loadMember(req.user.id);
     if (!paidMemberOrError(user, res)) return;
 
-    let payment = await ensureOpenPayment(user);
+    let payment = isPaymentDue(user)
+      ? await ensureOpenPayment(user)
+      : await latestConfirmedPayment(user.id);
     if (payment && payment.status !== 'confirmed') {
       try {
         payment = await reconcilePaymentWithWhish(payment);
@@ -69,6 +72,19 @@ async function startWhishCheckout(req, res, next) {
           ...instructionsFor(user, confirmed),
         });
       }
+    } else if (!isPaymentDue(user)) {
+      const confirmed = await latestConfirmedPayment(user.id);
+      const until = user.membership_ends_at
+        ? new Date(user.membership_ends_at).toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+        : 'the end of this period';
+      return res.status(409).json({
+        error: `Your ${planLabel(user.membership)} is already paid until ${until}. You can pay again 5 days before that date.`,
+        ...instructionsFor(user, confirmed),
+      });
     }
 
     const payment = await createCheckout(user);
@@ -91,6 +107,7 @@ async function syncMyWhishPayment(req, res, next) {
 
     const payment = await loadOpenPayment(user.id) || await latestConfirmedPayment(user.id);
     if (!payment) {
+      if (!isPaymentDue(user)) return res.json(instructionsFor(user, null));
       return res.json(instructionsFor(user, await ensureOpenPayment(user)));
     }
     const synced = await reconcilePaymentWithWhish(payment);

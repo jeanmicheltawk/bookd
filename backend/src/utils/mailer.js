@@ -47,7 +47,7 @@ if (transport) {
 }
 
 function logoHtml() {
-  const src = logoExists ? `cid:${LOGO_CID}` : `${config.appUrl}/assets/logo-full-ink.svg`;
+  const src = logoExists ? `cid:${LOGO_CID}` : `${config.emailAppUrl || config.appUrl}/assets/logo-full-ink.svg`;
   return `<img src="${src}" alt="BOOK'D" width="168" style="display:block;width:168px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;" />`;
 }
 
@@ -111,7 +111,7 @@ function logoAttachment() {
 }
 
 function dashboardUrl(path) {
-  const base = config.appUrl.replace(/\/$/, '');
+  const base = (config.emailAppUrl || config.appUrl).replace(/\/$/, '');
   const suffix = path?.startsWith('/') ? path : `/${path || 'dashboard'}`;
   return `${base}${suffix}`;
 }

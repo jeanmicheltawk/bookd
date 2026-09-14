@@ -43,6 +43,11 @@ export class AnnouncementDetailComponent implements OnInit {
       });
   }
 
+  whatsappHref(phone: string): string {
+    const digits = String(phone || '').replace(/\D/g, '');
+    return digits ? `https://wa.me/${digits}` : 'https://wa.me/';
+  }
+
   submitApplication(): void {
     if (!this.auth.isAuthenticated()) {
       this.router.navigate(['/auth/login'], { queryParams: { redirect: this.router.url } });

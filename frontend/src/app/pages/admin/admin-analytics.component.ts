@@ -16,6 +16,7 @@ const EMPTY_PROFILES = {
   monthlyAmount: 0,
   activeMemberships: 0,
   pendingPayments: 0,
+  pendingAnnouncements: 0,
 };
 
 @Component({

@@ -87,7 +87,7 @@
   gap: 16px;
   flex-wrap: wrap;
   padding: 20px 24px;
-  margin-bottom: 28px;
+  margin-top: 48px;
   border: 1px solid currentColor;
 
   &__label {
@@ -127,7 +127,7 @@
 }
 
 .form-error {
-  margin: -12px 0 24px;
+  margin: 12px 0 0;
   font-size: 0.85rem;
 }
 

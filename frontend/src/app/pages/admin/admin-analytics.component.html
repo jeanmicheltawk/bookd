@@ -41,6 +41,11 @@
         <span class="value">{{ profiles().pendingPayments || 0 }}</span>
         <span class="hint">Waiting for confirmation</span>
       </a>
+      <a routerLink="/admin/announcements" class="stat-card stat-card--link">
+        <span class="label">Pending Announcements</span>
+        <span class="value">{{ profiles().pendingAnnouncements || 0 }}</span>
+        <span class="hint">Waiting to approve or reject</span>
+      </a>
     </div>
 
     <div class="panel">

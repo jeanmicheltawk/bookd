@@ -31,19 +31,18 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/discover/discover.component').then((m) => m.DiscoverComponent),
         title: "Search — BOOK'D HAUS",
       },
-      // FUTURE: Announcements
-      // {
-      //   path: 'announcements',
-      //   loadComponent: () =>
-      //     import('./pages/announcements/announcements-list.component').then((m) => m.AnnouncementsListComponent),
-      //   title: "Announcements — BOOK'D HAUS",
-      // },
-      // {
-      //   path: 'announcements/:id',
-      //   loadComponent: () =>
-      //     import('./pages/announcements/announcement-detail.component').then((m) => m.AnnouncementDetailComponent),
-      //   title: "Announcement — BOOK'D HAUS",
-      // },
+      {
+        path: 'announcements',
+        loadComponent: () =>
+          import('./pages/announcements/announcements-list.component').then((m) => m.AnnouncementsListComponent),
+        title: "Announcements — BOOK'D HAUS",
+      },
+      {
+        path: 'announcements/:id',
+        loadComponent: () =>
+          import('./pages/announcements/announcement-detail.component').then((m) => m.AnnouncementDetailComponent),
+        title: "Announcement — BOOK'D HAUS",
+      },
       // FUTURE: Challenges & Events
       // {
       //   path: 'challenges',
@@ -156,15 +155,15 @@ export const routes: Routes = [
           import('./pages/dashboard/dashboard-portfolio.component').then((m) => m.DashboardPortfolioComponent),
         title: 'My Portfolio',
       },
-      // FUTURE: member announcements
-      // {
-      //   path: 'announcements',
-      //   loadComponent: () =>
-      //     import('./pages/dashboard/dashboard-announcements.component').then(
-      //       (m) => m.DashboardAnnouncementsComponent,
-      //     ),
-      //   title: 'My Announcements',
-      // },
+      {
+        path: 'announcements',
+        canActivate: [talentGuard, approvedGuard],
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard-announcements.component').then(
+            (m) => m.DashboardAnnouncementsComponent,
+          ),
+        title: 'My Announcements',
+      },
       {
         path: 'settings',
         loadComponent: () =>
@@ -191,6 +190,23 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/admin/admin-analytics.component').then((m) => m.AdminAnalyticsComponent),
         title: 'Admin — Control Room',
+      },
+      {
+        path: 'news',
+        loadComponent: () => import('./pages/admin/admin-news.component').then((m) => m.AdminNewsComponent),
+        title: 'Admin — News',
+      },
+      {
+        path: 'announcements',
+        loadComponent: () =>
+          import('./pages/admin/admin-announcements.component').then((m) => m.AdminAnnouncementsComponent),
+        title: 'Admin — Announcements',
+      },
+      {
+        path: 'creatives-on-board',
+        loadComponent: () =>
+          import('./pages/admin/admin-creatives-on-board.component').then((m) => m.AdminCreativesOnBoardComponent),
+        title: 'Admin — Creatives on Board',
       },
       // FUTURE: Content (CMS)
       // {
@@ -226,13 +242,6 @@ export const routes: Routes = [
           import('./pages/admin/admin-countries.component').then((m) => m.AdminCountriesComponent),
         title: 'Admin — Countries',
       },
-      // FUTURE: Announcements
-      // {
-      //   path: 'announcements',
-      //   loadComponent: () =>
-      //     import('./pages/admin/admin-announcements.component').then((m) => m.AdminAnnouncementsComponent),
-      //   title: 'Admin — Announcements',
-      // },
       // FUTURE: Events & Challenges
       // {
       //   path: 'events',
