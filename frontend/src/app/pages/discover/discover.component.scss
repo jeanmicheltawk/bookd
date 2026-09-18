@@ -103,8 +103,16 @@
 
 .home-announcements__row {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-announcements__scroller {
+  display: flex;
   gap: 10px;
   overflow-x: auto;
+  flex: 1;
+  min-width: 0;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
@@ -146,8 +154,16 @@
 .home-onboard__row {
   display: flex;
   align-items: stretch;
+  gap: 8px;
+}
+
+.home-onboard__scroller {
+  display: flex;
+  align-items: stretch;
   gap: 14px;
   overflow-x: auto;
+  flex: 1;
+  min-width: 0;
   padding-bottom: 8px;
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
@@ -157,6 +173,27 @@
   flex: 0 0 auto;
   width: min(220px, 68vw);
   display: flex;
+}
+
+.home-scroll-nav {
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+
+  &--tall {
+    height: auto;
+    align-self: stretch;
+  }
 }
 
 .results__head {

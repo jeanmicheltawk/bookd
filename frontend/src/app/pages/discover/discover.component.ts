@@ -37,6 +37,8 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
 
   @ViewChild('loadMoreSentinel') loadMoreSentinel?: ElementRef<HTMLElement>;
+  @ViewChild('onBoardScroller') onBoardScroller?: ElementRef<HTMLElement>;
+  @ViewChild('announcementScroller') announcementScroller?: ElementRef<HTMLElement>;
 
   categories = signal<Category[]>([]);
   countries = signal<Country[]>([]);
@@ -129,6 +131,14 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
 
   applyFilters(): void {
     this.syncUrl();
+  }
+
+  scrollOnBoard(direction: number): void {
+    this.onBoardScroller?.nativeElement.scrollBy({ left: direction * 234, behavior: 'smooth' });
+  }
+
+  scrollAnnouncements(direction: number): void {
+    this.announcementScroller?.nativeElement.scrollBy({ left: direction * 250, behavior: 'smooth' });
   }
 
   private observeSentinel(): void {

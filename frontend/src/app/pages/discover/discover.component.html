@@ -10,12 +10,16 @@
             <a routerLink="/announcements" class="home-announcements__all">View all →</a>
           </div>
           <div class="home-announcements__row">
-            @for (a of announcements(); track a.id) {
-              <a class="home-announcements__card" [routerLink]="['/announcements', a.id]">
-                <span>{{ a.announcement_type }}</span>
-                <strong>{{ a.title }}</strong>
-              </a>
-            }
+            <button type="button" class="home-scroll-nav" (click)="scrollAnnouncements(-1)" aria-label="Scroll announcements left">‹</button>
+            <div class="home-announcements__scroller" #announcementScroller tabindex="0" aria-label="Announcements">
+              @for (a of announcements(); track a.id) {
+                <a class="home-announcements__card" [routerLink]="['/announcements', a.id]">
+                  <span>{{ a.announcement_type }}</span>
+                  <strong>{{ a.title }}</strong>
+                </a>
+              }
+            </div>
+            <button type="button" class="home-scroll-nav" (click)="scrollAnnouncements(1)" aria-label="Scroll announcements right">›</button>
           </div>
         </div>
       </section>
@@ -28,11 +32,15 @@
             <span class="eyebrow">CREATIVES ON BOARD</span>
           </div>
           <div class="home-onboard__row">
-            @for (p of onBoard(); track p.id; let i = $index) {
-              <div class="home-onboard__card">
-                <app-profile-card [profile]="p" [index]="i" />
-              </div>
-            }
+            <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollOnBoard(-1)" aria-label="Scroll creatives left">‹</button>
+            <div class="home-onboard__scroller" #onBoardScroller tabindex="0" aria-label="Creatives on board">
+              @for (p of onBoard(); track p.id; let i = $index) {
+                <div class="home-onboard__card">
+                  <app-profile-card [profile]="p" [index]="i" />
+                </div>
+              }
+            </div>
+            <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollOnBoard(1)" aria-label="Scroll creatives right">›</button>
           </div>
         </div>
       </section>
