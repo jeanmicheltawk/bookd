@@ -13,10 +13,19 @@
         <div class="news-ticker__scroller" #scroller tabindex="0" aria-label="News">
           @for (item of news(); track item.id) {
             <button type="button" class="news-ticker__card" (click)="open(item)">
-              @if (auth.isAdmin() && item.is_published === false) {
-                <span class="news-ticker__draft">Draft</span>
+              @if (item.image_url) {
+                <img class="news-ticker__image" [src]="api.assetUrl(item.image_url)" [alt]="" />
               }
-              <span class="news-ticker__title">{{ item.title }}</span>
+              <span class="news-ticker__copy">
+                @if (auth.isAdmin() && item.is_published === false) {
+                  <span class="news-ticker__draft">Draft</span>
+                }
+                <time>{{ item.created_at | date: 'MMM d, y' }}</time>
+                <span class="news-ticker__title">{{ item.title }}</span>
+                @if (item.body) {
+                  <span class="news-ticker__excerpt">{{ item.body }}</span>
+                }
+              </span>
             </button>
           }
         </div>

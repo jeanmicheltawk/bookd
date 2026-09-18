@@ -10,16 +10,29 @@
             <a routerLink="/announcements" class="home-announcements__all">View all →</a>
           </div>
           <div class="home-announcements__row">
-            <button type="button" class="home-scroll-nav" (click)="scrollAnnouncements(-1)" aria-label="Scroll announcements left">‹</button>
+            <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollAnnouncements(-1)" aria-label="Scroll announcements left">‹</button>
             <div class="home-announcements__scroller" #announcementScroller tabindex="0" aria-label="Announcements">
               @for (a of announcements(); track a.id) {
                 <a class="home-announcements__card" [routerLink]="['/announcements', a.id]">
-                  <span>{{ a.announcement_type }}</span>
+                  <div class="home-announcements__top">
+                    <span class="home-announcements__type">{{ a.announcement_type }}</span>
+                    @if (a.is_paid) { <span class="home-announcements__paid">PAID</span> }
+                  </div>
                   <strong>{{ a.title }}</strong>
+                  @if (a.description) {
+                    <p>{{ a.description }}</p>
+                  }
+                  <div class="home-announcements__meta">
+                    @if (a.required_category_name) { <span>{{ a.required_category_name }}</span> }
+                    @if (a.location) { <span>{{ a.location }}</span> }
+                    @if (a.budget) { <span>${{ a.budget }}</span> }
+                    @if (a.deadline) { <span>{{ a.deadline | date: 'MMM d' }}</span> }
+                  </div>
+                  <span class="home-announcements__by">By {{ a.author_professional_name || a.author_name }}</span>
                 </a>
               }
             </div>
-            <button type="button" class="home-scroll-nav" (click)="scrollAnnouncements(1)" aria-label="Scroll announcements right">›</button>
+            <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollAnnouncements(1)" aria-label="Scroll announcements right">›</button>
           </div>
         </div>
       </section>

@@ -93,8 +93,8 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.categoryService.list({ searchable: true }).pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.categories.set(res.data));
     this.countryService.list().pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.countries.set(res.data));
-    this.announcementService.list({ limit: 8 })
-      .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 8, total: 0, totalPages: 0 } })))
+    this.announcementService.list({ limit: 12 })
+      .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } })))
       .subscribe((res) => this.announcements.set(res.data));
     this.onBoardService.list()
       .pipe(catchError(() => of({ data: [] })))
@@ -138,7 +138,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   scrollAnnouncements(direction: number): void {
-    this.announcementScroller?.nativeElement.scrollBy({ left: direction * 250, behavior: 'smooth' });
+    this.announcementScroller?.nativeElement.scrollBy({ left: direction * 320, behavior: 'smooth' });
   }
 
   private observeSentinel(): void {

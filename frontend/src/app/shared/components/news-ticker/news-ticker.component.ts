@@ -59,7 +59,7 @@ export class NewsTickerComponent implements OnInit, OnDestroy {
   }
 
   scroll(direction: number): void {
-    this.scroller()?.nativeElement.scrollBy({ left: direction * 280, behavior: 'smooth' });
+    this.scroller()?.nativeElement.scrollBy({ left: direction * 340, behavior: 'smooth' });
   }
 
   open(item: NewsItem): void {
