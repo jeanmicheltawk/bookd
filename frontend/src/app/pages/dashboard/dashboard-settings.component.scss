@@ -22,7 +22,20 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  img { width: 100px; height: 100px; object-fit: cover; border: 1px solid currentColor; }
+  img {
+    width: 135px;
+    height: 180px;
+    object-fit: cover;
+    object-position: center top;
+    border: 1px solid currentColor;
+  }
+}
+
+.photo-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .upload-btn {

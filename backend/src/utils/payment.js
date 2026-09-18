@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { query, getClient } = require('../config/db');
-const { isPaidPlan, planLabel, isComplimentary, isPaymentDue, extendPaidPeriod, startPaidPeriod, clearPaidPeriod } = require('./subscription');
+const { isPaidPlan, planLabel, isComplimentary, isPaymentDue, extendPaidPeriod, startPaidPeriod, clearPaidPeriod, applyPremiumUpgrade, daysRemainingExact } = require('./subscription');
 const { notify } = require('./notify');
 const { emailAdmin, dashboardUrl, cta } = require('./mailer');
 const whishPay = require('./whishPay');
@@ -10,6 +10,10 @@ const PLAN_AMOUNTS = {
   premium: 14.99,
 };
 
+const UPGRADE_TOPUP_AMOUNT = 8;
+const UPGRADE_WINDOW_DAYS = 7;
+const UPGRADE_PURPOSES = ['upgrade_topup', 'upgrade_full'];
+
 function generateReference() {
   return `BKD-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
 }
@@ -18,16 +22,86 @@ function planAmount(membership) {
   return PLAN_AMOUNTS[membership] || PLAN_AMOUNTS.basic;
 }
 
-function mapPayment(row) {
-  if (!row) return null;
+function isUpgradePurpose(purpose) {
+  return UPGRADE_PURPOSES.includes(purpose);
+}
+
+function upgradeQuote(user, { hasPaid } = {}) {
+  if (!user || user.role !== 'member' || user.membership !== 'basic' || isComplimentary(user)) {
+    return null;
+  }
+  if (user.approval_status && user.approval_status !== 'approved' && user.approval_status !== 'pending') {
+    return null;
+  }
+
+  let purpose = 'upgrade_full';
+  let amount = PLAN_AMOUNTS.premium;
+  const days = daysRemainingExact(user.membership_ends_at);
+
+  if (user.approval_status === 'pending') {
+    if (hasPaid) {
+      purpose = 'upgrade_topup';
+      amount = UPGRADE_TOPUP_AMOUNT;
+    }
+  } else if (days != null && days > 0 && days < UPGRADE_WINDOW_DAYS) {
+    purpose = 'upgrade_topup';
+    amount = UPGRADE_TOPUP_AMOUNT;
+  }
+
+  const isTopup = purpose === 'upgrade_topup';
+  const now = new Date();
+  const currentEnd = user.membership_ends_at ? new Date(user.membership_ends_at) : null;
+  let nextPaidUntil = null;
+  if (user.approval_status === 'approved') {
+    if (isTopup && currentEnd) {
+      nextPaidUntil = currentEnd;
+    } else {
+      const oneMonth = new Date(now);
+      oneMonth.setMonth(oneMonth.getMonth() + 1);
+      nextPaidUntil = currentEnd && currentEnd > oneMonth ? currentEnd : oneMonth;
+    }
+  }
+  const cutoff = currentEnd
+    ? new Date(currentEnd.getTime() - UPGRADE_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+    : null;
+  const renewalOpens = nextPaidUntil
+    ? new Date(nextPaidUntil.getTime() - 5 * 24 * 60 * 60 * 1000)
+    : null;
+
   return {
-    ...row,
-    amount: Number(row.amount),
-    plan_label: planLabel(row.plan),
+    available: true,
+    kind: isTopup ? 'topup' : 'full',
+    purpose,
+    amount,
+    currency: 'USD',
+    plan: 'premium',
+    plan_label: 'Premium plan',
+    days_remaining: days == null ? null : Math.max(0, Math.ceil(days)),
+    paid_until: user.membership_ends_at || null,
+    next_paid_until: nextPaidUntil ? nextPaidUntil.toISOString() : null,
+    renewal_opens_at: renewalOpens ? renewalOpens.toISOString() : null,
+    upgrade_cutoff_at: cutoff ? cutoff.toISOString() : null,
+    summary: isTopup
+      ? 'Pay $8.00 to complete Premium for this period. Your paid-until date stays the same. Next renewal is $14.99.'
+      : 'Pay $14.99 for a full Premium month. Premium starts as soon as Whish confirms.',
   };
 }
 
-function instructionsFor(user, payment) {
+function mapPayment(row) {
+  if (!row) return null;
+  const purpose = row.purpose || 'renewal';
+  const label = isUpgradePurpose(purpose)
+    ? `${planLabel(row.plan)} upgrade`
+    : planLabel(row.plan);
+  return {
+    ...row,
+    amount: Number(row.amount),
+    purpose,
+    plan_label: label,
+  };
+}
+
+function instructionsFor(user, payment, extra = {}) {
   return {
     method: 'whish_pay',
     amount: planAmount(user.membership),
@@ -41,7 +115,25 @@ function instructionsFor(user, payment) {
     configured: whishPay.isConfigured(),
     payment_due: isPaymentDue(user),
     paid_until: user.membership_ends_at || null,
+    started_at: user.membership_started_at || null,
+    trial_ends_at: user.membership_trial_ends_at || null,
+    upgrade: extra.upgrade || null,
   };
+}
+
+async function withUpgradeInstructions(user, payment) {
+  if (!user) return instructionsFor(user, payment);
+  const hasPaid = await hasConfirmedPayment(user.id);
+  const quote = upgradeQuote(user, { hasPaid });
+  if (!quote) return instructionsFor(user, payment, { upgrade: null });
+
+  const openIsUpgrade = payment && isUpgradePurpose(payment.purpose);
+  return instructionsFor(user, payment, {
+    upgrade: {
+      ...quote,
+      payment: openIsUpgrade ? mapPayment(payment) : null,
+    },
+  });
 }
 
 async function loadOpenPayment(userId) {
@@ -94,15 +186,15 @@ async function markPaymentsApplied(userId, exec = query) {
   );
 }
 
-async function closeOpenPayments(userId, exec = query) {
+async function closeOpenPayments(userId, exec = query, note = 'Closed: complimentary profile — payment not required') {
   await exec(
     `UPDATE subscription_payments
      SET status = 'rejected',
-         review_note = COALESCE(review_note, 'Closed: complimentary profile — payment not required'),
+         review_note = COALESCE(review_note, $2),
          reviewed_at = COALESCE(reviewed_at, NOW()),
          updated_at = NOW()
      WHERE user_id = $1 AND status IN ('awaiting', 'pending')`,
-    [userId]
+    [userId, note]
   );
 }
 
@@ -113,13 +205,17 @@ async function closePrematurePayments(userId, exec = query) {
          review_note = COALESCE(review_note, 'Closed: next payment is not due yet'),
          reviewed_at = COALESCE(reviewed_at, NOW()),
          updated_at = NOW()
-     WHERE user_id = $1 AND status = 'awaiting' AND collect_url IS NULL`,
+     WHERE user_id = $1 AND status = 'awaiting' AND collect_url IS NULL
+       AND COALESCE(purpose, 'renewal') = 'renewal'`,
     [userId]
   );
 }
 
 async function ensureOpenPayment(user) {
   if (!user?.id || !isPaidPlan(user.membership) || isComplimentary(user)) return null;
+
+  const existing = await loadOpenPayment(user.id);
+  if (existing) return existing;
 
   const confirmed = await latestConfirmedPayment(user.id);
   if (confirmed && user.approval_status !== 'approved') {
@@ -130,13 +226,10 @@ async function ensureOpenPayment(user) {
     return confirmed || null;
   }
 
-  const existing = await loadOpenPayment(user.id);
-  if (existing) return existing;
-
   const created = await query(
     `INSERT INTO subscription_payments
-       (user_id, plan, amount, currency, method, recipient_number, reference, status)
-     VALUES ($1, $2, $3, 'USD', 'whish_pay', 'whish_pay', $4, 'awaiting')
+       (user_id, plan, amount, currency, method, recipient_number, reference, status, purpose)
+     VALUES ($1, $2, $3, 'USD', 'whish_pay', 'whish_pay', $4, 'awaiting', 'renewal')
      RETURNING *`,
     [user.id, user.membership, planAmount(user.membership), generateReference()]
   );
@@ -194,6 +287,8 @@ async function applyPaymentDecision(paymentRow, nextStatus, {
 
     const member = await loadMemberForPayment(current.user_id, client.query.bind(client));
     const row = { ...current, ...member };
+    const purpose = current.purpose || 'renewal';
+    const upgrade = isUpgradePurpose(purpose);
     const periodApplied = nextStatus === 'confirmed' && row.approval_status === 'approved';
 
     const updated = await client.query(
@@ -214,7 +309,12 @@ async function applyPaymentDecision(paymentRow, nextStatus, {
     );
 
     const exec = client.query.bind(client);
-    if (nextStatus === 'confirmed' && row.approval_status === 'approved') {
+    if (nextStatus === 'confirmed' && upgrade) {
+      await applyPremiumUpgrade(row.user_id, purpose, exec);
+      if (row.approval_status === 'approved') {
+        await markPaymentsApplied(row.user_id, exec);
+      }
+    } else if (nextStatus === 'confirmed' && row.approval_status === 'approved') {
       if (row.membership_ends_at) {
         await extendPaidPeriod(row.user_id, exec);
       } else {
@@ -228,12 +328,16 @@ async function applyPaymentDecision(paymentRow, nextStatus, {
     await client.query('COMMIT');
     const payment = mapPayment({ ...row, ...updated.rows[0] });
 
-    const plan = planLabel(row.plan);
+    const plan = isUpgradePurpose(purpose) ? 'Premium plan upgrade' : planLabel(row.plan);
     if (nextStatus === 'confirmed') {
-      const body = row.approval_status === 'approved'
-        ? `Your Whish payment for ${plan} was confirmed. Your subscription has been extended by 1 month.`
-        : `Your Whish payment for ${plan} was confirmed. Your 7-day free trial starts when an admin approves your profile.`;
-      void notify(row.user_id, 'Payment confirmed', body, '/dashboard');
+      const body = upgrade
+        ? row.approval_status === 'approved'
+          ? 'Your Premium upgrade is confirmed. You are now on the Premium plan.'
+          : 'Your Premium upgrade is confirmed. Premium starts when an admin approves your profile.'
+        : row.approval_status === 'approved'
+          ? `Your Whish payment for ${plan} was confirmed. Your subscription has been extended by 1 month.`
+          : `Your Whish payment for ${plan} was confirmed. Your 7-day free trial starts when an admin approves your profile.`;
+      void notify(row.user_id, upgrade ? 'Premium upgrade confirmed' : 'Payment confirmed', body, '/dashboard');
     } else if (nextStatus === 'rejected') {
       void notify(
         row.user_id,
@@ -273,8 +377,7 @@ async function storeCollectUrl(paymentId, collectUrl) {
   return updated.rows[0] || null;
 }
 
-async function createCheckout(user) {
-  const payment = await ensureOpenPayment(user);
+async function createWhishCheckout(payment) {
   if (!payment) {
     const err = new Error('Only Starter and Premium members can pay with Whish.');
     err.status = 400;
@@ -287,10 +390,13 @@ async function createCheckout(user) {
     if (synced?.status === 'confirmed' || synced?.collect_url) return synced;
   }
 
+  const invoice = isUpgradePurpose(payment.purpose)
+    ? `BOOK'D HAUS Premium upgrade`
+    : `BOOK'D HAUS ${planLabel(payment.plan)}`;
   const created = await whishPay.createPayment({
-    amount: payment.amount,
+    amount: Number(payment.amount),
     currency: payment.currency || 'USD',
-    invoice: `BOOK'D HAUS ${planLabel(payment.plan)}`,
+    invoice,
     externalId: payment.reference,
   });
   const collectUrl = created?.data?.collectUrl;
@@ -302,6 +408,43 @@ async function createCheckout(user) {
 
   const stored = await storeCollectUrl(payment.id, collectUrl);
   return stored || { ...payment, collect_url: collectUrl, status: 'pending' };
+}
+
+async function createCheckout(user) {
+  return createWhishCheckout(await ensureOpenPayment(user));
+}
+
+async function startUpgradeCheckout(user) {
+  const hasPaid = await hasConfirmedPayment(user.id);
+  const quote = upgradeQuote(user, { hasPaid });
+  if (!quote) {
+    const err = new Error('Only Starter plan members can upgrade to Premium.');
+    err.status = 400;
+    throw err;
+  }
+
+  let payment = await loadOpenPayment(user.id);
+  const matches = payment
+    && payment.purpose === quote.purpose
+    && Number(payment.amount) === Number(quote.amount);
+
+  if (payment && !matches) {
+    await closeOpenPayments(user.id, query, 'Closed: replaced by Premium upgrade');
+    payment = null;
+  }
+
+  if (!payment) {
+    const created = await query(
+      `INSERT INTO subscription_payments
+         (user_id, plan, amount, currency, method, recipient_number, reference, status, purpose, note)
+       VALUES ($1, 'premium', $2, 'USD', 'whish_pay', 'whish_pay', $3, 'awaiting', $4, $5)
+       RETURNING *`,
+      [user.id, quote.amount, generateReference(), quote.purpose, quote.summary]
+    );
+    payment = created.rows[0];
+  }
+
+  return createWhishCheckout(payment);
 }
 
 async function reconcilePaymentWithWhish(payment) {
@@ -408,10 +551,14 @@ async function reconcileOpenPayments() {
 
 module.exports = {
   PLAN_AMOUNTS,
+  UPGRADE_TOPUP_AMOUNT,
   generateReference,
   planAmount,
+  isUpgradePurpose,
+  upgradeQuote,
   mapPayment,
   instructionsFor,
+  withUpgradeInstructions,
   loadOpenPayment,
   loadPaymentByReference,
   latestConfirmedPayment,
@@ -423,6 +570,7 @@ module.exports = {
   paymentEmailLines,
   applyPaymentDecision,
   createCheckout,
+  startUpgradeCheckout,
   reconcilePaymentWithWhish,
   reconcileOpenPayments,
 };

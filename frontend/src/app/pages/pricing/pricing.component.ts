@@ -81,10 +81,23 @@ export class PricingComponent {
 
   canPayNow(): boolean {
     const user = this.auth.user();
-    return !!user && user.role === 'member' && user.approval_status === 'approved';
+    return !!user && user.role === 'member';
   }
 
   planCta(plan: Plan): string {
-    return this.canPayNow() ? `Pay ${plan.name} with Whish` : plan.cta;
+    if (!this.canPayNow()) return plan.cta;
+    if (this.auth.user()?.membership === 'basic' && plan.planKey === 'premium') return 'Upgrade to Premium';
+    return `Pay ${plan.name} with Whish`;
+  }
+
+  planLink(plan: Plan): string[] {
+    return this.canPayNow() ? ['/dashboard/pay'] : ['/auth/signup'];
+  }
+
+  planQuery(plan: Plan): Record<string, string> {
+    if (this.canPayNow()) {
+      return plan.planKey === 'premium' ? { upgrade: '1' } : {};
+    }
+    return { plan: plan.planKey };
   }
 }

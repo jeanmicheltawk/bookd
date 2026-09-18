@@ -14,6 +14,14 @@ export class PaymentService {
     return this.api.post<WhishPaymentInstructions>('/payments/whish/checkout', {});
   }
 
+  upgrade() {
+    return this.api.post<WhishPaymentInstructions>('/payments/whish/upgrade', {});
+  }
+
+  cancelUpgrade() {
+    return this.api.post<WhishPaymentInstructions>('/payments/whish/upgrade/cancel', {});
+  }
+
   sync() {
     return this.api.post<WhishPaymentInstructions>('/payments/whish/sync', {});
   }

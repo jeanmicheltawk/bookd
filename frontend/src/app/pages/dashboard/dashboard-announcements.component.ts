@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -27,7 +27,7 @@ export class DashboardAnnouncementsComponent implements OnInit {
   auth = inject(AuthService);
   api = inject(ApiService);
 
-  canPost = computed(() => this.auth.isAdmin() || this.auth.isPremium());
+  canPublish = computed(() => this.auth.isAdmin() || this.auth.isPremium());
 
   announcements = signal<Announcement[]>([]);
   applicants = signal<Record<string, AnnouncementApplication[]>>({});
@@ -36,6 +36,7 @@ export class DashboardAnnouncementsComponent implements OnInit {
   loading = signal(true);
   tab = signal<'all' | 'posts'>('all');
   showForm = signal(false);
+  showUpgradePopup = signal(false);
   submitting = signal(false);
   formError = signal('');
 
@@ -101,8 +102,17 @@ export class DashboardAnnouncementsComponent implements OnInit {
       });
   }
 
+  @HostListener('document:keydown.escape')
+  closeUpgradePopup(): void {
+    this.showUpgradePopup.set(false);
+  }
+
   submit(ngForm: NgForm): void {
-    if (ngForm.invalid || !this.canPost()) return;
+    if (!this.canPublish()) {
+      this.showUpgradePopup.set(true);
+      return;
+    }
+    if (ngForm.invalid) return;
     this.submitting.set(true);
     this.formError.set('');
 
@@ -115,6 +125,10 @@ export class DashboardAnnouncementsComponent implements OnInit {
       },
       error: (err) => {
         this.submitting.set(false);
+        if (err?.status === 403) {
+          this.showUpgradePopup.set(true);
+          return;
+        }
         this.formError.set(err?.error?.error || 'Could not post announcement.');
       },
     });

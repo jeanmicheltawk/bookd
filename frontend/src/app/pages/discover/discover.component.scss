@@ -1,3 +1,7 @@
+.featured-home {
+  padding: 16px 0 48px;
+}
+
 .discover-hero {
   padding: 0 0 20px;
   background: transparent;
@@ -141,6 +145,7 @@
 
 .home-onboard__row {
   display: flex;
+  align-items: stretch;
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 8px;
@@ -151,6 +156,7 @@
 .home-onboard__card {
   flex: 0 0 auto;
   width: min(220px, 68vw);
+  display: flex;
 }
 
 .results__head {

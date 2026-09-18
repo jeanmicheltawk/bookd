@@ -209,18 +209,16 @@ export class DashboardNavComponent implements OnInit {
       { label: 'Portfolio', path: '/dashboard/portfolio' },
       { label: 'Announcements', path: '/dashboard/announcements' },
     ];
+    items.push({ label: 'Profile', path: '/dashboard/settings' });
     if (!complimentary) {
       const sub = a.subscription;
       const payDue = !!sub?.payment_due || sub?.status === 'ending_soon' || sub?.status === 'expired';
-      if (payDue) {
-        items.push({
-          label: 'Pay',
-          path: '/dashboard/pay',
-          badge: (sub?.status === 'ending_soon' || sub?.status === 'expired') ? 1 : 0,
-        });
-      }
+      items.push({
+        label: 'Pay',
+        path: '/dashboard/pay',
+        badge: payDue && (sub?.status === 'ending_soon' || sub?.status === 'expired') ? 1 : 0,
+      });
     }
-    items.push({ label: 'Profile', path: '/dashboard/settings' });
     return items;
   }
 }

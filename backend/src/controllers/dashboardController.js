@@ -7,7 +7,7 @@ const {
   isComplimentary,
   isPaymentDue,
 } = require('../utils/subscription');
-const { ensureOpenPayment, instructionsFor, closePrematurePayments } = require('../utils/payment');
+const { ensureOpenPayment, withUpgradeInstructions, closePrematurePayments, loadOpenPayment } = require('../utils/payment');
 
 async function loadAlerts(userId) {
   const [messages, incoming, updates, notices] = await Promise.all([
@@ -167,9 +167,14 @@ async function getMyDashboard(req, res, next) {
       await closePrematurePayments(subscriptionUser.id);
     }
 
+    const openPayment = subscriptionUser?.id ? await loadOpenPayment(subscriptionUser.id) : null;
     const payment = needsPayment
-      ? instructionsFor(subscriptionUser, await ensureOpenPayment(subscriptionUser))
-      : null;
+      ? await withUpgradeInstructions(subscriptionUser, await ensureOpenPayment(subscriptionUser))
+      : openPayment
+        ? await withUpgradeInstructions(subscriptionUser, openPayment)
+        : subscriptionUser?.role === 'member' && isPaidPlan(subscriptionUser.membership) && !isComplimentary(subscriptionUser)
+          ? await withUpgradeInstructions(subscriptionUser, null)
+          : null;
 
     res.json({
       profile,

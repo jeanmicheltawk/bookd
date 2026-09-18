@@ -47,6 +47,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   loadingMore = signal(false);
   total = signal(0);
   page = signal(1);
+  showFeatured = signal(true);
 
   hasMore = computed(() => this.results().length < this.total());
 
@@ -104,19 +105,22 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filters.verified = params.get('verified') === 'true';
       this.filters.gender = toGenderValue(params.get('gender'));
       this.page.set(1);
+      const featured = this.isFeaturedView(params.get('view'));
+      this.showFeatured.set(featured);
+      if (featured) {
+        this.results.set([]);
+        this.total.set(0);
+        this.loading.set(false);
+        this.loadingMore.set(false);
+        return;
+      }
       this.runSearch(false);
+      setTimeout(() => this.observeSentinel());
     });
   }
 
   ngAfterViewInit(): void {
-    this.observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) this.loadNextPage();
-      },
-      { root: null, rootMargin: '800px 0px', threshold: 0 },
-    );
-    const el = this.loadMoreSentinel?.nativeElement;
-    if (el) this.observer.observe(el);
+    this.observeSentinel();
   }
 
   ngOnDestroy(): void {
@@ -125,6 +129,30 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
 
   applyFilters(): void {
     this.syncUrl();
+  }
+
+  private observeSentinel(): void {
+    this.observer?.disconnect();
+    const el = this.loadMoreSentinel?.nativeElement;
+    if (!el) return;
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) this.loadNextPage();
+      },
+      { root: null, rootMargin: '800px 0px', threshold: 0 },
+    );
+    this.observer.observe(el);
+  }
+
+  private isFeaturedView(view?: string | null): boolean {
+    const path = this.router.url.split('?')[0];
+    if (path === '/search') return false;
+    if (view === 'all') return false;
+    return !this.filters.category
+      && !this.filters.country
+      && !this.filters.availability
+      && !this.filters.verified
+      && !this.filters.gender;
   }
 
   clearFilters(): void {
@@ -156,6 +184,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
+        view: this.filters.category ? null : 'all',
         category: this.filters.category || null,
         country: this.filters.country || null,
         availability: this.filters.availability || null,

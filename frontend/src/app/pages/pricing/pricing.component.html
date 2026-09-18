@@ -24,8 +24,8 @@
           }
         </ul>
         <app-animated-button
-          [routerLink]="canPayNow() ? ['/dashboard/pay'] : ['/auth/signup']"
-          [queryParams]="canPayNow() ? {} : { plan: plan.planKey }"
+          [routerLink]="planLink(plan)"
+          [queryParams]="planQuery(plan)"
           [variant]="plan.highlighted ? 'primary' : 'outline'"
           [fullWidth]="true"
         >

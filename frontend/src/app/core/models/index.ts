@@ -61,6 +61,7 @@ export interface SubscriptionPayment {
   phone?: string | null;
   plan: string;
   plan_label: string;
+  purpose?: string;
   amount: number;
   currency: string;
   method: string;
@@ -96,6 +97,26 @@ export interface WhishPaymentInstructions {
   configured?: boolean;
   payment_due?: boolean;
   paid_until?: string | null;
+  started_at?: string | null;
+  trial_ends_at?: string | null;
+  upgrade?: PremiumUpgradeOffer | null;
+}
+
+export interface PremiumUpgradeOffer {
+  available: boolean;
+  kind: 'topup' | 'full';
+  purpose: 'upgrade_topup' | 'upgrade_full';
+  amount: number;
+  currency: string;
+  plan: string;
+  plan_label: string;
+  days_remaining: number | null;
+  paid_until: string | null;
+  next_paid_until?: string | null;
+  renewal_opens_at?: string | null;
+  upgrade_cutoff_at?: string | null;
+  summary: string;
+  payment?: SubscriptionPayment | null;
 }
 
 export type CancellationBy = 'self' | 'admin';

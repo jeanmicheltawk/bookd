@@ -23,10 +23,10 @@
     <h4 class="p-card__name">{{ displayName }}</h4>
     <p class="p-card__meta">
       @if (profile.category_name) { <span class="chip-sm">{{ profile.category_name }}</span> }
-      @if (profile.city || profile.country) {
-        <span class="p-card__location">{{ profile.city }}{{ profile.city && profile.country ? ', ' : '' }}{{ profile.country }}</span>
-      }
     </p>
+    @if (profile.city || profile.country) {
+      <span class="p-card__location">{{ profile.city }}{{ profile.city && profile.country ? ', ' : '' }}{{ profile.country }}</span>
+    }
     @if (profile.availability) {
       <span class="p-card__availability" [class.is-open]="profile.availability === 'available'">
         {{ profile.availability === 'available' ? 'AVAILABLE NOW' : profile.availability }}

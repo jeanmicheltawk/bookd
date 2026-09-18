@@ -163,6 +163,79 @@
   }
 }
 
+.upgrade-card {
+  padding: 28px;
+  border: 1px solid currentColor;
+  max-width: 560px;
+  margin-bottom: 24px;
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0 0 12px;
+    max-width: 52ch;
+    line-height: 1.55;
+  }
+
+  strong {
+    display: block;
+    font-size: 1.6rem;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+}
+
+.upgrade-card__pill {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 14px;
+  background: var(--laser-cyan);
+  color: var(--ink-black);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pay-grid--dates {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 0;
+  @media (max-width: 980px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 560px) { grid-template-columns: 1fr; }
+}
+
+.bill-panel {
+  margin-bottom: 28px;
+
+  &__head {
+    margin-bottom: 16px;
+    h2 { margin: 6px 0 4px; font-size: 1.4rem; }
+    p { margin: 0; font-size: 0.88rem; }
+  }
+}
+
+.upgrade-math {
+  margin: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  p {
+    margin: 0 !important;
+    font-size: 0.88rem;
+    max-width: 54ch;
+  }
+}
+
+.upgrade-card app-animated-button {
+  display: block;
+  margin-top: 8px;
+}
+
 .pay-form {
   padding: 28px;
   border: 1px solid currentColor;

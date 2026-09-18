@@ -42,6 +42,12 @@ function daysFromNow(value) {
   return Math.ceil((time - Date.now()) / (24 * 60 * 60 * 1000));
 }
 
+function daysRemainingExact(value) {
+  const time = toTime(value);
+  if (time == null) return null;
+  return (time - Date.now()) / (24 * 60 * 60 * 1000);
+}
+
 function isPaidActive(user) {
   if (user?.role && user.role !== 'member') return false;
   if (user.approval_status && user.approval_status !== 'approved') return false;
@@ -243,6 +249,47 @@ async function expireOverdueSubscriptions() {
 
 const RENEWAL_SQL = `NOW() + INTERVAL '1 month'`;
 
+async function applyPremiumUpgrade(userId, purpose, exec = query) {
+  const existing = await exec(
+    `SELECT id, role, membership, approval_status, membership_ends_at
+     FROM users WHERE id = $1`,
+    [userId]
+  );
+  const user = existing.rows[0];
+  if (!user || user.role !== 'member') {
+    const err = new Error('Only members can upgrade to Premium.');
+    err.status = 400;
+    throw err;
+  }
+
+  await exec(
+    `UPDATE users SET membership = 'premium', updated_at = NOW()
+     WHERE id = $1 AND membership = 'basic'`,
+    [userId]
+  );
+
+  if (user.approval_status !== 'approved') {
+    return { membership: 'premium', membership_ends_at: null };
+  }
+
+  if (purpose === 'upgrade_topup') {
+    await exec(`UPDATE profiles SET is_public = TRUE, updated_at = NOW() WHERE user_id = $1`, [userId]);
+    return { membership: 'premium', membership_ends_at: user.membership_ends_at };
+  }
+
+  const result = await exec(
+    `UPDATE users SET
+       membership_ends_at = GREATEST(COALESCE(membership_ends_at, NOW()), NOW() + INTERVAL '1 month'),
+       membership_reminder_sent_at = NULL,
+       updated_at = NOW()
+     WHERE id = $1
+     RETURNING membership_started_at, membership_trial_ends_at, membership_ends_at`,
+    [userId]
+  );
+  await exec(`UPDATE profiles SET is_public = TRUE, updated_at = NOW() WHERE user_id = $1`, [userId]);
+  return { membership: 'premium', ...(result.rows[0] || {}) };
+}
+
 async function extendPaidPeriod(userId, exec = query) {
   const existing = await exec(
     `SELECT id, role, membership, membership_ends_at, approval_status
@@ -432,8 +479,10 @@ module.exports = {
   effectiveMembership,
   subscriptionStatus,
   isPaymentDue,
+  daysRemainingExact,
   withSubscription,
   startPaidPeriod,
+  applyPremiumUpgrade,
   extendPaidPeriod,
   clearPaidPeriod,
   sendDuePaymentReminders,

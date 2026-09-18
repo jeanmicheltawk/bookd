@@ -7,10 +7,16 @@
         <p class="pay-pending-note">Your Whish payment is confirmed. The 7-day free trial starts when an admin approves your profile.</p>
       } @else if (auth.isPending()) {
         <p class="pay-pending-note">Your application is still under review. You can pay with Whish now. The trial starts when you're approved, not when payment is confirmed.</p>
-      } @else if (!isPaymentDue) {
+      } @else if (canUpgrade) {
         <p class="pay-pending-note">
-          You're already paid
-          @if (paidUntil) { until {{ paidUntil | date: 'mediumDate' }} }.
+          You can upgrade to Premium anytime.
+          @if (paidUntil) {
+            Starter renewal ({{ info()?.plan_label || 'Starter plan' }}) only opens 5 days before {{ paidUntil | date: 'mediumDate' }}.
+          }
+        </p>
+      } @else if (!canCheckout && paidUntil) {
+        <p class="pay-pending-note">
+          You're already paid until {{ paidUntil | date: 'mediumDate' }}.
           Checkout opens again 5 days before that date.
         </p>
       }
@@ -28,6 +34,108 @@
   } @else if (loading()) {
     <app-loading-screen [fullscreen]="false" label="LOADING PAYMENT..." />
   } @else {
+    <div class="bill-panel">
+      <div class="bill-panel__head">
+        <span class="eyebrow">YOUR SUBSCRIPTION</span>
+        <h2>{{ planName }}</h2>
+        <p>{{ subStatus }}{{ auth.isPending() ? ' · waiting for approval' : '' }}</p>
+      </div>
+      <div class="pay-grid pay-grid--dates">
+        <div class="pay-card">
+          <span class="pay-card__label">Started</span>
+          <strong>{{ formatDate(startedAt) }}</strong>
+          <p>When this period began</p>
+        </div>
+        <div class="pay-card">
+          <span class="pay-card__label">Trial ends</span>
+          <strong>{{ formatDate(trialEndsAt) }}</strong>
+          <p>7-day free trial</p>
+        </div>
+        <div class="pay-card">
+          <span class="pay-card__label">Paid until</span>
+          <strong>{{ formatDate(paidUntil) }}</strong>
+          <p>
+            @if (daysLeft != null) {
+              {{ daysLeft }} day{{ daysLeft === 1 ? '' : 's' }} left
+            } @else {
+              Period starts after approval
+            }
+          </p>
+        </div>
+        <div class="pay-card">
+          <span class="pay-card__label">Next {{ planName }} payment</span>
+          <strong>{{ formatDate(starterRenewalOpensAt) }}</strong>
+          <p>
+            {{ currentPlanAmount | currency: (info()?.currency || 'USD'):'symbol':'1.2-2' }}
+            @if (paidUntil) {
+              · opens 5 days before {{ formatDate(paidUntil) }}
+            } @else {
+              · after your profile is approved
+            }
+          </p>
+        </div>
+      </div>
+    </div>
+
+    @if (canUpgrade) {
+      <div id="upgrade" class="upgrade-card">
+        <span class="upgrade-card__pill">PREMIUM</span>
+        <h2>Upgrade to Premium</h2>
+        @if (upgradeOffer; as upgrade) {
+          <p>{{ upgrade.summary }}</p>
+          <strong>{{ upgrade.amount | currency: upgrade.currency:'symbol':'1.2-2' }}</strong>
+        } @else {
+          <strong>{{ upgradeAmount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        }
+
+        <div class="upgrade-math">
+          @if (auth.isPending()) {
+            @if (isTopupUpgrade) {
+              <p><b>$8.00 today</b> because Starter $6.99 is already paid. This is a top-up to Premium.</p>
+              <p>Starter $6.99 + $8.00 = Premium $14.99 for the first period.</p>
+              <p>Paid-until starts after an admin approves you (1 month + 7 days from approval).</p>
+            } @else {
+              <p><b>$14.99 today</b> because Starter is not paid yet. This replaces the first invoice with a full Premium month.</p>
+              <p>You will not also pay Starter $6.99.</p>
+              <p>Paid-until starts after an admin approves you (1 month + 7 days from approval).</p>
+            }
+          } @else if (isTopupUpgrade) {
+            <p><b>$8.00 today</b> because fewer than 7 days remain until {{ formatDate(paidUntil) }}.</p>
+            <p>Starter $6.99 already paid + $8.00 = Premium $14.99 for this period.</p>
+            <p>Your paid-until date stays <b>{{ formatDate(nextPaidUntilAfterUpgrade) }}</b>.</p>
+            <p>Next Premium payment is <b>$14.99</b>, opening {{ formatDate(premiumRenewalOpensAt) }}.</p>
+          } @else {
+            <p><b>$14.99 today</b> because 7 or more days remain until {{ formatDate(paidUntil) }} ({{ daysLeft ?? '—' }} days left).</p>
+            <p>$8.00 only applies in the last 7 days, starting {{ formatDate(upgradeCutoffAt) }}.</p>
+            <p>After this upgrade, Premium is paid until <b>{{ formatDate(nextPaidUntilAfterUpgrade) }}</b> (at least 1 month from today).</p>
+            <p>Next Premium payment is <b>$14.99</b>, opening {{ formatDate(premiumRenewalOpensAt) }}.</p>
+          }
+        </div>
+
+        @if (error()) { <p class="form-error">{{ error() }}</p> }
+        @if (success() && (upgradeInProgress || canUpgrade)) { <p class="form-success">{{ success() }}</p> }
+
+        <app-animated-button
+          variant="primary"
+          size="lg"
+          [loading]="submitting()"
+          [disabled]="submitting()"
+          (clicked)="startUpgrade()"
+        >
+          {{ upgradeInProgress ? 'Continue with Whish' : 'Upgrade with Whish' }}
+        </app-animated-button>
+
+        @if (upgradeInProgress) {
+          <button type="button" class="refresh-btn" [disabled]="submitting()" (click)="refreshStatus()">
+            Refresh status
+          </button>
+          <button type="button" class="refresh-btn" [disabled]="submitting()" (click)="cancelUpgrade()">
+            Cancel upgrade
+          </button>
+        }
+      </div>
+    }
+
     @if (info(); as whish) {
       @if (auth.isPending() && isPaymentConfirmed) {
         <div class="pay-status pay-status--confirmed">
@@ -37,7 +145,7 @@
             Your payment for {{ whish.plan_label }} is confirmed. Your 7-day free trial starts when an admin approves your profile.
           </p>
         </div>
-      } @else if (!isPaymentDue) {
+      } @else if (!upgradeInProgress && !isPaymentDue && !canUpgrade) {
         <div class="pay-status pay-status--confirmed">
           <span class="pay-status__pill">PAID</span>
           <h2>No payment due yet</h2>
@@ -47,7 +155,7 @@
             You can pay again 5 days before the period ends.
           </p>
         </div>
-      } @else if (isPaymentConfirmed) {
+      } @else if (!upgradeInProgress && isPaymentConfirmed) {
         <div class="pay-status pay-status--confirmed">
           <span class="pay-status__pill">PAYMENT CONFIRMED</span>
           <h2>Whish received</h2>
@@ -59,7 +167,7 @@
             }
           </p>
         </div>
-      } @else {
+      } @else if (!upgradeInProgress) {
         <div class="pay-form">
           <h3>{{ isPendingReview ? 'Finish payment' : 'Pay with Whish' }}</h3>
           <p class="pay-form__lead">
@@ -96,7 +204,7 @@
         </div>
       }
 
-      @if (isPaymentDue) {
+      @if (isPaymentDue && !upgradeInProgress) {
         <div class="pay-grid">
           <div class="pay-card">
             <span class="pay-card__label">Amount</span>

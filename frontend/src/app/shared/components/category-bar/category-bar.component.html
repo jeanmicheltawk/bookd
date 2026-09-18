@@ -3,18 +3,26 @@
     <div class="cat-bar__track container">
       <a
         routerLink="/"
-        [routerLinkActiveOptions]="{ exact: true }"
-        routerLinkActive="active"
+        [queryParams]="{ view: null, category: null, country: null, availability: null, verified: null, gender: null, q: null, page: null }"
         class="cat-bar__chip"
+        [class.active]="isHaus()"
       >
-        All
+        Haus
+      </a>
+      <a
+        routerLink="/"
+        [queryParams]="{ view: 'all' }"
+        class="cat-bar__chip"
+        [class.active]="isAllCreatives()"
+      >
+        All Creatives
       </a>
       @for (cat of categories(); track cat.id) {
         <a
-          [routerLink]="['/']"
+          routerLink="/"
           [queryParams]="{ category: cat.slug }"
-          routerLinkActive="active"
           class="cat-bar__chip"
+          [class.active]="isCategoryActive(cat.slug)"
         >
           {{ cat.name }}
         </a>

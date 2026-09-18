@@ -1,14 +1,17 @@
 const { query } = require('../config/db');
 const {
   mapPayment,
-  instructionsFor,
+  withUpgradeInstructions,
   loadOpenPayment,
   loadPaymentByReference,
   latestConfirmedPayment,
   ensureOpenPayment,
   applyPaymentDecision,
   createCheckout,
+  startUpgradeCheckout,
+  closeOpenPayments,
   reconcilePaymentWithWhish,
+  isUpgradePurpose,
 } = require('../utils/payment');
 const { isPaidPlan, isComplimentary, isPaymentDue, planLabel } = require('../utils/subscription');
 
@@ -33,14 +36,23 @@ function paidMemberOrError(user, res) {
   return true;
 }
 
+async function loadVisiblePayment(user) {
+  const open = await loadOpenPayment(user.id);
+  if (open) return open;
+  if (isPaymentDue(user)) return ensureOpenPayment(user);
+  return latestConfirmedPayment(user.id);
+}
+
+async function jsonInstructions(res, user, payment) {
+  res.json(await withUpgradeInstructions(user, payment));
+}
+
 async function getMyWhishPayment(req, res, next) {
   try {
     const user = await loadMember(req.user.id);
     if (!paidMemberOrError(user, res)) return;
 
-    let payment = isPaymentDue(user)
-      ? await ensureOpenPayment(user)
-      : await latestConfirmedPayment(user.id);
+    let payment = await loadVisiblePayment(user);
     if (payment && payment.status !== 'confirmed') {
       try {
         payment = await reconcilePaymentWithWhish(payment);
@@ -48,12 +60,13 @@ async function getMyWhishPayment(req, res, next) {
         console.error('[whish] status check failed:', err.message);
       }
     }
-    res.json(instructionsFor(user, payment));
+    const fresh = await loadMember(req.user.id);
+    await jsonInstructions(res, fresh, payment);
   } catch (err) {
     if (err.code === '23505') {
       const payment = await loadOpenPayment(req.user.id);
       const user = await loadMember(req.user.id);
-      return res.json(instructionsFor(user, payment));
+      return jsonInstructions(res, user, payment);
     }
     next(err);
   }
@@ -69,7 +82,7 @@ async function startWhishCheckout(req, res, next) {
       if (confirmed) {
         return res.status(409).json({
           error: 'Your payment is already confirmed. Your trial starts when an admin approves your profile.',
-          ...instructionsFor(user, confirmed),
+          ...await withUpgradeInstructions(user, confirmed),
         });
       }
     } else if (!isPaymentDue(user)) {
@@ -83,7 +96,15 @@ async function startWhishCheckout(req, res, next) {
         : 'the end of this period';
       return res.status(409).json({
         error: `Your ${planLabel(user.membership)} is already paid until ${until}. You can pay again 5 days before that date.`,
-        ...instructionsFor(user, confirmed),
+        ...await withUpgradeInstructions(user, confirmed),
+      });
+    }
+
+    const open = await loadOpenPayment(user.id);
+    if (open && isUpgradePurpose(open.purpose)) {
+      return res.status(409).json({
+        error: 'Finish your Premium upgrade first, or cancel it.',
+        ...await withUpgradeInstructions(user, open),
       });
     }
 
@@ -92,7 +113,7 @@ async function startWhishCheckout(req, res, next) {
       return res.status(502).json({ error: 'Whish Pay did not return a payment page. Try again.' });
     }
     res.json({
-      ...instructionsFor(user, payment),
+      ...await withUpgradeInstructions(user, payment),
       collect_url: payment.collect_url,
     });
   } catch (err) {
@@ -107,11 +128,47 @@ async function syncMyWhishPayment(req, res, next) {
 
     const payment = await loadOpenPayment(user.id) || await latestConfirmedPayment(user.id);
     if (!payment) {
-      if (!isPaymentDue(user)) return res.json(instructionsFor(user, null));
-      return res.json(instructionsFor(user, await ensureOpenPayment(user)));
+      if (!isPaymentDue(user)) return jsonInstructions(res, user, null);
+      return jsonInstructions(res, user, await ensureOpenPayment(user));
     }
     const synced = await reconcilePaymentWithWhish(payment);
-    res.json(instructionsFor(user, synced));
+    const fresh = await loadMember(req.user.id);
+    res.json(await withUpgradeInstructions(fresh, synced));
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function startPremiumUpgrade(req, res, next) {
+  try {
+    const user = await loadMember(req.user.id);
+    if (!paidMemberOrError(user, res)) return;
+
+    const payment = await startUpgradeCheckout(user);
+    if (!payment?.collect_url) {
+      return res.status(502).json({ error: 'Whish Pay did not return a payment page. Try again.' });
+    }
+    const fresh = await loadMember(req.user.id);
+    res.json({
+      ...await withUpgradeInstructions(fresh, payment),
+      collect_url: payment.collect_url,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function cancelPremiumUpgrade(req, res, next) {
+  try {
+    const user = await loadMember(req.user.id);
+    if (!paidMemberOrError(user, res)) return;
+
+    const open = await loadOpenPayment(user.id);
+    if (!open || !isUpgradePurpose(open.purpose)) {
+      return res.status(400).json({ error: 'No Premium upgrade in progress.' });
+    }
+    await closeOpenPayments(user.id, query, 'Closed: member cancelled Premium upgrade');
+    await jsonInstructions(res, user, await loadVisiblePayment(user));
   } catch (err) {
     next(err);
   }
@@ -233,6 +290,8 @@ async function syncAdminPayment(req, res, next) {
 module.exports = {
   getMyWhishPayment,
   startWhishCheckout,
+  startPremiumUpgrade,
+  cancelPremiumUpgrade,
   syncMyWhishPayment,
   whishSuccessCallback,
   whishFailureCallback,

@@ -1,95 +1,99 @@
-<section class="discover-hero">
-  <div class="container discover-hero__inner">
-    <span class="eyebrow">DISCOVER</span>
-    <h1 class="display-lg">FIND YOUR <span class="text-gradient">CREATIVE MATCH</span></h1>
-  </div>
+@if (showFeatured()) {
+  <section class="featured-home">
+    <app-news-ticker />
 
-  <app-news-ticker />
-
-  <div class="container">
-    <form class="filter-bar glass-panel" (ngSubmit)="applyFilters()">
-      <app-select [(ngModel)]="filters.category" name="category" placeholder="All Categories" [options]="categoryOptions()" />
-      <app-select [(ngModel)]="filters.country" name="country" placeholder="All Countries" [options]="countryOptions()" />
-      <app-select [(ngModel)]="filters.availability" name="availability" [options]="availabilityOptions" />
-
-      @if (isModelsOrTalents) {
-        <app-select [(ngModel)]="filters.gender" name="gender" [options]="genderOptions" />
-      }
-
-      <label class="filter-bar__check">
-        <input type="checkbox" [(ngModel)]="filters.verified" name="verified" />
-        Verified only
-      </label>
-
-      <button type="submit" class="filter-bar__submit">Search</button>
-      <button type="button" class="filter-bar__clear" (click)="clearFilters()">Clear</button>
-    </form>
-  </div>
-</section>
-
-@if (announcements().length) {
-  <section class="home-announcements">
-    <div class="container">
-      <div class="home-announcements__head">
-        <span class="eyebrow">ANNOUNCEMENTS</span>
-        <a routerLink="/announcements" class="home-announcements__all">View all →</a>
-      </div>
-      <div class="home-announcements__row">
-        @for (a of announcements(); track a.id) {
-          <a class="home-announcements__card" [routerLink]="['/announcements', a.id]">
-            <span>{{ a.announcement_type }}</span>
-            <strong>{{ a.title }}</strong>
-          </a>
-        }
-      </div>
-    </div>
-  </section>
-}
-
-@if (onBoard().length) {
-  <section class="home-onboard">
-    <div class="container">
-      <div class="home-announcements__head">
-        <span class="eyebrow">CREATIVES ON BOARD</span>
-      </div>
-      <div class="home-onboard__row">
-        @for (p of onBoard(); track p.id; let i = $index) {
-          <div class="home-onboard__card">
-            <app-profile-card [profile]="p" [index]="i" />
+    @if (announcements().length) {
+      <section class="home-announcements">
+        <div class="container">
+          <div class="home-announcements__head">
+            <span class="eyebrow">ANNOUNCEMENTS</span>
+            <a routerLink="/announcements" class="home-announcements__all">View all →</a>
           </div>
-        }
-      </div>
-    </div>
-  </section>
-}
-
-<section class="section results">
-  <div class="container">
-    @if (loading()) {
-      <app-loading-screen [fullscreen]="false" label="FINDING CREATIVES..." />
-    } @else {
-      <div class="results__head">
-        <p>{{ total() }} creative{{ total() === 1 ? '' : 's' }} found</p>
-      </div>
-
-      @if (results().length) {
-        <div class="results-grid">
-          @for (r of results(); track r.id; let i = $index) {
-            <app-profile-card [profile]="r" [index]="i" />
-          }
+          <div class="home-announcements__row">
+            @for (a of announcements(); track a.id) {
+              <a class="home-announcements__card" [routerLink]="['/announcements', a.id]">
+                <span>{{ a.announcement_type }}</span>
+                <strong>{{ a.title }}</strong>
+              </a>
+            }
+          </div>
         </div>
-
-        @if (loadingMore()) {
-          <app-loading-screen [fullscreen]="false" label="LOADING MORE..." />
-        }
-      } @else {
-        <div class="empty-state">
-          <h3>No creatives match those filters yet.</h3>
-          <p>Try widening your search or check back soon — new talent joins the Haus every day.</p>
-        </div>
-      }
+      </section>
     }
 
-    <div #loadMoreSentinel class="load-more-sentinel" aria-hidden="true"></div>
-  </div>
-</section>
+    @if (onBoard().length) {
+      <section class="home-onboard">
+        <div class="container">
+          <div class="home-announcements__head">
+            <span class="eyebrow">CREATIVES ON BOARD</span>
+          </div>
+          <div class="home-onboard__row">
+            @for (p of onBoard(); track p.id; let i = $index) {
+              <div class="home-onboard__card">
+                <app-profile-card [profile]="p" [index]="i" />
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+  </section>
+} @else {
+  <section class="discover-hero">
+    <div class="container discover-hero__inner">
+      <span class="eyebrow">DISCOVER</span>
+      <h1 class="display-lg">FIND YOUR <span class="text-gradient">CREATIVE MATCH</span></h1>
+    </div>
+
+    <div class="container">
+      <form class="filter-bar glass-panel" (ngSubmit)="applyFilters()">
+        <app-select [(ngModel)]="filters.category" name="category" placeholder="All Categories" [options]="categoryOptions()" />
+        <app-select [(ngModel)]="filters.country" name="country" placeholder="All Countries" [options]="countryOptions()" />
+        <app-select [(ngModel)]="filters.availability" name="availability" [options]="availabilityOptions" />
+
+        @if (isModelsOrTalents) {
+          <app-select [(ngModel)]="filters.gender" name="gender" [options]="genderOptions" />
+        }
+
+        <label class="filter-bar__check">
+          <input type="checkbox" [(ngModel)]="filters.verified" name="verified" />
+          Verified only
+        </label>
+
+        <button type="submit" class="filter-bar__submit">Search</button>
+        <button type="button" class="filter-bar__clear" (click)="clearFilters()">Clear</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="section results">
+    <div class="container">
+      @if (loading()) {
+        <app-loading-screen [fullscreen]="false" label="FINDING CREATIVES..." />
+      } @else {
+        <div class="results__head">
+          <p>{{ total() }} creative{{ total() === 1 ? '' : 's' }} found</p>
+        </div>
+
+        @if (results().length) {
+          <div class="results-grid">
+            @for (r of results(); track r.id; let i = $index) {
+              <app-profile-card [profile]="r" [index]="i" />
+            }
+          </div>
+
+          @if (loadingMore()) {
+            <app-loading-screen [fullscreen]="false" label="LOADING MORE..." />
+          }
+        } @else {
+          <div class="empty-state">
+            <h3>No creatives match those filters yet.</h3>
+            <p>Try widening your search or check back soon — new talent joins the Haus every day.</p>
+          </div>
+        }
+      }
+
+      <div #loadMoreSentinel class="load-more-sentinel" aria-hidden="true"></div>
+    </div>
+  </section>
+}

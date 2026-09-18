@@ -196,6 +196,8 @@ router.get('/payments/whish/callback/success', payments.whishSuccessCallback);
 router.get('/payments/whish/callback/failure', payments.whishFailureCallback);
 router.get('/payments/whish', authenticate, payments.getMyWhishPayment);
 router.post('/payments/whish/checkout', authenticate, payments.startWhishCheckout);
+router.post('/payments/whish/upgrade', authenticate, payments.startPremiumUpgrade);
+router.post('/payments/whish/upgrade/cancel', authenticate, payments.cancelPremiumUpgrade);
 router.post('/payments/whish/sync', authenticate, payments.syncMyWhishPayment);
 
 // Admin users

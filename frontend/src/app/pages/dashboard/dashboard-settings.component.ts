@@ -12,13 +12,14 @@ import { Category, CategoryField, Country } from '../../core/models';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { ImageCropperComponent } from '../../shared/components/image-cropper/image-cropper.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 import { toGenderValue } from '../../core/utils/gender';
 
 @Component({
   selector: 'app-dashboard-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, DashboardNavComponent, AnimatedButtonComponent, LoadingScreenComponent, SelectComponent],
+  imports: [CommonModule, FormsModule, DashboardNavComponent, AnimatedButtonComponent, LoadingScreenComponent, ImageCropperComponent, SelectComponent],
   templateUrl: './dashboard-settings.component.html',
   styleUrl: './dashboard-settings.component.scss',
 })
@@ -36,6 +37,7 @@ export class DashboardSettingsComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   uploadingPhoto = signal(false);
+  pendingPhoto = signal<File | null>(null);
   saved = signal(false);
   error = signal('');
 
@@ -151,14 +153,25 @@ export class DashboardSettingsComponent implements OnInit {
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
       this.error.set('Please choose a JPEG, PNG, GIF, or WebP image.');
-      input.value = '';
       return;
     }
 
+    this.error.set('');
+    this.saved.set(false);
+    this.pendingPhoto.set(file);
+  }
+
+  closePhotoCropper(): void {
+    this.pendingPhoto.set(null);
+  }
+
+  onPhotoCropped(file: File): void {
+    this.pendingPhoto.set(null);
     this.uploadingPhoto.set(true);
     this.error.set('');
     this.saved.set(false);
@@ -169,12 +182,10 @@ export class DashboardSettingsComponent implements OnInit {
         this.auth.updateStoredUser({ profile_photo_url: this.form.profilePhotoUrl });
         this.uploadingPhoto.set(false);
         this.saved.set(true);
-        input.value = '';
       },
       error: (err) => {
         this.uploadingPhoto.set(false);
         this.error.set(err?.error?.error || 'Could not upload photo. Try a smaller image.');
-        input.value = '';
       },
     });
   }

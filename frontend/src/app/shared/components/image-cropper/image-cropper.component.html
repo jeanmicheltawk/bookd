@@ -1,0 +1,78 @@
+<div class="cropper" (click)="cancel()" role="dialog" aria-modal="true" [attr.aria-labelledby]="'cropper-title'">
+  <div class="cropper__panel" (click)="$event.stopPropagation()">
+    <button type="button" class="cropper__close" (click)="cancel()" aria-label="Close">✕</button>
+    <span class="eyebrow">PROFILE PHOTO</span>
+    <h2 id="cropper-title">{{ heading() }}</h2>
+    <p class="cropper__hint">
+      Portrait matches your discover card. Square matches your profile photo. Drag and zoom to pick the part that uploads.
+    </p>
+
+    <div class="cropper__frames" role="tablist" aria-label="Frame shape">
+      @for (frame of frames(); track frame.id) {
+        <button
+          type="button"
+          class="cropper__frame-btn"
+          role="tab"
+          [class.is-active]="frame.id === frameId()"
+          [attr.aria-selected]="frame.id === frameId()"
+          (click)="setFrame(frame.id)"
+        >
+          {{ frame.label }}
+        </button>
+      }
+    </div>
+
+    <div class="cropper__stage" #stage>
+      <div
+        class="cropper__viewport"
+        [class.is-dragging]="dragging()"
+        [style.width.px]="viewportW()"
+        [style.height.px]="viewportH()"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+      >
+        @if (src()) {
+          <img
+            #image
+            [src]="src()"
+            alt="Photo to crop"
+            draggable="false"
+            [style.width.px]="displayWidth()"
+            [style.height.px]="displayHeight()"
+            [style.transform]="imageTransform()"
+            (load)="onImageLoad()"
+            (error)="onImageError()"
+          />
+        }
+      </div>
+    </div>
+
+    <div class="cropper__zoom">
+      <span aria-hidden="true">−</span>
+      <input
+        type="range"
+        [min]="minZoom"
+        [max]="maxZoom"
+        step="0.01"
+        [value]="zoom()"
+        [disabled]="!ready()"
+        aria-label="Zoom"
+        (input)="onSliderInput($event)"
+      />
+      <span aria-hidden="true">+</span>
+    </div>
+
+    @if (error()) {
+      <p class="cropper__error">{{ error() }}</p>
+    }
+
+    <div class="cropper__actions">
+      <button type="button" class="cropper__ghost" (click)="cancel()">Cancel</button>
+      <button type="button" class="cropper__confirm" [disabled]="!ready() || exporting()" (click)="confirm()">
+        {{ exporting() ? 'Saving...' : confirmLabel() }}
+      </button>
+    </div>
+  </div>
+</div>

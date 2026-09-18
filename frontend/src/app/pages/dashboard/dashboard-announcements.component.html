@@ -4,31 +4,19 @@
       <span class="eyebrow">POST A CALL</span>
       <h1 class="display-lg">MY <span class="text-gradient">ANNOUNCEMENTS</span></h1>
     </div>
-    @if (canPost()) {
-      <app-animated-button variant="primary" (clicked)="showForm.set(!showForm())">
-        {{ showForm() ? 'Cancel' : '+ New Announcement' }}
-      </app-animated-button>
-    }
+    <app-animated-button variant="primary" (clicked)="showForm.set(!showForm())">
+      {{ showForm() ? 'Cancel' : '+ New Announcement' }}
+    </app-animated-button>
   </div>
 
   <app-dashboard-nav />
 
-  @if (canPost()) {
-    <div class="status-chips">
-      <button type="button" class="chip" [class.active]="tab() === 'all'" (click)="setTab('all')">All applicants</button>
-      <button type="button" class="chip" [class.active]="tab() === 'posts'" (click)="setTab('posts')">My posts</button>
-    </div>
-  }
+  <div class="status-chips">
+    <button type="button" class="chip" [class.active]="tab() === 'all'" (click)="setTab('all')">All applicants</button>
+    <button type="button" class="chip" [class.active]="tab() === 'posts'" (click)="setTab('posts')">My posts</button>
+  </div>
 
-  @if (!canPost()) {
-    <div class="empty-state upgrade-panel">
-      <h3>Premium feature</h3>
-      <p>Only Premium members can post announcements. After you submit, an admin approves or rejects it before it goes live.</p>
-      <app-animated-button routerLink="/pricing" variant="primary">See Premium</app-animated-button>
-    </div>
-  }
-
-  @if (canPost() && showForm()) {
+  @if (showForm()) {
     <form class="ann-form glass-panel animate-scale-in" #annForm="ngForm" (ngSubmit)="submit(annForm)">
       <div class="form-grid">
         <div class="form-field">
@@ -81,9 +69,15 @@
         <p class="form-hint">An admin will approve or reject this before it goes live. You'll get a notification either way.</p>
       }
 
-      <app-animated-button type="submit" variant="primary" [loading]="submitting()">
-        {{ auth.isAdmin() ? 'Publish Announcement' : 'Submit for Admin Review' }}
-      </app-animated-button>
+      @if (canPublish()) {
+        <app-animated-button type="submit" variant="primary" [loading]="submitting()">
+          {{ auth.isAdmin() ? 'Publish Announcement' : 'Submit for Admin Review' }}
+        </app-animated-button>
+      } @else {
+        <app-animated-button type="button" variant="primary" (clicked)="showUpgradePopup.set(true)">
+          Submit for Admin Review
+        </app-animated-button>
+      }
     </form>
   }
 
@@ -115,7 +109,7 @@
           </div>
         }
       </div>
-    } @else if (canPost()) {
+    } @else {
       <div class="empty-state">
         <h3>No applicants yet.</h3>
         <p>When someone applies to one of your announcements, they'll show up here.</p>
@@ -168,10 +162,24 @@
         </div>
       }
     </div>
-  } @else if (canPost()) {
+  } @else {
     <div class="empty-state">
       <h3>You haven't posted any announcements yet.</h3>
       <p>Post a call for talent and let creatives come to you. An admin will review it first.</p>
+    </div>
+  }
+
+  @if (showUpgradePopup()) {
+    <div class="upgrade-popup" (click)="closeUpgradePopup()" role="dialog" aria-modal="true" aria-labelledby="upgrade-popup-title">
+      <div class="upgrade-popup__panel" (click)="$event.stopPropagation()">
+        <button type="button" class="upgrade-popup__close" (click)="closeUpgradePopup()" aria-label="Close">✕</button>
+        <span class="eyebrow">PREMIUM</span>
+        <h2 id="upgrade-popup-title">Upgrade to post</h2>
+        <p>Announcements are a Premium feature. Upgrade from Starter to submit this for admin review.</p>
+        <app-animated-button routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }" variant="primary">
+          Go to Pay
+        </app-animated-button>
+      </div>
     </div>
   }
 </section>

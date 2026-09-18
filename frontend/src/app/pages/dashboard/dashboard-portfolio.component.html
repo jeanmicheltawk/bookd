@@ -45,7 +45,7 @@
     <span> · {{ linkCount() }} / {{ linkLimit() }} video links</span>
     <span> · {{ isPremium() ? 'Premium plan' : 'Starter plan' }}</span>
     @if (!isPremium() && (atFileLimit() || atLinkLimit()) && !auth.isComplimentary()) {
-      <a routerLink="/pricing">Upgrade to Premium plan for {{ premiumFileLimit }} images/PDFs and {{ premiumLinkLimit }} video links</a>
+      <a routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }">Upgrade to Premium plan for {{ premiumFileLimit }} images/PDFs and {{ premiumLinkLimit }} video links</a>
     }
   </p>
   @if (uploadError()) { <p class="upload-error">{{ uploadError() }}</p> }

@@ -55,6 +55,9 @@
               The 7-day free trial starts when an admin approves your profile.
             </p>
           </div>
+          @if (pay.upgrade?.available && !auth.isComplimentary()) {
+            <app-animated-button routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }" variant="outline">Upgrade to Premium</app-animated-button>
+          }
         } @else {
           <app-whish-pay-instructions
             [amount]="pay.amount"
@@ -64,6 +67,9 @@
             [sandboxTest]="pay.sandbox_test || null"
             [showCta]="true"
           />
+          @if (pay.upgrade?.available && !auth.isComplimentary()) {
+            <app-animated-button routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }" variant="outline">Upgrade to Premium</app-animated-button>
+          }
         }
       </div>
     }
@@ -156,6 +162,9 @@
         <div class="sub-card__actions">
           @if (sub.payment_due || sub.status === 'expired' || sub.status === 'ending_soon') {
             <app-animated-button routerLink="/dashboard/pay" variant="primary" size="sm">Pay with Whish</app-animated-button>
+          }
+          @if (auth.user()?.membership === 'basic' && !auth.isComplimentary()) {
+            <app-animated-button routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }" variant="outline" size="sm">Upgrade to Premium</app-animated-button>
           }
           @if (sub.can_end) {
             <app-animated-button variant="outline" size="sm" [loading]="ending()" [disabled]="ending()" (clicked)="endTrial()">

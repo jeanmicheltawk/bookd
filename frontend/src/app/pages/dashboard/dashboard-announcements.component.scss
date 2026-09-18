@@ -155,11 +155,51 @@
 
 .empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }
 
-.upgrade-panel {
+.upgrade-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: color-mix(in srgb, var(--ink-black) 78%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.upgrade-popup__panel {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 32px 28px 28px;
+  background: var(--toxic-orange);
+  color: var(--text);
+  border: 1px solid currentColor;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  p { max-width: 520px; margin: 0; }
+  gap: 12px;
+
+  h2 {
+    margin: 4px 0 0;
+    font-size: 1.6rem;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 0 0 8px;
+    max-width: 42ch;
+    line-height: 1.55;
+  }
+}
+
+.upgrade-popup__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
 }

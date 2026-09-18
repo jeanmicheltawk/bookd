@@ -19,11 +19,12 @@
       <div class="settings-panel glass-panel">
         <h3>Photo</h3>
         <div class="photo-row">
-          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="Profile" />
+          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/180x240/1a0f28/fff?text=BKD'" alt="Profile" />
           <label class="upload-btn">
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
             {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
           </label>
+          <p class="photo-hint">Pick a photo, then choose the frame before it uploads.</p>
         </div>
       </div>
 
@@ -55,11 +56,12 @@
       <div class="settings-panel glass-panel">
         <h3>Profile Photo</h3>
         <div class="photo-row">
-          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="Profile" />
+          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/180x240/1a0f28/fff?text=BKD'" alt="Profile" />
           <label class="upload-btn">
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
             {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
           </label>
+          <p class="photo-hint">Pick a photo, then choose the frame before it uploads.</p>
         </div>
       </div>
 
@@ -111,7 +113,7 @@
           <div class="form-field form-field--full checkbox-field">
             <label>
               <input type="checkbox" [(ngModel)]="form.showNumbersPublic" name="showNumbersPublic" />
-              Show number public
+              Show number to the public
             </label>
           </div>
           <div class="form-field">
@@ -184,5 +186,15 @@
         <app-animated-button variant="primary" size="lg" [loading]="saving()" (clicked)="save()">Save Changes</app-animated-button>
       </div>
     </div>
+  }
+
+  @if (pendingPhoto(); as photo) {
+    <app-image-cropper
+      [file]="photo"
+      heading="Choose your frame"
+      confirmLabel="Use this frame"
+      (cropped)="onPhotoCropped($event)"
+      (cancelled)="closePhotoCropper()"
+    />
   }
 </section>
