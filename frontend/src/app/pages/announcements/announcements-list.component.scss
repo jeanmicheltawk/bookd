@@ -14,6 +14,7 @@
 
 .ann-filters {
   display: flex;
+  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 
@@ -26,6 +27,32 @@
     font-size: 0.85rem;
     min-width: 220px;
     &:focus { outline: none; border-bottom-color: var(--focus); }
+  }
+
+  &__submit {
+    background: var(--cta);
+    color: var(--ink-black);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.78rem;
+    padding: 12px 24px;
+    border: none;
+    cursor: pointer;
+    &:hover { transform: translateY(-1px); }
+  }
+
+  &__reset {
+    background: none;
+    border: 1px solid currentColor;
+    color: var(--text);
+    padding: 12px 18px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    &:hover { color: var(--acid-lime); border-color: var(--acid-lime); }
   }
 }
 

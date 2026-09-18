@@ -32,6 +32,16 @@ export class AnnouncementsListComponent implements OnInit {
     this.load();
   }
 
+  search(): void {
+    this.load();
+  }
+
+  reset(): void {
+    this.filterType = '';
+    this.filterLocation = '';
+    this.load();
+  }
+
   load(): void {
     this.loading.set(true);
     this.announcementService

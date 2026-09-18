@@ -61,7 +61,7 @@ export class AdminPaymentsComponent implements OnInit {
 
   confirm(row: SubscriptionPayment): void {
     if (row.status !== 'pending' && row.status !== 'awaiting') return;
-    const from = row.payer_phone || row.sender_whish_number || 'Whish Pay';
+    const from = row.payer_phone || row.sender_whish_number || 'Card';
     if (!window.confirm(`Confirm ${row.plan_label} payment of ${row.amount} ${row.currency} from ${from}? This extends their plan by 1 month.`)) return;
     this.savingId.set(row.id);
     this.listError.set('');
@@ -117,7 +117,7 @@ export class AdminPaymentsComponent implements OnInit {
       },
       error: (err) => {
         this.savingId.set(null);
-        this.listError.set(err?.error?.error || 'Could not refresh this payment from Whish.');
+        this.listError.set(err?.error?.error || 'Could not refresh this payment.');
       },
     });
   }

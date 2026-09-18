@@ -175,7 +175,7 @@ export const routes: Routes = [
         canActivate: [talentGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-pay.component').then((m) => m.DashboardPayComponent),
-        title: 'Pay with Whish',
+        title: 'Pay by card',
       },
     ],
   },
@@ -263,7 +263,7 @@ export const routes: Routes = [
         path: 'payments',
         loadComponent: () =>
           import('./pages/admin/admin-payments.component').then((m) => m.AdminPaymentsComponent),
-        title: 'Admin — Whish Payments',
+        title: 'Admin — Card Payments',
       },
       {
         path: 'cancellations',

@@ -191,7 +191,7 @@ export class DashboardPayComponent implements OnInit {
         return of(null);
       }))
       .subscribe((res) => {
-        this.applyInfo(res, afterReturn ? 'Whish confirmed your payment.' : undefined);
+        this.applyInfo(res, afterReturn ? 'Your card payment was confirmed.' : undefined);
         this.loading.set(false);
       });
   }
@@ -201,19 +201,19 @@ export class DashboardPayComponent implements OnInit {
     this.payments
       .sync()
       .pipe(catchError((err) => {
-        this.error.set(err?.error?.error || 'Could not check your Whish payment yet. Refresh this page in a moment.');
+        this.error.set(err?.error?.error || 'Could not check your card payment yet. Refresh this page in a moment.');
         return of(null);
       }))
       .subscribe((res) => {
         this.info.set(res);
         this.loading.set(false);
         if (res?.payment?.status === 'confirmed' || res?.upgrade?.payment?.status === 'confirmed') {
-          this.success.set('Whish confirmed your payment.');
+          this.success.set('Your card payment was confirmed.');
           this.auth.me().subscribe();
         } else if (result === 'failed') {
-          this.error.set('That attempt did not go through. The payment link is still open — tap Pay with Whish to try again.');
+          this.error.set('That attempt did not go through. The payment link is still open — tap Pay by card to try again.');
         } else {
-          this.success.set('Checking with Whish. If you just paid, this page will update in a moment — tap Refresh status.');
+          this.success.set('Checking your payment. If you just paid, this page will update in a moment — tap Refresh status.');
         }
         this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
       });
@@ -230,14 +230,14 @@ export class DashboardPayComponent implements OnInit {
         const url = res.collect_url || res.payment?.collect_url;
         if (!url) {
           this.submitting.set(false);
-          this.error.set('Whish did not return a payment page. Try again.');
+          this.error.set('The payment page did not load. Try again.');
           return;
         }
         window.location.href = url;
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.error?.error || 'Could not start Whish checkout.');
+        this.error.set(err?.error?.error || 'Could not start card checkout.');
         if (err?.error?.upgrade || err?.error?.payment) {
           this.info.update((current) => current ? { ...current, ...err.error } : current);
         }
@@ -256,7 +256,7 @@ export class DashboardPayComponent implements OnInit {
         const url = res.collect_url || res.upgrade?.payment?.collect_url || res.payment?.collect_url;
         if (!url) {
           this.submitting.set(false);
-          this.error.set('Whish did not return a payment page. Try again.');
+          this.error.set('The payment page did not load. Try again.');
           return;
         }
         window.location.href = url;
@@ -297,10 +297,10 @@ export class DashboardPayComponent implements OnInit {
         this.info.set(res);
         this.submitting.set(false);
         if (res.payment?.status === 'confirmed' || res.upgrade?.payment?.status === 'confirmed') {
-          this.success.set('Whish confirmed your payment.');
+          this.success.set('Your card payment was confirmed.');
           this.auth.me().subscribe();
         } else {
-          this.success.set('Still waiting on Whish. If you already paid, wait a few seconds and refresh again.');
+          this.success.set('Still waiting on your payment. If you already paid, wait a few seconds and refresh again.');
         }
       },
       error: (err) => {

@@ -83,7 +83,7 @@ function upgradeQuote(user, { hasPaid } = {}) {
     upgrade_cutoff_at: cutoff ? cutoff.toISOString() : null,
     summary: isTopup
       ? 'Pay $8.00 to complete Premium for this period. Your paid-until date stays the same. Next renewal is $14.99.'
-      : 'Pay $14.99 for a full Premium month. Premium starts as soon as Whish confirms.',
+      : 'Pay $14.99 for a full Premium month. Premium starts as soon as the card payment confirms.',
   };
 }
 
@@ -239,9 +239,9 @@ async function ensureOpenPayment(user) {
 function paymentEmailLines(user, payment) {
   const amount = Number(payment?.amount || planAmount(user.membership)).toFixed(2);
   return [
-    `Pay $${amount} USD for ${planLabel(user.membership)} with Whish Pay.`,
-    'Log in, open Pay in your dashboard, and tap Pay with Whish.',
-    'Whish opens a hosted page where you confirm the payment from your Whish balance.',
+    `Pay $${amount} USD for ${planLabel(user.membership)} by card.`,
+    'Log in, open Pay in your dashboard, and tap Pay by card.',
+    'A secure page opens where you confirm the payment with your card.',
   ];
 }
 
@@ -335,14 +335,14 @@ async function applyPaymentDecision(paymentRow, nextStatus, {
           ? 'Your Premium upgrade is confirmed. You are now on the Premium plan.'
           : 'Your Premium upgrade is confirmed. Premium starts when an admin approves your profile.'
         : row.approval_status === 'approved'
-          ? `Your Whish payment for ${plan} was confirmed. Your subscription has been extended by 1 month.`
-          : `Your Whish payment for ${plan} was confirmed. Your 7-day free trial starts when an admin approves your profile.`;
+          ? `Your card payment for ${plan} was confirmed. Your subscription has been extended by 1 month.`
+          : `Your card payment for ${plan} was confirmed. Your 7-day free trial starts when an admin approves your profile.`;
       void notify(row.user_id, upgrade ? 'Premium upgrade confirmed' : 'Payment confirmed', body, '/dashboard');
     } else if (nextStatus === 'rejected') {
       void notify(
         row.user_id,
         'Payment not completed',
-        `Your Whish payment for ${plan} did not go through. Open Pay and try again.`,
+        `Your card payment for ${plan} did not go through. Open Pay and try again.`,
         '/dashboard/pay'
       );
     }
@@ -379,7 +379,7 @@ async function storeCollectUrl(paymentId, collectUrl) {
 
 async function createWhishCheckout(payment) {
   if (!payment) {
-    const err = new Error('Only Starter and Premium members can pay with Whish.');
+    const err = new Error('Only Starter and Premium members can pay by card.');
     err.status = 400;
     throw err;
   }
@@ -401,7 +401,7 @@ async function createWhishCheckout(payment) {
   });
   const collectUrl = created?.data?.collectUrl;
   if (!collectUrl) {
-    const err = new Error('Whish Pay did not return a payment page. Try again.');
+    const err = new Error('The payment page did not load. Try again.');
     err.status = 502;
     throw err;
   }
@@ -482,22 +482,22 @@ async function reconcilePaymentWithWhish(payment) {
 
   if (collectStatus === 'success') {
     const applied = await applyPaymentDecision(payment, 'confirmed', {
-      reviewNote: 'Confirmed by Whish Pay',
+      reviewNote: 'Confirmed by card payment',
       payerPhone,
       collectStatus,
     });
     if (applied.payment && !applied.already) {
       const name = applied.payment.professional_name || applied.payment.full_name || applied.payment.email;
       void emailAdmin(
-        'Whish Pay confirmed',
+        'Card payment confirmed',
         [
-          `${name} paid with Whish Pay.`,
+          `${name} paid by card.`,
           `Email: ${applied.payment.email}`,
           `Plan: ${planLabel(applied.payment.plan)} — $${Number(applied.payment.amount).toFixed(2)} USD`,
           `Reference: ${applied.payment.reference}`,
           payerPhone ? `Payer: ${payerPhone}` : null,
         ].filter(Boolean).join('\n'),
-        cta(dashboardUrl('/admin/payments'), 'Open Whish payments')
+        cta(dashboardUrl('/admin/payments'), 'Open card payments')
       );
     }
     return applied.payment || payment;
@@ -505,7 +505,7 @@ async function reconcilePaymentWithWhish(payment) {
 
   if (collectStatus === 'failed') {
     const applied = await applyPaymentDecision(payment, 'rejected', {
-      reviewNote: 'Whish payment link expired without being paid',
+      reviewNote: 'Card payment link expired without being paid',
       payerPhone,
       collectStatus,
     });
@@ -514,7 +514,7 @@ async function reconcilePaymentWithWhish(payment) {
 
   if (collectStatus === 'refunded') {
     const applied = await applyPaymentDecision(payment, 'rejected', {
-      reviewNote: 'Whish payment was refunded',
+      reviewNote: 'Card payment was refunded',
       payerPhone,
       collectStatus,
     });

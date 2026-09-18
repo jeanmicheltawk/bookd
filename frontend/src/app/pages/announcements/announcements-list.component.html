@@ -8,10 +8,12 @@
       }
     </div>
 
-    <div class="ann-filters">
-      <input type="text" placeholder="Type (e.g. photoshoot, campaign)" [(ngModel)]="filterType" (change)="load()" />
-      <input type="text" placeholder="Location" [(ngModel)]="filterLocation" (change)="load()" />
-    </div>
+    <form class="ann-filters" (ngSubmit)="search()">
+      <input type="text" placeholder="Type (e.g. photoshoot, campaign)" [(ngModel)]="filterType" name="filterType" />
+      <input type="text" placeholder="Location" [(ngModel)]="filterLocation" name="filterLocation" />
+      <button type="submit" class="ann-filters__submit">Search</button>
+      <button type="button" class="ann-filters__reset" (click)="reset()">Reset</button>
+    </form>
   </div>
 </section>
 

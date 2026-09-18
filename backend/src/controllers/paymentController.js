@@ -30,7 +30,7 @@ async function loadMember(userId) {
 
 function paidMemberOrError(user, res) {
   if (!user || user.role !== 'member' || !isPaidPlan(user.membership) || isComplimentary(user)) {
-    res.status(400).json({ error: 'Only Starter and Premium members can pay with Whish.' });
+    res.status(400).json({ error: 'Only Starter and Premium members can pay by card.' });
     return false;
   }
   return true;
@@ -110,7 +110,7 @@ async function startWhishCheckout(req, res, next) {
 
     const payment = await createCheckout(user);
     if (!payment?.collect_url) {
-      return res.status(502).json({ error: 'Whish Pay did not return a payment page. Try again.' });
+      return res.status(502).json({ error: 'The payment page did not load. Try again.' });
     }
     res.json({
       ...await withUpgradeInstructions(user, payment),
@@ -146,7 +146,7 @@ async function startPremiumUpgrade(req, res, next) {
 
     const payment = await startUpgradeCheckout(user);
     if (!payment?.collect_url) {
-      return res.status(502).json({ error: 'Whish Pay did not return a payment page. Try again.' });
+      return res.status(502).json({ error: 'The payment page did not load. Try again.' });
     }
     const fresh = await loadMember(req.user.id);
     res.json({

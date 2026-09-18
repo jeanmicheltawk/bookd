@@ -51,7 +51,7 @@
             <span>Payment confirmed</span>
             <h3>You're paid — waiting on approval</h3>
             <p>
-              Your Whish payment for {{ pay.plan_label }} is confirmed (ref {{ pay.payment?.reference }}).
+              Your card payment for {{ pay.plan_label }} is confirmed (ref {{ pay.payment?.reference }}).
               The 7-day free trial starts when an admin approves your profile.
             </p>
           </div>
@@ -161,7 +161,7 @@
         </div>
         <div class="sub-card__actions">
           @if (sub.payment_due || sub.status === 'expired' || sub.status === 'ending_soon') {
-            <app-animated-button routerLink="/dashboard/pay" variant="primary" size="sm">Pay with Whish</app-animated-button>
+            <app-animated-button routerLink="/dashboard/pay" variant="primary" size="sm">Pay by card</app-animated-button>
           }
           @if (auth.user()?.membership === 'basic' && !auth.isComplimentary()) {
             <app-animated-button routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }" variant="outline" size="sm">Upgrade to Premium</app-animated-button>

@@ -11,11 +11,11 @@ import { WhishSandboxTest } from '../../../core/models';
   template: `
     <div class="whish-box">
       <span class="whish-box__label">How to pay</span>
-      <h3>Whish Pay</h3>
+      <h3>Pay by card</h3>
       <p class="whish-box__lead">
         Pay <strong>{{ amount | currency: currency:'symbol':'1.2-2' }}</strong>
         @if (planLabel) { for your {{ planLabel }} }
-        from your Whish balance. You'll be sent to a Whish page to confirm.
+        by card. You'll be sent to a secure page to confirm.
       </p>
 
       @if (sandbox && sandboxTest) {
@@ -28,11 +28,11 @@ import { WhishSandboxTest } from '../../../core/models';
       <ol class="pay-steps">
         <li>
           <span>1</span>
-          <p>Tap <strong>Pay with Whish</strong> to open the hosted payment page.</p>
+          <p>Tap <strong>Pay by card</strong> to open the secure payment page.</p>
         </li>
         <li>
           <span>2</span>
-          <p>Confirm the amount from your Whish balance. Whish sends a one-time code in the app.</p>
+          <p>Enter your card details and confirm the amount.</p>
         </li>
         @if (requireLogin()) {
           <li>
@@ -42,7 +42,7 @@ import { WhishSandboxTest } from '../../../core/models';
         } @else {
           <li>
             <span>3</span>
-            <p>You'll come back here after Whish confirms. Your trial still starts when an admin approves your profile.</p>
+            <p>You'll come back here after the card payment confirms. Your trial still starts when an admin approves your profile.</p>
           </li>
         }
       </ol>

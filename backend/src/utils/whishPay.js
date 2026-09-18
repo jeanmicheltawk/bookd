@@ -95,7 +95,7 @@ async function whishFetch(path, { method = 'GET', body } = {}) {
   try {
     response = await fetch(url, init);
   } catch (err) {
-    const wrapped = new Error('Could not reach Whish Pay. Try again in a moment.');
+    const wrapped = new Error('Could not reach the card payment page. Try again in a moment.');
     wrapped.status = 502;
     wrapped.cause = err;
     throw wrapped;
@@ -118,7 +118,7 @@ async function whishFetch(path, { method = 'GET', body } = {}) {
   }
 
   if (!payload || typeof payload !== 'object') {
-    const err = new Error(`Whish Pay returned an unexpected response (${response.status}).`);
+    const err = new Error(`The card payment page returned an unexpected response (${response.status}).`);
     err.status = 502;
     throw err;
   }
@@ -128,14 +128,14 @@ async function whishFetch(path, { method = 'GET', body } = {}) {
   }
 
   if (payload.code === '500' || payload.code === 500) {
-    const err = new Error('Whish Pay is still processing this request. Check the payment status in a moment.');
+    const err = new Error('Your card payment is still processing. Check the payment status in a moment.');
     err.status = 409;
     err.code = '500';
     throw err;
   }
 
   const dialog = payload.dialog?.message || payload.dialog?.title;
-  const err = new Error(dialog || `Whish Pay error (${payload.code || response.status}).`);
+  const err = new Error(dialog || `Card payment error (${payload.code || response.status}).`);
   err.status = 400;
   err.code = payload.code;
   throw err;

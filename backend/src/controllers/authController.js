@@ -260,7 +260,7 @@ async function register(req, res, next) {
       [
         'Thanks for applying to BOOK\'D HAUS. An admin will review your profile. You can log in now to track your application and update your details.',
         '',
-        'Pay with Whish from your dashboard. After payment is confirmed and an admin approves your profile, your 7-day free trial starts (first period is 1 month + 7 days from approval).',
+        'Pay by card from your dashboard. After payment is confirmed and an admin approves your profile, your 7-day free trial starts (first period is 1 month + 7 days from approval).',
         ...paymentEmailLines(user, paymentRow),
       ].join('\n'),
       '/auth/login'

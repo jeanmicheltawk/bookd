@@ -87,7 +87,7 @@ export class PricingComponent {
   planCta(plan: Plan): string {
     if (!this.canPayNow()) return plan.cta;
     if (this.auth.user()?.membership === 'basic' && plan.planKey === 'premium') return 'Upgrade to Premium';
-    return `Pay ${plan.name} with Whish`;
+    return `Pay ${plan.name} by card`;
   }
 
   planLink(plan: Plan): string[] {

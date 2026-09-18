@@ -421,7 +421,7 @@ export class AdminUsersComponent implements OnInit {
 
   setApproval(user: AdminUser, approval_status: ApprovalStatus): void {
     if (approval_status === 'approved' && !this.canApprove(user)) {
-      this.listError.set("Confirm this member's Whish payment before approving their profile.");
+      this.listError.set("Confirm this member's card payment before approving their profile.");
       return;
     }
     this.savingId.set(user.id);

@@ -41,7 +41,7 @@ interface DashNavItem {
           }
           @if (!auth.isBrand() && (a.subscription?.status === 'ending_soon' || a.subscription?.status === 'expired')) {
             <a class="dash-notice dash-notice--pay" routerLink="/dashboard/pay">
-              {{ a.subscription?.status === 'expired' ? 'Your plan has ended. Pay with Whish to stay public.' : 'Time to pay your subscription with Whish.' }}
+              {{ a.subscription?.status === 'expired' ? 'Your plan has ended. Pay by card to stay public.' : 'Time to pay your subscription by card.' }}
             </a>
           }
         }

@@ -172,7 +172,7 @@ async function updateUser(req, res, next) {
       const nextPlan = membership !== undefined ? membership : existing.rows[0].membership;
       if (isPaidPlan(nextPlan) && !isComplimentary(existing.rows[0]) && !(await hasConfirmedPayment(id))) {
         return res.status(400).json({
-          error: 'Confirm this member\'s Whish payment before approving their profile.',
+          error: 'Confirm this member\'s card payment before approving their profile.',
         });
       }
     }
