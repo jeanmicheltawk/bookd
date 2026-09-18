@@ -77,7 +77,7 @@
         <textarea id="news-body" name="body" [(ngModel)]="form.body" rows="6"></textarea>
       </div>
       <div class="form-field">
-        <label>Image</label>
+        <label>Image *</label>
         @if (imagePreview) {
           <img class="news-image-preview" [src]="imagePreview" [alt]="form.title || 'News image preview'" />
         }
@@ -86,11 +86,8 @@
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onImageSelected($event)" />
             {{ imagePreview ? 'Change image' : 'Upload image' }}
           </label>
-          @if (imagePreview) {
-            <button type="button" class="remove-image-btn" (click)="clearImage()">Remove</button>
-          }
         </div>
-        <p class="news-image-hint">JPG, PNG, GIF, or WebP.</p>
+        <p class="news-image-hint">JPG, PNG, GIF, or WebP. Required.</p>
       </div>
       <div class="form-field checkbox-field">
         <label><input type="checkbox" name="isPublished" [(ngModel)]="form.isPublished" /> Published</label>

@@ -107,6 +107,10 @@ export class AdminNewsComponent implements OnInit, OnDestroy {
 
   submit(ngForm: NgForm): void {
     if (ngForm.invalid) return;
+    if (!this.imagePreview) {
+      this.error.set('An image is required.');
+      return;
+    }
     this.saving.set(true);
     this.error.set('');
 

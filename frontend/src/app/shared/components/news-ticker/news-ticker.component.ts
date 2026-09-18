@@ -128,6 +128,10 @@ export class NewsTickerComponent implements OnInit, OnDestroy {
 
   submit(ngForm: NgForm): void {
     if (ngForm.invalid || !this.auth.isAdmin()) return;
+    if (!this.imagePreview) {
+      this.error.set('An image is required.');
+      return;
+    }
     this.saving.set(true);
     this.error.set('');
 

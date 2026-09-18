@@ -72,6 +72,7 @@ async function createNews(req, res, next) {
   try {
     const { title, body, sortOrder } = req.body;
     if (!title?.trim()) return res.status(400).json({ error: 'title required' });
+    if (!req.file) return res.status(400).json({ error: 'An image is required.' });
 
     const imageUrl = await saveNewsImage(req, title.trim());
     const result = await query(
@@ -112,8 +113,7 @@ async function updateNews(req, res, next) {
       bodyMap.image_url = await saveNewsImage(req, nextTitle);
       unlinkNewsImage(current.image_url);
     } else if (parseBool(req.body.removeImage, false)) {
-      bodyMap.image_url = null;
-      unlinkNewsImage(current.image_url);
+      return res.status(400).json({ error: 'An image is required.' });
     }
 
     const updates = [];
