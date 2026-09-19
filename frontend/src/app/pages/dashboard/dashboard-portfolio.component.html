@@ -74,7 +74,6 @@
             <img [src]="api.assetUrl(item.url)" [alt]="item.title || 'Portfolio piece'" />
           }
           <button type="button" class="portfolio-tile__remove" (click)="remove(item); $event.stopPropagation()" aria-label="Remove">✕</button>
-          @if (item.title && !isPdf(item)) { <span class="portfolio-tile__title">{{ item.title }}</span> }
         </div>
       }
     </div>

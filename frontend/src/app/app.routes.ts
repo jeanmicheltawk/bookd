@@ -107,6 +107,18 @@ export const routes: Routes = [
         title: "Apply — BOOK'D HAUS",
       },
       {
+        path: 'forgot-password',
+        loadComponent: () =>
+          import('./pages/auth/forgot-password.component').then((m) => m.ForgotPasswordComponent),
+        title: "Forgot Password — BOOK'D HAUS",
+      },
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./pages/auth/reset-password.component').then((m) => m.ResetPasswordComponent),
+        title: "Reset Password — BOOK'D HAUS",
+      },
+      {
         path: 'apply',
         redirectTo: 'signup',
         pathMatch: 'full',

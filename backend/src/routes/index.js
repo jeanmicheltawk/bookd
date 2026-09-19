@@ -31,6 +31,8 @@ const approved = [authenticate, requireApproved];
 // Auth
 router.post('/auth/register', auth.registerValidators, auth.register);
 router.post('/auth/login', auth.loginValidators, auth.login);
+router.post('/auth/forgot-password', auth.forgotPasswordValidators, auth.forgotPassword);
+router.post('/auth/reset-password', auth.resetPasswordValidators, auth.resetPassword);
 router.post('/auth/refresh', auth.refresh);
 router.get('/auth/me', authenticate, auth.me);
 

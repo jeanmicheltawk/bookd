@@ -20,7 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      const isAuthEndpoint = /\/auth\/(login|register|refresh)/.test(req.url);
+      const isAuthEndpoint = /\/auth\/(login|register|refresh|forgot-password|reset-password)/.test(req.url);
       if (error.status === 401 && !isAuthEndpoint) {
         const auth = inject(AuthService);
         auth.logout(false);

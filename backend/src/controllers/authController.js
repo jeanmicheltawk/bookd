@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
@@ -6,6 +7,8 @@ const { query } = require('../config/db');
 const { emailAdmin, emailUser } = require('../utils/mailer');
 const { expireOverdueSubscriptions, withSubscription, isPaidPlan } = require('../utils/subscription');
 const { ensureOpenPayment, instructionsFor, paymentEmailLines } = require('../utils/payment');
+
+const RESET_GENERIC_MESSAGE = 'If that email is registered, we sent a reset link.';
 
 const PUBLIC_TALENT_MEMBERSHIPS = ['basic', 'premium'];
 
@@ -85,6 +88,19 @@ const loginValidators = [
   body('email').isEmail(),
   body('password').notEmpty(),
 ];
+
+const forgotPasswordValidators = [
+  body('email').isEmail().withMessage('Valid email required'),
+];
+
+const resetPasswordValidators = [
+  body('token').trim().notEmpty().withMessage('Reset token required'),
+  body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
+];
+
+function hashResetToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
 
 async function register(req, res, next) {
   try {
@@ -341,6 +357,85 @@ async function me(req, res, next) {
   }
 }
 
+async function forgotPassword(req, res, next) {
+  try {
+    validate(req);
+    const email = String(req.body.email || '').toLowerCase().trim();
+
+    const result = await query(
+      `SELECT id FROM users WHERE email = $1 AND is_active = TRUE`,
+      [email]
+    );
+    const user = result.rows[0];
+    if (!user) {
+      return res.json({ message: RESET_GENERIC_MESSAGE });
+    }
+
+    await query(
+      `UPDATE password_reset_tokens SET used_at = NOW()
+       WHERE user_id = $1 AND used_at IS NULL`,
+      [user.id]
+    );
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await query(
+      `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+       VALUES ($1, $2, NOW() + INTERVAL '1 hour')`,
+      [user.id, hashResetToken(token)]
+    );
+
+    void emailUser(
+      user.id,
+      'Reset your BOOK\'D HAUS password',
+      'We received a request to reset your password. This link expires in 1 hour. If you did not ask for this, you can ignore the email.',
+      `/auth/reset-password?token=${encodeURIComponent(token)}`,
+      'Reset password'
+    );
+
+    res.json({ message: RESET_GENERIC_MESSAGE });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function resetPassword(req, res, next) {
+  try {
+    validate(req);
+    const token = String(req.body.token || '').trim();
+    const password = req.body.password;
+
+    const result = await query(
+      `SELECT t.id, t.user_id
+       FROM password_reset_tokens t
+       JOIN users u ON u.id = t.user_id
+       WHERE t.token_hash = $1
+         AND t.used_at IS NULL
+         AND t.expires_at > NOW()
+         AND u.is_active = TRUE`,
+      [hashResetToken(token)]
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return res.status(400).json({ error: 'This reset link is invalid or has expired.' });
+    }
+
+    const hash = await bcrypt.hash(password, 12);
+    await query(
+      `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+      [hash, row.user_id]
+    );
+    await query(
+      `UPDATE password_reset_tokens SET used_at = NOW()
+       WHERE user_id = $1 AND used_at IS NULL`,
+      [row.user_id]
+    );
+
+    res.json({ message: 'Your password has been updated. You can log in now.' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function refresh(req, res, next) {
   try {
     const { refreshToken } = req.body;
@@ -373,8 +468,12 @@ async function refresh(req, res, next) {
 module.exports = {
   register,
   login,
+  forgotPassword,
+  resetPassword,
   me,
   refresh,
   registerValidators,
   loginValidators,
+  forgotPasswordValidators,
+  resetPasswordValidators,
 };

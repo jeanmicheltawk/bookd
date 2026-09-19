@@ -90,6 +90,14 @@ export class AuthService {
     );
   }
 
+  requestPasswordReset(email: string): Observable<{ message: string }> {
+    return this.api.post<{ message: string }>('/auth/forgot-password', { email });
+  }
+
+  confirmPasswordReset(token: string, password: string): Observable<{ message: string }> {
+    return this.api.post<{ message: string }>('/auth/reset-password', { token, password });
+  }
+
   register(payload: RegisterPayload): Observable<RegisterResponse> {
     return this.api.post<RegisterResponse>('/auth/register', payload).pipe(
       tap((res) => {
