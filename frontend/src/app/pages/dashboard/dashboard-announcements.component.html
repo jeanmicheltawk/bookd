@@ -102,7 +102,7 @@
             <div class="app-row__actions">
               <a [routerLink]="['/announcements', app.announcement_id]">View announcement</a>
               @if (profileLink(app); as link) {
-                <a [routerLink]="['/profile', link]">View profile</a>
+                <a [routerLink]="link">View profile</a>
               }
               <a routerLink="/dashboard/messages" [queryParams]="{ with: app.applicant_id }">Message</a>
             </div>
@@ -151,7 +151,7 @@
                   <div class="app-row__actions">
                     <a [routerLink]="['/announcements', a.id]">View announcement</a>
                     @if (profileLink(app); as link) {
-                      <a [routerLink]="['/profile', link]">View profile</a>
+                      <a [routerLink]="link">View profile</a>
                     }
                     <a routerLink="/dashboard/messages" [queryParams]="{ with: app.applicant_id }">Message</a>
                   </div>

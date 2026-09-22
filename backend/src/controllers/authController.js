@@ -7,6 +7,7 @@ const { query } = require('../config/db');
 const { emailAdmin, emailUser } = require('../utils/mailer');
 const { expireOverdueSubscriptions, withSubscription, isPaidPlan } = require('../utils/subscription');
 const { ensureOpenPayment, instructionsFor, paymentEmailLines } = require('../utils/payment');
+const { syncProfileCustomUrl } = require('../utils/profileUrl');
 
 const RESET_GENERIC_MESSAGE = 'If that email is registered, we sent a reset link.';
 
@@ -194,13 +195,14 @@ async function register(req, res, next) {
 
     const showNumbersPublicFlag = showNumbersPublic === true || showNumbersPublicSnake === true;
 
-    await query(
+    const profileRes = await query(
       `INSERT INTO profiles (
          user_id, category_id, full_name, professional_name, is_public,
          country, city, bio, instagram, phone, whatsapp, website, gender, age, custom_fields,
          show_numbers_public
        )
-       VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15)`,
+       VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15)
+       RETURNING id`,
       [
         user.id,
         categoryId,
@@ -219,6 +221,7 @@ async function register(req, res, next) {
         userRole === 'member' ? showNumbersPublicFlag : false,
       ]
     );
+    await syncProfileCustomUrl(query, profileRes.rows[0].id, fullName);
 
     const payloadUser = {
       id: user.id,

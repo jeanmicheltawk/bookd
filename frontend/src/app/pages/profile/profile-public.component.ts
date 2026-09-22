@@ -9,6 +9,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { PortfolioItem, Profile } from '../../core/models';
 import { isPlayableVideoFile, isPortfolioPdf } from '../../core/utils/portfolio-limit';
+import { profilePublicPath, profileRouterLink } from '../../core/utils/profile-url';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
@@ -35,18 +36,38 @@ export class ProfilePublicComponent implements OnInit {
   photoLightboxIndex = signal<number | null>(null);
 
   ngOnInit(): void {
-    const idOrSlug = this.route.snapshot.paramMap.get('id')!;
-    this.profileService.getPublic(idOrSlug)
-      .pipe(catchError(() => of(null)))
-      .subscribe((res) => {
-        if (!res) {
-          this.notFound.set(true);
-        } else {
-          this.profile.set(res);
-          this.analytics.trackPageview(`/profile/${idOrSlug}`, res.id);
-        }
+    this.route.paramMap.subscribe((params) => {
+      const shortId = params.get('shortId');
+      const slug = params.get('slug');
+      const id = params.get('id');
+      const lookup = shortId || id;
+      if (!lookup) {
+        this.notFound.set(true);
         this.loading.set(false);
-      });
+        return;
+      }
+
+      this.loading.set(true);
+      this.notFound.set(false);
+      this.profileService.getPublic(lookup)
+        .pipe(catchError(() => of(null)))
+        .subscribe((res) => {
+          if (!res) {
+            this.profile.set(null);
+            this.notFound.set(true);
+          } else {
+            this.profile.set(res);
+            const canonical = profileRouterLink(res);
+            const prettyPath = profilePublicPath(res);
+            if (canonical && prettyPath && (slug !== canonical[1] || shortId !== canonical[2])) {
+              this.router.navigate(canonical, { replaceUrl: true });
+            } else {
+              this.analytics.trackPageview(prettyPath || `/profile/${lookup}`, res.id);
+            }
+          }
+          this.loading.set(false);
+        });
+    });
   }
 
   photo(url?: string): string {

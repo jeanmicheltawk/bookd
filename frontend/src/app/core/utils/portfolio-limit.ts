@@ -4,6 +4,9 @@ export const STARTER_FILE_LIMIT = 10;
 export const STARTER_LINK_LIMIT = 10;
 export const PREMIUM_FILE_LIMIT = 35;
 export const PREMIUM_LINK_LIMIT = 15;
+export const PORTFOLIO_PDF_MAX_MB = 40;
+export const PORTFOLIO_IMAGE_MAX_MB = 40;
+const MB = 1024 * 1024;
 
 export interface PortfolioCaps {
   files: number;
@@ -65,4 +68,27 @@ export function videoEmbedUrl(raw?: string | null): string | null {
 
 export function isHttpUrl(value?: string | null): boolean {
   return /^https?:\/\//i.test((value || '').trim());
+}
+
+export function isPdfUpload(file: File): boolean {
+  const mime = (file.type || '').toLowerCase();
+  return mime === 'application/pdf' || mime === 'application/x-pdf' || /\.pdf$/i.test(file.name);
+}
+
+export function isImageUpload(file: File): boolean {
+  return (file.type || '').toLowerCase().startsWith('image/');
+}
+
+export function isVideoUpload(file: File): boolean {
+  return (file.type || '').toLowerCase().startsWith('video/');
+}
+
+export function portfolioFileTooLargeMessage(file: File): string | null {
+  if (isPdfUpload(file) && file.size > PORTFOLIO_PDF_MAX_MB * MB) {
+    return 'This PDF is over 40MB. Compress it or upload a PDF of 40MB or less.';
+  }
+  if (!isPdfUpload(file) && file.size > PORTFOLIO_IMAGE_MAX_MB * MB) {
+    return `This image is over ${PORTFOLIO_IMAGE_MAX_MB}MB. Use an image of ${PORTFOLIO_IMAGE_MAX_MB}MB or less.`;
+  }
+  return null;
 }

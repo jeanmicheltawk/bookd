@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
+import { profileRouterLink } from '../../../core/utils/profile-url';
 
 export interface ProfileCardData {
   id: string;
@@ -32,8 +33,8 @@ export class ProfileCardComponent {
 
   constructor(private api: ApiService) {}
 
-  get link(): string {
-    return this.profile.custom_url || this.profile.id;
+  get link(): string[] {
+    return profileRouterLink(this.profile) || ['/profile', this.profile.id];
   }
 
   get displayName(): string {

@@ -177,6 +177,7 @@ async function getAdminDashboard(_req, res, next) {
            p.id = ae.profile_id
            OR ae.path = '/profile/' || p.id::text
            OR (p.custom_url IS NOT NULL AND ae.path = '/profile/' || p.custom_url)
+           OR ae.path LIKE '/profile/%/' || left(replace(p.id::text, '-', ''), 8)
          )
          JOIN users u ON u.id = p.user_id
          LEFT JOIN categories c ON c.id = p.category_id

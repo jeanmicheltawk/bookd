@@ -108,6 +108,7 @@ router.post('/profiles/me/portfolio', ...approved, profile.addPortfolioItem);
 router.patch('/profiles/me/portfolio/:id', ...approved, profile.updatePortfolioItem);
 router.delete('/profiles/me/portfolio/:id', ...approved, profile.deletePortfolioItem);
 router.patch('/profiles/me', authenticate, profile.updateMyProfile);
+router.get('/profiles/:slug/:shortId', optionalAuth, profile.getPublicProfile);
 router.get('/profiles/:idOrSlug', optionalAuth, profile.getPublicProfile);
 
 // Announcements

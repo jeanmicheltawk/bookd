@@ -13,12 +13,13 @@
     <label class="upload-btn" [class.upload-btn--disabled]="atFileLimit() || uploading()">
       <input
         type="file"
+        multiple
         [accept]="isPremium() ? 'image/*,.pdf,application/pdf' : 'image/*'"
         (change)="onFileSelected($event)"
         hidden
         [disabled]="uploading() || atFileLimit()"
       />
-      {{ uploading() ? 'Uploading...' : (isPremium() ? '+ Upload Image / PDF' : '+ Upload Image') }}
+      {{ uploading() ? (uploadStatus() || 'Uploading...') : (isPremium() ? '+ Upload Images / PDF' : '+ Upload Images') }}
     </label>
   </div>
   <div class="upload-panel glass-panel">
@@ -44,6 +45,10 @@
     {{ fileCount() }} / {{ fileLimit() }} {{ isPremium() ? 'images/PDFs' : 'images' }}
     <span> · {{ linkCount() }} / {{ linkLimit() }} video links</span>
     <span> · {{ isPremium() ? 'Premium plan' : 'Starter plan' }}</span>
+    <span> · Select multiple images at once</span>
+    @if (isPremium()) {
+      <span> · PDFs must be 40MB or less — compress larger files first</span>
+    }
     @if (!isPremium() && (atFileLimit() || atLinkLimit()) && !auth.isComplimentary()) {
       <a routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }">Upgrade to Premium plan for {{ premiumFileLimit }} images/PDFs and {{ premiumLinkLimit }} video links</a>
     }

@@ -497,6 +497,7 @@ export interface DashboardSummary {
     full_name: string;
     professional_name?: string;
     profile_photo_url?: string;
+    custom_url?: string;
     is_public: boolean;
     performance_score: number;
   } | null;

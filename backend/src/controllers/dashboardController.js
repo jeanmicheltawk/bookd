@@ -106,7 +106,7 @@ async function getMyDashboard(req, res, next) {
     const userId = req.user.id;
 
     const profileRes = await query(
-      `SELECT p.id, p.full_name, p.professional_name, p.profile_photo_url, p.is_public, p.performance_score
+      `SELECT p.id, p.full_name, p.professional_name, p.profile_photo_url, p.custom_url, p.is_public, p.performance_score
        FROM profiles p WHERE p.user_id = $1`,
       [userId]
     );

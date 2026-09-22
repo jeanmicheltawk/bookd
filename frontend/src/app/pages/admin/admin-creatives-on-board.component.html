@@ -22,7 +22,7 @@
             </div>
           </div>
           <div class="board-actions">
-            <a [routerLink]="['/profile', item.custom_url || item.id]">View</a>
+            <a [routerLink]="profileLink(item)">View</a>
             <button type="button" class="close-btn" [disabled]="i === 0 || actioningId() === item.board_id" (click)="move(item, 'up')">Up</button>
             <button type="button" class="close-btn" [disabled]="i === items().length - 1 || actioningId() === item.board_id" (click)="move(item, 'down')">Down</button>
             <button type="button" class="reject-btn" [disabled]="actioningId() === item.board_id" (click)="remove(item)">Remove</button>

@@ -8,6 +8,7 @@ import { Announcement, AnnouncementApplication } from '../../core/models';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { RouterLink } from '@angular/router';
+import { profileRouterLink } from '../../core/utils/profile-url';
 
 const EMPTY_FORM = {
   title: '',
@@ -81,8 +82,13 @@ export class AdminAnnouncementsComponent implements OnInit {
     return app.professional_name || app.full_name || app.applicant_email || 'Applicant';
   }
 
-  profileLink(app: AnnouncementApplication): string | null {
-    return app.custom_url || app.profile_id || null;
+  profileLink(app: AnnouncementApplication): string[] | null {
+    return profileRouterLink({
+      id: app.profile_id,
+      full_name: app.full_name,
+      professional_name: app.professional_name,
+      custom_url: app.custom_url,
+    });
   }
 
   loadApplicants(id: string): void {

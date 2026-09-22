@@ -5,6 +5,11 @@ function notFound(req, res) {
 function errorHandler(err, _req, res, _next) {
   console.error(err);
   if (err.name === 'MulterError') {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        error: 'This file is over 40MB. Compress the PDF or upload a PDF of 40MB or less.',
+      });
+    }
     return res.status(400).json({ error: err.message });
   }
   const status = err.status || 500;

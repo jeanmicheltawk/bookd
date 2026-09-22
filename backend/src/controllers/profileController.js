@@ -4,6 +4,7 @@ const { query } = require('../config/db');
 const { insertUploadedMedia } = require('../utils/mediaStore');
 const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
+const { buildCustomUrl, profilePublicPath, syncProfileCustomUrl } = require('../utils/profileUrl');
 
 function portfolioMediaType(file) {
   const mime = (file?.mimetype || '').toLowerCase();
@@ -45,14 +46,44 @@ const PUBLIC_PROFILE_FIELDS = `
 `;
 
 async function resolveProfileId(idOrSlug) {
-  const byId = await query(`SELECT id FROM profiles WHERE id::text = $1 OR custom_url = $1`, [idOrSlug]);
-  return byId.rows[0]?.id || null;
+  const value = String(idOrSlug || '').trim();
+  if (!value) return null;
+
+  const exact = await query(
+    `SELECT id FROM profiles WHERE id::text = $1 OR custom_url = $1`,
+    [value]
+  );
+  if (exact.rows[0]) return exact.rows[0].id;
+
+  const shortId = value.includes('-') && !/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(value)
+    ? value.split('-').pop()
+    : value;
+  if (shortId && /^[a-f0-9]{8}$/i.test(shortId)) {
+    const byShort = await query(
+      `SELECT id FROM profiles
+       WHERE id::text LIKE $1
+          OR custom_url LIKE $2
+       LIMIT 1`,
+      [`${shortId.toLowerCase()}%`, `%-${shortId.toLowerCase()}`]
+    );
+    if (byShort.rows[0]) return byShort.rows[0].id;
+  }
+
+  if (!/^[0-9a-f-]{16,}$/i.test(value)) {
+    const bySlug = await query(
+      `SELECT id FROM profiles WHERE custom_url LIKE $1 LIMIT 2`,
+      [`${value.toLowerCase()}-%`]
+    );
+    if (bySlug.rows.length === 1) return bySlug.rows[0].id;
+  }
+
+  return null;
 }
 
 async function getPublicProfile(req, res, next) {
   try {
     await expireOverdueSubscriptions();
-    const profileId = await resolveProfileId(req.params.idOrSlug);
+    const profileId = await resolveProfileId(req.params.shortId || req.params.idOrSlug);
     if (!profileId) return res.status(404).json({ error: 'Profile not found' });
 
     const result = await query(
@@ -70,6 +101,11 @@ async function getPublicProfile(req, res, next) {
     if (!result.rows[0]) return res.status(404).json({ error: 'Profile not found' });
 
     const profile = result.rows[0];
+    const customUrl = buildCustomUrl(profile.full_name, profile.id);
+    if (profile.custom_url !== customUrl) {
+      await syncProfileCustomUrl(query, profile.id, profile.full_name);
+      profile.custom_url = customUrl;
+    }
     if (!profile.show_numbers_public) {
       profile.phone = null;
       profile.whatsapp = null;
@@ -84,7 +120,7 @@ async function getPublicProfile(req, res, next) {
     await query(
       `INSERT INTO analytics_events (event_type, path, user_id, profile_id, metadata)
        VALUES ('profile_view', $1, $2, $3, '{}'::jsonb)`,
-      [`/profiles/${req.params.idOrSlug}`, req.user?.id || null, profileId]
+      [profilePublicPath(profile.full_name, profile.id), req.user?.id || null, profileId]
     );
 
     res.json({ ...profile, portfolio: portfolio.rows });
@@ -104,7 +140,13 @@ async function getMyProfile(req, res, next) {
       [req.user.id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Profile not found' });
-    res.json(result.rows[0]);
+    const mine = result.rows[0];
+    const customUrl = buildCustomUrl(mine.full_name, mine.id);
+    if (mine.custom_url !== customUrl) {
+      await syncProfileCustomUrl(query, mine.id, mine.full_name);
+      mine.custom_url = customUrl;
+    }
+    res.json(mine);
   } catch (err) {
     next(err);
   }
@@ -121,7 +163,7 @@ async function updateMyProfile(req, res, next) {
       'instagram', 'email_public', 'bio', 'languages', 'years_experience', 'website',
       'profile_photo_url', 'cover_photo_url', 'equipment_owned', 'studio_access',
       'brands_worked_with', 'social_links', 'booking_preferences', 'preferred_contact',
-      'phone', 'whatsapp', 'show_numbers_public', 'availability', 'custom_url', 'privacy_settings', 'is_public',
+      'phone', 'whatsapp', 'show_numbers_public', 'availability', 'privacy_settings', 'is_public',
       'custom_fields',
     ];
 
@@ -178,7 +220,13 @@ async function updateMyProfile(req, res, next) {
        RETURNING *`,
       params
     );
-    res.json(result.rows[0]);
+    const row = result.rows[0];
+    const customUrl = buildCustomUrl(row.full_name, row.id);
+    if (row.custom_url !== customUrl) {
+      await syncProfileCustomUrl(query, row.id, row.full_name);
+      row.custom_url = customUrl;
+    }
+    res.json(row);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'custom_url already taken' });
     next(err);
@@ -332,6 +380,12 @@ async function uploadPortfolioMedia(req, res, next) {
     if (mediaType === 'video') {
       unlinkUpload(req.file);
       return res.status(400).json({ error: 'Add a video as a link instead of uploading a video file.' });
+    }
+    if (mediaType === 'pdf' && req.file.size > 40 * 1024 * 1024) {
+      unlinkUpload(req.file);
+      return res.status(400).json({
+        error: 'This PDF is over 40MB. Compress it or upload a PDF of 40MB or less.',
+      });
     }
 
     const capacity = await assertPortfolioCapacity(req.user.id, { extraFile: req.file, kind: 'file' });

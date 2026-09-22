@@ -52,6 +52,35 @@ export function subscriptionStatusLabel(status?: SubscriptionStatus | string | n
   }
 }
 
+export const RENEWAL_WINDOW_DAYS = 5;
+
+export function daysUntilResubscribe(daysRemaining?: number | null): number | null {
+  if (daysRemaining == null) return null;
+  return Math.max(0, daysRemaining - RENEWAL_WINDOW_DAYS);
+}
+
+export function postTrialPlanCopy(sub: SubscriptionInfo): string {
+  const end = formatSubDate(sub.ends_at);
+  if (sub.status === 'expired') {
+    return `Your plan ended ${end}. You can resubscribe now.`;
+  }
+
+  const left =
+    sub.days_remaining == null
+      ? ''
+      : sub.days_remaining === 1
+        ? ' (1 day left)'
+        : ` (${sub.days_remaining} days left)`;
+  const untilRenew = daysUntilResubscribe(sub.days_remaining);
+  if (untilRenew == null || untilRenew <= 0 || sub.status === 'ending_soon' || sub.payment_due) {
+    return `Plan ends ${end}${left}. You can resubscribe now.`;
+  }
+  if (untilRenew === 1) {
+    return `Plan ends ${end}${left}. You can resubscribe tomorrow.`;
+  }
+  return `Plan ends ${end}${left}. You can resubscribe in ${untilRenew} days.`;
+}
+
 export function subscriptionReminderText(sub: SubscriptionInfo): string {
   const end = formatSubDate(sub.ends_at);
   if (sub.status === 'expired') {
@@ -62,9 +91,9 @@ export function subscriptionReminderText(sub: SubscriptionInfo): string {
   }
   if (sub.status === 'ending_soon') {
     const days = sub.days_remaining === 1 ? '1 day' : `${sub.days_remaining} days`;
-    return `Your ${sub.plan_label} ends in ${days} (${end}).`;
+    return `Your ${sub.plan_label} ends in ${days} (${end}). You can resubscribe now.`;
   }
-  return `Your ${sub.plan_label} is active until ${end}.`;
+  return postTrialPlanCopy(sub);
 }
 
 export function formatSubDate(value?: string | null): string {

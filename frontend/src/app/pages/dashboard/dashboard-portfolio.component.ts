@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 
 import { ProfileService } from '../../core/services/profile.service';
 import { ApiService } from '../../core/services/api.service';
@@ -12,9 +12,13 @@ import {
   PREMIUM_FILE_LIMIT,
   PREMIUM_LINK_LIMIT,
   isHttpUrl,
+  isImageUpload,
+  isPdfUpload,
   isPlayableVideoFile,
   isPortfolioPdf,
+  isVideoUpload,
   portfolioCapsFor,
+  portfolioFileTooLargeMessage,
 } from '../../core/utils/portfolio-limit';
 import { effectiveMembership } from '../../core/utils/subscription';
 import { DashboardNavComponent } from './dashboard-nav.component';
@@ -36,6 +40,7 @@ export class DashboardPortfolioComponent implements OnInit {
   items = signal<PortfolioItem[]>([]);
   loading = signal(true);
   uploading = signal(false);
+  uploadStatus = signal('');
   addingLink = signal(false);
   uploadError = signal('');
   lightboxIndex = signal<number | null>(null);
@@ -67,10 +72,10 @@ export class DashboardPortfolioComponent implements OnInit {
       });
   }
 
-  onFileSelected(event: Event): void {
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
 
     if (this.atFileLimit()) {
       this.uploadError.set(this.fileLimitError());
@@ -78,42 +83,71 @@ export class DashboardPortfolioComponent implements OnInit {
       return;
     }
 
-    const mime = (file.type || '').toLowerCase();
-    const isPdf = mime === 'application/pdf' || mime === 'application/x-pdf' || /\.pdf$/i.test(file.name);
-    const isImage = mime.startsWith('image/');
-    const isVideo = mime.startsWith('video/');
-    if (isVideo) {
-      this.uploadError.set('Add a video as a link instead of uploading a video file.');
-      input.value = '';
-      return;
+    const remaining = this.fileLimit() - this.fileCount();
+    const notes: string[] = [];
+    const valid: File[] = [];
+
+    for (const file of files) {
+      if (isVideoUpload(file)) {
+        notes.push('Add a video as a link instead of uploading a video file.');
+        continue;
+      }
+      if (isPdfUpload(file) && !this.caps().allowPdf) {
+        notes.push('Starter plan allows images only. Upgrade to Premium plan to upload PDFs.');
+        continue;
+      }
+      if (!isPdfUpload(file) && !isImageUpload(file)) {
+        notes.push(this.caps().allowPdf ? 'Use an image or a PDF of 40MB or less.' : 'Use an image of 40MB or less.');
+        continue;
+      }
+      const tooLarge = portfolioFileTooLargeMessage(file);
+      if (tooLarge) {
+        notes.push(tooLarge);
+        continue;
+      }
+      valid.push(file);
     }
-    if (isPdf && !this.caps().allowPdf) {
-      this.uploadError.set('Starter plan allows images only. Upgrade to Premium plan to upload PDFs.');
-      input.value = '';
-      return;
+
+    const accepted = valid.slice(0, remaining);
+    if (valid.length > remaining) {
+      notes.push(this.fileLimitError());
     }
-    if (!isPdf && !isImage) {
-      this.uploadError.set(this.caps().allowPdf ? 'Use an image or PDF under 25MB.' : 'Use an image under 25MB.');
+
+    if (!accepted.length) {
+      this.uploadError.set([...new Set(notes)].join(' '));
       input.value = '';
       return;
     }
 
     this.uploading.set(true);
-    this.uploadError.set('');
+    this.uploadError.set([...new Set(notes)].join(' '));
+    const title = accepted.length === 1 ? this.newTitle : '';
+    const uploaded: PortfolioItem[] = [];
 
-    this.profileService.uploadPortfolio(file, this.newTitle).subscribe({
-      next: (item) => {
-        this.items.update((list) => [item, ...list]);
-        this.newTitle = '';
-        this.uploading.set(false);
-        input.value = '';
-      },
-      error: (err) => {
-        this.uploading.set(false);
-        input.value = '';
-        this.uploadError.set(err?.error?.error || (this.caps().allowPdf ? 'Could not upload. Try an image or PDF under 25MB.' : 'Could not upload. Try an image under 25MB.'));
-      },
-    });
+    for (let i = 0; i < accepted.length; i++) {
+      this.uploadStatus.set(`Uploading ${i + 1}/${accepted.length}...`);
+      try {
+        const item = await firstValueFrom(
+          this.profileService.uploadPortfolio(accepted[i], title || undefined)
+        );
+        uploaded.push(item);
+      } catch (err: unknown) {
+        const message = (err as { error?: { error?: string } })?.error?.error
+          || (isPdfUpload(accepted[i])
+            ? 'Could not upload. Compress the PDF or upload a PDF of 40MB or less.'
+            : (this.caps().allowPdf ? 'Could not upload. Try an image or PDF of 40MB or less.' : 'Could not upload. Try an image of 40MB or less.'));
+        notes.push(message);
+      }
+    }
+
+    if (uploaded.length) {
+      this.items.update((list) => [...uploaded, ...list]);
+      this.newTitle = '';
+    }
+    this.uploading.set(false);
+    this.uploadStatus.set('');
+    this.uploadError.set([...new Set(notes)].join(' '));
+    input.value = '';
   }
 
   addVideoLink(): void {

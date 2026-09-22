@@ -81,35 +81,6 @@
           </div>
         }
 
-        @if (p.portfolio?.length) {
-          <div class="p-section">
-            <h3>Portfolio</h3>
-            <div class="portfolio-grid">
-              @for (item of p.portfolio; track item.id; let i = $index) {
-                <button type="button" class="portfolio-item" (click)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
-                  @if (item.media_type === 'video') {
-                    @if (isPlayableVideo(item)) {
-                      <video [src]="photo(item.url)" [poster]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" muted playsinline></video>
-                    } @else {
-                      <div class="portfolio-video">
-                        <span class="portfolio-video__badge">VIDEO</span>
-                        <span class="portfolio-video__play">▶</span>
-                      </div>
-                    }
-                  } @else if (isPdf(item)) {
-                    <div class="portfolio-pdf">
-                      <span class="portfolio-pdf__badge">PDF</span>
-                      <span class="portfolio-pdf__name">{{ item.title || 'Document' }}</span>
-                    </div>
-                  } @else {
-                    <img [src]="photo(item.url)" [alt]="item.title || 'Portfolio piece'" loading="lazy" />
-                  }
-                </button>
-              }
-            </div>
-          </div>
-        }
-
         @if (p.brands_worked_with?.length) {
           <div class="p-section">
             <h3>Brands Worked With</h3>
@@ -139,6 +110,35 @@
           </ul>
         </div>
       </aside>
+
+      @if (p.portfolio?.length) {
+        <div class="p-section p-section--portfolio">
+          <h3>Portfolio</h3>
+          <div class="portfolio-grid">
+            @for (item of p.portfolio; track item.id; let i = $index) {
+              <button type="button" class="portfolio-item" (click)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
+                @if (item.media_type === 'video') {
+                  @if (isPlayableVideo(item)) {
+                    <video [src]="photo(item.url)" [poster]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" muted playsinline></video>
+                  } @else {
+                    <div class="portfolio-video">
+                      <span class="portfolio-video__badge">VIDEO</span>
+                      <span class="portfolio-video__play">▶</span>
+                    </div>
+                  }
+                } @else if (isPdf(item)) {
+                  <div class="portfolio-pdf">
+                    <span class="portfolio-pdf__badge">PDF</span>
+                    <span class="portfolio-pdf__name">{{ item.title || 'Document' }}</span>
+                  </div>
+                } @else {
+                  <img [src]="photo(item.url)" [alt]="item.title || 'Portfolio piece'" loading="lazy" />
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
     </div>
   </section>
 

@@ -8,6 +8,7 @@ import { CreativesOnBoardService } from '../../core/services/creatives-on-board.
 import { ApiService } from '../../core/services/api.service';
 import { CreativesOnBoardItem, SearchResult } from '../../core/models';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { profileRouterLink } from '../../core/utils/profile-url';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 
 @Component({
@@ -73,6 +74,10 @@ export class AdminCreativesOnBoardComponent implements OnInit {
 
   name(p: SearchResult | CreativesOnBoardItem): string {
     return p.professional_name || p.full_name || 'Creative';
+  }
+
+  profileLink(p: SearchResult | CreativesOnBoardItem): string[] {
+    return profileRouterLink(p) || ['/profile', p.id];
   }
 
   add(profile: SearchResult): void {

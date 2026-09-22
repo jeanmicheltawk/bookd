@@ -53,7 +53,7 @@
       @if (topProfiles().length) {
         <div class="rank-list">
           @for (p of topProfiles(); track p.id; let i = $index) {
-            <a class="rank-row" [routerLink]="['/profile', profileLink(p)]">
+            <a class="rank-row" [routerLink]="profileLink(p)">
               <span class="rank-row__n">{{ i + 1 }}</span>
               <img
                 [src]="p.profile_photo_url ? api.assetUrl(p.profile_photo_url) : 'assets/placeholder-avatar.svg'"

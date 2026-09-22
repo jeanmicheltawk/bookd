@@ -14,6 +14,7 @@ const {
   remindSubscription,
 } = require('../utils/subscription');
 const { hasConfirmedPayment, markPaymentsApplied, closeOpenPayments } = require('../utils/payment');
+const { syncProfileCustomUrl } = require('../utils/profileUrl');
 
 const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
 
@@ -419,12 +420,13 @@ async function updateUser(req, res, next) {
       const profileRes = await query(
         `UPDATE profiles SET ${profileUpdates.join(', ')}, updated_at = NOW()
          WHERE user_id = $${profileParams.length}
-         RETURNING id`,
+         RETURNING id, full_name`,
         profileParams
       );
       if (!profileRes.rows[0]) {
         return res.status(404).json({ error: 'Profile not found for this user' });
       }
+      await syncProfileCustomUrl(query, profileRes.rows[0].id, profileRes.rows[0].full_name);
     }
 
     const updated = await fetchAdminUser(id);
@@ -557,12 +559,13 @@ async function createComplimentaryUser(req, res, next) {
     );
     const userId = userRes.rows[0].id;
 
-    await client.query(
+    const profileRes = await client.query(
       `INSERT INTO profiles (
          user_id, category_id, full_name, professional_name, is_public,
          country, city, bio, instagram, phone, whatsapp, website, gender, age, custom_fields
        )
-       VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)`,
+       VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)
+       RETURNING id`,
       [
         userId,
         categoryId,
@@ -580,6 +583,7 @@ async function createComplimentaryUser(req, res, next) {
         JSON.stringify(normalizedCustom),
       ]
     );
+    await syncProfileCustomUrl(client.query.bind(client), profileRes.rows[0].id, nextName);
 
     await client.query('COMMIT');
 

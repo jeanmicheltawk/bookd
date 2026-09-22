@@ -1,4 +1,4 @@
-<a class="p-card" [routerLink]="['/profile', link]" [style.animation-delay.ms]="index * 60">
+<a class="p-card" [routerLink]="link" [style.animation-delay.ms]="index * 60">
   <div class="p-card__media">
     @if (photo) {
       <img [src]="photo" [alt]="displayName" loading="lazy" />

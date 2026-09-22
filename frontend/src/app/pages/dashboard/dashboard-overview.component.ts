@@ -11,7 +11,8 @@ import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { WhishPayInstructionsComponent } from '../../shared/components/whish-pay-instructions/whish-pay-instructions.component';
-import { formatSubDate, subscriptionStatusLabel } from '../../core/utils/subscription';
+import { formatSubDate, postTrialPlanCopy, subscriptionStatusLabel } from '../../core/utils/subscription';
+import { profileRouterLink } from '../../core/utils/profile-url';
 
 @Component({
   selector: 'app-dashboard-overview',
@@ -64,10 +65,22 @@ export class DashboardOverviewComponent implements OnInit {
             full_name: res.profile.full_name,
             professional_name: res.profile.professional_name,
             profile_photo_url: res.profile.profile_photo_url,
+            custom_url: res.profile.custom_url,
           });
         }
         this.loading.set(false);
       });
+  }
+
+  publicProfileLink(): string[] {
+    const profile = this.summary()?.profile;
+    const user = this.auth.user();
+    return profileRouterLink({
+      id: profile?.id || user?.profile_id,
+      full_name: profile?.full_name || user?.full_name,
+      professional_name: profile?.professional_name || user?.professional_name,
+      custom_url: profile?.custom_url || user?.custom_url,
+    }) || ['/profile', user?.profile_id || ''];
   }
 
   pendingPlanLabel(): string {
@@ -80,6 +93,10 @@ export class DashboardOverviewComponent implements OnInit {
 
   formatDate(value: string | null): string {
     return formatSubDate(value);
+  }
+
+  planPeriodCopy(sub: SubscriptionInfo): string {
+    return postTrialPlanCopy(sub);
   }
 
   endTrial(): void {

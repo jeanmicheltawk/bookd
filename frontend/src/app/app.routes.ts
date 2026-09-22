@@ -83,6 +83,12 @@ export const routes: Routes = [
         title: "Contact — BOOK'D HAUS",
       },
       {
+        path: 'profile/:slug/:shortId',
+        loadComponent: () =>
+          import('./pages/profile/profile-public.component').then((m) => m.ProfilePublicComponent),
+        title: "Profile — BOOK'D HAUS",
+      },
+      {
         path: 'profile/:id',
         loadComponent: () =>
           import('./pages/profile/profile-public.component').then((m) => m.ProfilePublicComponent),

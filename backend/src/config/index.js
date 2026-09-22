@@ -44,7 +44,7 @@ module.exports = {
   },
   upload: {
     dir: process.env.UPLOAD_DIR || 'uploads',
-    maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || '25', 10),
+    maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || '40', 10),
   },
   corsOrigin: (process.env.CORS_ORIGIN || 'http://localhost:4200')
     .split(',')

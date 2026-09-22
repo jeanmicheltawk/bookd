@@ -7,6 +7,7 @@ import { AnalyticsService } from '../../core/services/analytics.service';
 import { ApiService } from '../../core/services/api.service';
 import { AdminAnalytics } from '../../core/models';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { profileRouterLink } from '../../core/utils/profile-url';
 
 const EMPTY_PROFILES = {
   active: 0,
@@ -53,7 +54,7 @@ export class AdminAnalyticsComponent implements OnInit {
     return p.professional_name || p.full_name || 'Untitled profile';
   }
 
-  profileLink(p: AdminAnalytics['topProfiles'][number]): string {
-    return p.custom_url || p.id;
+  profileLink(p: AdminAnalytics['topProfiles'][number]): string[] {
+    return profileRouterLink(p) || ['/profile', p.id];
   }
 }
