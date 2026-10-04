@@ -163,11 +163,46 @@
   }
 }
 
+.pay-pair {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 28px;
+  align-items: stretch;
+}
+
+.pay-pair--both {
+  grid-template-columns: 1fr 1fr;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+
+  .upgrade-card,
+  .pay-form {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+    margin-bottom: 0;
+    height: 100%;
+  }
+
+  .upgrade-card app-animated-button,
+  .pay-form app-animated-button {
+    margin-top: auto;
+  }
+
+  .pay-grid,
+  .pay-steps,
+  .pay-status {
+    grid-column: 1 / -1;
+  }
+}
+
 .upgrade-card {
   padding: 28px;
   border: 1px solid currentColor;
   max-width: 560px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
 
   h2 {
     margin: 0 0 10px;
