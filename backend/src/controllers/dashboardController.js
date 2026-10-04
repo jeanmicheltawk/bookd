@@ -7,7 +7,13 @@ const {
   isComplimentary,
   isPaymentDue,
 } = require('../utils/subscription');
-const { ensureOpenPayment, withUpgradeInstructions, closePrematurePayments, loadOpenPayment } = require('../utils/payment');
+const {
+  ensureOpenPayment,
+  withUpgradeInstructions,
+  closePrematurePayments,
+  loadOpenPayment,
+  reconcilePaymentWithWhish,
+} = require('../utils/payment');
 
 async function loadAlerts(userId) {
   const [messages, incoming, updates, notices] = await Promise.all([
@@ -167,7 +173,15 @@ async function getMyDashboard(req, res, next) {
       await closePrematurePayments(subscriptionUser.id);
     }
 
-    const openPayment = subscriptionUser?.id ? await loadOpenPayment(subscriptionUser.id) : null;
+    let openPayment = subscriptionUser?.id ? await loadOpenPayment(subscriptionUser.id) : null;
+    if (openPayment?.collect_url && openPayment.status !== 'confirmed') {
+      try {
+        await reconcilePaymentWithWhish(openPayment);
+      } catch (err) {
+        console.error('[whish] dashboard reconcile failed:', openPayment.reference, err.message);
+      }
+      openPayment = subscriptionUser?.id ? await loadOpenPayment(subscriptionUser.id) : null;
+    }
     const payment = needsPayment
       ? await withUpgradeInstructions(subscriptionUser, await ensureOpenPayment(subscriptionUser))
       : openPayment

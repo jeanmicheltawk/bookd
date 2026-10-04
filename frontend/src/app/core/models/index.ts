@@ -100,6 +100,7 @@ export interface WhishPaymentInstructions {
   started_at?: string | null;
   trial_ends_at?: string | null;
   upgrade?: PremiumUpgradeOffer | null;
+  unpaid_attempt?: { reference: string; collect_status?: string | null } | null;
 }
 
 export interface PremiumUpgradeOffer {

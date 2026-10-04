@@ -26,20 +26,21 @@ import { WhishSandboxTest } from '../../../core/models';
       }
 
       <ol class="pay-steps">
+        @if (requireLogin()) {
+          <li>
+            <span>1</span>
+            <p>Log in on the website first, then open the <strong>Pay</strong> tab.</p>
+          </li>
+        }
         <li>
-          <span>1</span>
+          <span>{{ requireLogin() ? '2' : '1' }}</span>
           <p>Tap <strong>Pay by card</strong> to open the secure payment page.</p>
         </li>
         <li>
-          <span>2</span>
+          <span>{{ requireLogin() ? '3' : '2' }}</span>
           <p>Enter your card details and confirm the amount.</p>
         </li>
-        @if (requireLogin()) {
-          <li>
-            <span>3</span>
-            <p>Log in first, then open the <strong>Pay</strong> tab to start checkout.</p>
-          </li>
-        } @else {
+        @if (!requireLogin()) {
           <li>
             <span>3</span>
             <p>You'll come back here after the card payment confirms. Your trial still starts when an admin approves your profile.</p>

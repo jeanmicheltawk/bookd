@@ -4,8 +4,8 @@
       <span class="eyebrow">BILLING</span>
       <h1 class="display-lg">CARD <span class="text-gradient">PAYMENTS</span></h1>
       <p class="admin-page__hint">
-        Members pay by card on a secure hosted page. Successful payments confirm automatically.
-        Use Refresh if a callback was missed. Confirming payment does not start the trial — approve the profile after payment.
+        Paid means Whish confirmed the card payment. Not paid means Whish has not confirmed it.
+        Approving the profile is separate — the trial starts only after the payment is paid and you approve them.
       </p>
     </div>
   </div>
@@ -39,11 +39,11 @@
               }
             </div>
             <span>{{ row.email }} · {{ row.plan_label }} · {{ row.amount | currency: row.currency:'symbol':'1.2-2' }}</span>
+            <div class="pay-result" [class.pay-result--paid]="outcome(row) === 'paid'" [class.pay-result--unpaid]="outcome(row) === 'unpaid'" [class.pay-result--waiting]="outcome(row) === 'waiting'">
+              {{ outcomeLabel(row) }}
+            </div>
             <div class="meta-line">
               <span>{{ row.payer_phone || row.sender_whish_number || 'Card' }}</span>
-              @if (row.collect_status) {
-                <span>Card {{ row.collect_status }}</span>
-              }
               @if (row.submitted_at) {
                 <span>Started {{ row.submitted_at | date: 'medium' }}</span>
               }
@@ -53,16 +53,15 @@
             }
           </div>
           <div class="mod-row__actions">
-            <span class="status-pill status-{{ row.status }}">{{ statusLabel(row.status) }}</span>
             @if (row.status === 'pending' || row.status === 'awaiting') {
               <button type="button" class="chip-btn" [disabled]="savingId() === row.id" (click)="sync(row)">
                 Refresh
               </button>
               <button type="button" class="chip-btn on" [disabled]="savingId() === row.id" (click)="confirm(row)">
-                Confirm
+                Mark paid
               </button>
               <button type="button" class="chip-btn off" [disabled]="savingId() === row.id" (click)="reject(row)">
-                Not found
+                Mark not paid
               </button>
             }
           </div>
@@ -71,7 +70,7 @@
     </div>
   } @else {
     <div class="empty-state">
-      <h3>No {{ statusFilter() === 'all' ? '' : statusFilter() === 'open' ? 'open ' : statusFilter() + ' ' }}card payments.</h3>
+      <h3>No card payments in this list.</h3>
     </div>
   }
 </div>

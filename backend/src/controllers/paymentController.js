@@ -211,7 +211,10 @@ async function listPayments(req, res, next) {
     const where = ['1=1'];
 
     if (status === 'open' || !status) {
-      where.push(`sp.status IN ('awaiting', 'pending')`);
+      where.push(`(
+        sp.status IN ('awaiting', 'pending')
+        OR COALESCE(sp.updated_at, sp.created_at) > NOW() - INTERVAL '7 days'
+      )`);
     } else if (status && ['pending', 'confirmed', 'rejected', 'awaiting'].includes(status)) {
       params.push(status);
       where.push(`sp.status = $${params.length}`);
@@ -237,8 +240,22 @@ async function listPayments(req, res, next) {
       params
     );
 
+    const rows = [];
+    for (const row of list.rows) {
+      if ((row.status === 'awaiting' || row.status === 'pending') && row.collect_url) {
+        try {
+          const synced = await reconcilePaymentWithWhish(row);
+          rows.push({ ...row, ...synced });
+          continue;
+        } catch (err) {
+          console.error('[whish] admin reconcile failed:', row.reference, err.message);
+        }
+      }
+      rows.push(row);
+    }
+
     res.json({
-      data: list.rows.map(mapPayment),
+      data: rows.map(mapPayment),
       pagination: paginationMeta(page, limit, count.rows[0].total),
     });
   } catch (err) {

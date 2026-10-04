@@ -59,6 +59,22 @@
             <app-animated-button routerLink="/dashboard/pay" [queryParams]="{ upgrade: '1' }" variant="outline">Upgrade to Premium</app-animated-button>
           }
         } @else {
+          <div class="pay-unpaid-note">
+            <span>Not paid</span>
+            <h3>Whish has not confirmed this payment</h3>
+            <p>
+              @if (pay.unpaid_attempt; as attempt) {
+                Reference {{ attempt.reference }} is not paid.
+              } @else {
+                @if (pay.payment; as bill) {
+                  Reference {{ bill.reference }} is not paid yet.
+                } @else {
+                  This Starter payment is not paid yet.
+                }
+              }
+              When Whish confirms it, this switches to “You're paid — waiting on approval.”
+            </p>
+          </div>
           <app-whish-pay-instructions
             [amount]="pay.amount"
             [currency]="pay.currency"
@@ -176,14 +192,37 @@
 
       @if (payment(); as pay) {
         <div class="pending-pay">
-          <app-whish-pay-instructions
-            [amount]="pay.amount"
-            [currency]="pay.currency"
-            [planLabel]="pay.plan_label"
-            [sandbox]="!!pay.sandbox"
-            [sandboxTest]="pay.sandbox_test || null"
-            [showCta]="true"
-          />
+          @if (pay.payment?.status === 'confirmed') {
+            <div class="pay-confirmed-note">
+              <span>Payment confirmed</span>
+              <h3>You're paid</h3>
+              <p>Your card payment for {{ pay.plan_label }} is confirmed (ref {{ pay.payment?.reference }}).</p>
+            </div>
+          } @else {
+            <div class="pay-unpaid-note">
+              <span>Not paid</span>
+              <h3>Whish has not confirmed this payment</h3>
+              <p>
+                @if (pay.unpaid_attempt; as attempt) {
+                  Reference {{ attempt.reference }} is not paid.
+                } @else {
+                  @if (pay.payment; as bill) {
+                    Reference {{ bill.reference }} is not paid yet.
+                  } @else {
+                    This payment is not paid yet.
+                  }
+                }
+              </p>
+            </div>
+            <app-whish-pay-instructions
+              [amount]="pay.amount"
+              [currency]="pay.currency"
+              [planLabel]="pay.plan_label"
+              [sandbox]="!!pay.sandbox"
+              [sandboxTest]="pay.sandbox_test || null"
+              [showCta]="true"
+            />
+          }
         </div>
       }
     }

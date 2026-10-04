@@ -27,11 +27,11 @@ export class AdminPaymentsComponent implements OnInit {
   private copiedTimer: ReturnType<typeof setTimeout> | null = null;
 
   filters: Array<{ id: PaymentFilter; label: string }> = [
-    { id: 'open', label: 'to review' },
+    { id: 'open', label: 'recent' },
     { id: 'awaiting', label: 'not started' },
-    { id: 'pending', label: 'checkout open' },
-    { id: 'confirmed', label: 'confirmed' },
-    { id: 'rejected', label: 'rejected' },
+    { id: 'pending', label: 'not paid yet' },
+    { id: 'confirmed', label: 'paid' },
+    { id: 'rejected', label: 'not paid' },
     { id: 'all', label: 'all' },
   ];
 
@@ -94,11 +94,6 @@ export class AdminPaymentsComponent implements OnInit {
 
   private afterReview(updated: SubscriptionPayment): void {
     this.savingId.set(null);
-    const filter = this.statusFilter();
-    if (filter === 'open' || filter === 'pending' || filter === 'awaiting') {
-      this.rows.update((list) => list.filter((item) => item.id !== updated.id));
-      return;
-    }
     this.rows.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
   }
 
@@ -108,11 +103,6 @@ export class AdminPaymentsComponent implements OnInit {
     this.api.sync(row.id).subscribe({
       next: (updated) => {
         this.savingId.set(null);
-        const filter = this.statusFilter();
-        if ((filter === 'open' || filter === 'pending' || filter === 'awaiting') && (updated.status === 'confirmed' || updated.status === 'rejected')) {
-          this.rows.update((list) => list.filter((item) => item.id !== updated.id));
-          return;
-        }
         this.rows.update((list) => list.map((item) => (item.id === updated.id ? updated : item)));
       },
       error: (err) => {
@@ -122,10 +112,17 @@ export class AdminPaymentsComponent implements OnInit {
     });
   }
 
-  statusLabel(status: string): string {
-    if (status === 'awaiting') return 'not started';
-    if (status === 'pending') return 'checkout open';
-    return status;
+  outcome(row: SubscriptionPayment): 'paid' | 'unpaid' | 'waiting' {
+    if (row.status === 'confirmed' || row.collect_status === 'success') return 'paid';
+    if (row.status === 'rejected' || row.collect_status === 'failed' || row.collect_status === 'refunded') return 'unpaid';
+    return 'waiting';
+  }
+
+  outcomeLabel(row: SubscriptionPayment): string {
+    const outcome = this.outcome(row);
+    if (outcome === 'paid') return 'Paid';
+    if (outcome === 'unpaid') return 'Not paid';
+    return 'Not paid yet';
   }
 
   displayName(row: SubscriptionPayment): string {

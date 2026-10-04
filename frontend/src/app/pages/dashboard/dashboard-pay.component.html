@@ -169,6 +169,20 @@
         </div>
       } @else if (!upgradeInProgress) {
         <div class="pay-form">
+          <div class="pay-unpaid-note">
+            <span>Not paid</span>
+            <p>
+              @if (whish.unpaid_attempt; as attempt) {
+                Whish did not confirm {{ attempt.reference }}.
+              } @else {
+                @if (payment; as bill) {
+                  Whish has not confirmed {{ bill.reference }} yet.
+                } @else {
+                  Whish has not confirmed this payment yet.
+                }
+              }
+            </p>
+          </div>
           <h3>{{ isPendingReview ? 'Finish payment' : 'Pay by card' }}</h3>
           <p class="pay-form__lead">
             You'll be sent to a secure page to pay

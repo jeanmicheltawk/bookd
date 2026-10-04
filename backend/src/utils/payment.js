@@ -121,19 +121,35 @@ function instructionsFor(user, payment, extra = {}) {
   };
 }
 
-async function withUpgradeInstructions(user, payment) {
-  if (!user) return instructionsFor(user, payment);
-  const hasPaid = await hasConfirmedPayment(user.id);
-  const quote = upgradeQuote(user, { hasPaid });
-  if (!quote) return instructionsFor(user, payment, { upgrade: null });
+async function latestUnpaidAttempt(userId) {
+  const result = await query(
+    `SELECT reference, collect_status
+     FROM subscription_payments
+     WHERE user_id = $1
+       AND status = 'rejected'
+       AND collect_status IN ('failed', 'refunded')
+     ORDER BY updated_at DESC NULLS LAST, created_at DESC
+     LIMIT 1`,
+    [userId]
+  );
+  const row = result.rows[0];
+  if (!row?.reference) return null;
+  return { reference: row.reference, collect_status: row.collect_status };
+}
 
+async function withUpgradeInstructions(user, payment) {
+  const hasPaid = user?.id ? await hasConfirmedPayment(user.id) : false;
+  const quote = user?.id ? upgradeQuote(user, { hasPaid }) : null;
   const openIsUpgrade = payment && isUpgradePurpose(payment.purpose);
-  return instructionsFor(user, payment, {
-    upgrade: {
-      ...quote,
-      payment: openIsUpgrade ? mapPayment(payment) : null,
-    },
+  const payload = instructionsFor(user, payment, {
+    upgrade: quote
+      ? { ...quote, payment: openIsUpgrade ? mapPayment(payment) : null }
+      : null,
   });
+  if (user?.id && payment?.status !== 'confirmed') {
+    payload.unpaid_attempt = await latestUnpaidAttempt(user.id);
+  }
+  return payload;
 }
 
 async function loadOpenPayment(userId) {
@@ -505,7 +521,7 @@ async function reconcilePaymentWithWhish(payment) {
 
   if (collectStatus === 'failed') {
     const applied = await applyPaymentDecision(payment, 'rejected', {
-      reviewNote: 'Card payment link expired without being paid',
+      reviewNote: 'Whish reported this payment as not paid',
       payerPhone,
       collectStatus,
     });

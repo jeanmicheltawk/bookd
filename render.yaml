@@ -55,7 +55,7 @@ services:
       - key: WHISH_ENV
         value: sandbox
       - key: WHISH_WEBSITE_URL
-        value: ille.co
+        value: bookdhaus.com
       - key: WHISH_CHANNEL
         sync: false
       - key: WHISH_SECRET

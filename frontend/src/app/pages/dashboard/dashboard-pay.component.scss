@@ -236,6 +236,24 @@
   margin-top: 8px;
 }
 
+.pay-unpaid-note {
+  margin: 0 0 18px;
+
+  span {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    background: var(--hyper-pink);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  p { margin: 0; line-height: 1.45; }
+}
+
 .pay-form {
   padding: 28px;
   border: 1px solid currentColor;
