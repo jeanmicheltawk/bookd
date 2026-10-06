@@ -189,14 +189,16 @@
       }
 
       @if (payment(); as pay) {
-        <div class="pending-pay">
-          @if (pay.payment?.status === 'confirmed') {
+        @if (pay.payment?.status === 'confirmed') {
+          <div class="pending-pay">
             <div class="pay-confirmed-note">
               <span>Payment confirmed</span>
               <h3>You're paid</h3>
               <p>Your card payment for {{ pay.plan_label }} is confirmed (ref {{ pay.payment?.reference }}).</p>
             </div>
-          } @else {
+          </div>
+        } @else if (pay.payment_due || pay.payment?.status === 'awaiting' || pay.payment?.status === 'pending') {
+          <div class="pending-pay">
             <div class="pay-unpaid-note">
               <span>Not paid</span>
               <h3>Whish has not confirmed this payment</h3>
@@ -218,8 +220,8 @@
               [planLabel]="pay.plan_label"
               [showCta]="true"
             />
-          }
-        </div>
+          </div>
+        }
       }
     }
   }

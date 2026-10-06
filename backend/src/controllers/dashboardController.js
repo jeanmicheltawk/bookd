@@ -12,6 +12,7 @@ const {
   withUpgradeInstructions,
   closePrematurePayments,
   loadOpenPayment,
+  latestConfirmedPayment,
   reconcilePaymentWithWhish,
 } = require('../utils/payment');
 
@@ -182,12 +183,15 @@ async function getMyDashboard(req, res, next) {
       }
       openPayment = subscriptionUser?.id ? await loadOpenPayment(subscriptionUser.id) : null;
     }
+    const settledPayment = !needsPayment && !openPayment && subscriptionUser?.id
+      ? await latestConfirmedPayment(subscriptionUser.id)
+      : null;
     const payment = needsPayment
       ? await withUpgradeInstructions(subscriptionUser, await ensureOpenPayment(subscriptionUser))
       : openPayment
         ? await withUpgradeInstructions(subscriptionUser, openPayment)
         : subscriptionUser?.role === 'member' && isPaidPlan(subscriptionUser.membership) && !isComplimentary(subscriptionUser)
-          ? await withUpgradeInstructions(subscriptionUser, null)
+          ? await withUpgradeInstructions(subscriptionUser, settledPayment)
           : null;
 
     res.json({
