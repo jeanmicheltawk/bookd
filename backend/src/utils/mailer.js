@@ -47,8 +47,8 @@ if (transport) {
 }
 
 function logoHtml() {
-  const src = logoExists ? `cid:${LOGO_CID}` : `${config.emailAppUrl || config.appUrl}/assets/logo-full-ink.svg`;
-  return `<img src="${src}" alt="BOOK'D" width="168" style="display:block;width:168px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none;" />`;
+  const src = logoExists ? `cid:${LOGO_CID}` : `${config.emailAppUrl || config.appUrl}/assets/logo.svg`;
+  return `<img src="${src}" alt="BOOK'D" width="220" style="display:block;width:220px;max-width:70%;height:auto;border:0;outline:none;text-decoration:none;" />`;
 }
 
 function wrapHtml(title, inner) {
@@ -58,20 +58,22 @@ function wrapHtml(title, inner) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@800&family=Manrope:wght@500;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background:#ffffff;color:#111111;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;">
+<body style="margin:0;padding:0;background:#ff4d00;color:#ffffff;" bgcolor="#ff4d00">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ff4d00" style="background:#ff4d00;">
     <tr>
-      <td align="center" style="padding:40px 24px 48px;">
+      <td align="center" style="padding:40px 20px 48px;">
         <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;width:100%;">
           <tr>
-            <td style="padding:0 0 32px;">
+            <td style="padding:0 0 22px;border-bottom:1px solid #ffffff;">
               ${logoHtml()}
             </td>
           </tr>
           <tr>
-            <td style="padding:0;font-size:15px;line-height:1.65;color:#222222;">
-              <h1 style="margin:0 0 16px;font-size:20px;line-height:1.35;font-weight:400;color:#111111;">${escapeHtml(title)}</h1>
+            <td style="padding:28px 0 0;font-family:'Manrope',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;color:#ffffff;">
+              <p style="margin:0 0 12px;font-family:'Archivo Narrow','Arial Narrow',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#c6ff00;">BOOK'D HAUS</p>
+              <h1 style="margin:0 0 18px;font-family:'League Spartan','Arial Narrow',Arial,sans-serif;font-size:32px;line-height:0.92;font-weight:800;letter-spacing:-0.02em;text-transform:uppercase;color:#ffffff;">${escapeHtml(title)}</h1>
               ${inner}
             </td>
           </tr>
@@ -92,11 +94,17 @@ function escapeHtml(value) {
 }
 
 function paragraph(text) {
-  return `<p style="margin:0 0 12px;">${escapeHtml(text).replace(/\n/g, '<br>')}</p>`;
+  return `<p style="margin:0 0 14px;font-family:'Manrope',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;font-weight:500;color:#ffffff;">${escapeHtml(text).replace(/\n/g, '<br>')}</p>`;
 }
 
 function cta(href, label) {
-  return `<p style="margin:24px 0 0;"><a href="${escapeHtml(href)}" style="color:#111111;text-decoration:underline;">${escapeHtml(label)}</a></p>`;
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0 0;">
+    <tr>
+      <td bgcolor="#c6ff00" style="background:#c6ff00;">
+        <a href="${escapeHtml(href)}" style="display:inline-block;padding:16px 28px;font-family:'Manrope',Arial,Helvetica,sans-serif;font-size:13px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;color:#09000f;">${escapeHtml(label)}</a>
+      </td>
+    </tr>
+  </table>`;
 }
 
 function logoAttachment() {
