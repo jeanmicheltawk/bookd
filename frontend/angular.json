@@ -53,7 +53,7 @@
               "outputHashing": "all"
             },
             "github-pages": {
-              "baseHref": "/bookd/",
+              "baseHref": "/",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
