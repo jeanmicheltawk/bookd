@@ -123,7 +123,7 @@
           [disabled]="submitting()"
           (clicked)="startUpgrade()"
         >
-          {{ upgradeInProgress ? 'Continue by card' : 'Upgrade by card' }}
+          {{ upgradeInProgress ? 'Continue' : 'Upgrade' }}
         </app-animated-button>
 
         @if (upgradeInProgress) {
@@ -191,13 +191,6 @@
             for {{ whish.plan_label }} by card.
           </p>
 
-          @if (whish.sandbox && whish.sandbox_test) {
-            <div class="pay-sandbox">
-              <span>Sandbox test values</span>
-              <p>Phone <strong>{{ whish.sandbox_test.phone }}</strong> · OTP <strong>{{ whish.sandbox_test.otp }}</strong></p>
-            </div>
-          }
-
           @if (error()) { <p class="form-error">{{ error() }}</p> }
           @if (success()) { <p class="form-success">{{ success() }}</p> }
 
@@ -208,7 +201,7 @@
             [disabled]="submitting() || !canCheckout"
             (clicked)="checkout()"
           >
-            Pay by card
+            Pay
           </app-animated-button>
 
           @if (isPendingReview) {
@@ -238,7 +231,7 @@
         </div>
 
         <ol class="pay-steps">
-          <li>Tap <strong>Pay by card</strong> to open the secure payment page.</li>
+          <li>Tap <strong>Pay</strong> to open the secure payment page.</li>
           <li>Pay <strong>{{ whish.amount | currency: whish.currency:'symbol':'1.2-2' }}</strong> with your card.</li>
           <li>Enter your card details and confirm the payment.</li>
           @if (!isPaymentConfirmed) {

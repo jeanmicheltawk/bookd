@@ -79,8 +79,6 @@
             [amount]="pay.amount"
             [currency]="pay.currency"
             [planLabel]="pay.plan_label"
-            [sandbox]="!!pay.sandbox"
-            [sandboxTest]="pay.sandbox_test || null"
             [showCta]="true"
           />
           @if (pay.upgrade?.available && !auth.isComplimentary()) {
@@ -218,8 +216,6 @@
               [amount]="pay.amount"
               [currency]="pay.currency"
               [planLabel]="pay.plan_label"
-              [sandbox]="!!pay.sandbox"
-              [sandboxTest]="pay.sandbox_test || null"
               [showCta]="true"
             />
           }

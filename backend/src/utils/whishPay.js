@@ -1,25 +1,9 @@
 const config = require('../config');
 
-const BASE_URLS = {
-  sandbox: 'https://partner.api.sbx.whish.money/itel-service/api',
-  production: 'https://api.whish.money/itel-service/api',
-};
-
-const SANDBOX_TEST = {
-  phone: '96170123456',
-  otp: '111111',
-};
+const BASE_URL = 'https://api.whish.money/itel-service/api';
 
 function isConfigured() {
   return Boolean(config.whish.channel && config.whish.secret && config.whish.websiteUrl);
-}
-
-function isSandbox() {
-  return config.whish.env !== 'production';
-}
-
-function baseUrl() {
-  return BASE_URLS[isSandbox() ? 'sandbox' : 'production'];
 }
 
 function isPublicHttpUrl(value) {
@@ -87,7 +71,7 @@ function callbackUrls(externalId) {
 }
 
 async function whishFetch(path, { method = 'GET', body } = {}) {
-  const url = `${baseUrl()}${path}`;
+  const url = `${BASE_URL}${path}`;
   const init = { method, headers: headers() };
   if (body != null) init.body = JSON.stringify(body);
 
@@ -134,8 +118,19 @@ async function whishFetch(path, { method = 'GET', body } = {}) {
     throw err;
   }
 
-  const dialog = payload.dialog?.message || payload.dialog?.title;
-  const err = new Error(dialog || `Card payment error (${payload.code || response.status}).`);
+  const dialog = payload.dialog?.message || payload.dialog?.title || '';
+  const signedOut = /sign in again|signed out/i.test(`${dialog} ${payload.dialog?.title || ''}`);
+  console.error('[whish] request rejected', {
+    path,
+    httpStatus: response.status,
+    code: payload.code || null,
+    dialog: dialog || null,
+  });
+  const err = new Error(
+    signedOut
+      ? 'Whish rejected the merchant login. Check WHISH_CHANNEL, WHISH_SECRET, and WHISH_WEBSITE_URL. They must be the production values Whish issued.'
+      : (dialog || `Card payment error (${payload.code || response.status}).`)
+  );
   err.status = 400;
   err.code = payload.code;
   throw err;
@@ -166,9 +161,7 @@ async function getPaymentStatus({ currency = 'USD', externalId }) {
 }
 
 module.exports = {
-  SANDBOX_TEST,
   isConfigured,
-  isSandbox,
   formatAmount,
   createPayment,
   getPaymentStatus,

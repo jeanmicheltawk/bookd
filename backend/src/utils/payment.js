@@ -110,8 +110,6 @@ function instructionsFor(user, payment, extra = {}) {
     plan_label: planLabel(user.membership),
     payment: mapPayment(payment),
     collect_url: payment?.collect_url || null,
-    sandbox: whishPay.isSandbox(),
-    sandbox_test: whishPay.isSandbox() ? whishPay.SANDBOX_TEST : null,
     configured: whishPay.isConfigured(),
     payment_due: isPaymentDue(user),
     paid_until: user.membership_ends_at || null,
@@ -250,15 +248,6 @@ async function ensureOpenPayment(user) {
     [user.id, user.membership, planAmount(user.membership), generateReference()]
   );
   return created.rows[0];
-}
-
-function paymentEmailLines(user, payment) {
-  const amount = Number(payment?.amount || planAmount(user.membership)).toFixed(2);
-  return [
-    `Pay $${amount} USD for ${planLabel(user.membership)} by card.`,
-    'Log in, open Pay in your dashboard, and tap Pay by card.',
-    'A secure page opens where you confirm the payment with your card.',
-  ];
 }
 
 async function loadMemberForPayment(userId, exec = query) {
@@ -583,7 +572,6 @@ module.exports = {
   closeOpenPayments,
   closePrematurePayments,
   ensureOpenPayment,
-  paymentEmailLines,
   applyPaymentDecision,
   createCheckout,
   startUpgradeCheckout,

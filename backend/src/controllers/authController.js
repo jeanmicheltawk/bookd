@@ -6,7 +6,7 @@ const config = require('../config');
 const { query } = require('../config/db');
 const { emailAdmin, emailUser } = require('../utils/mailer');
 const { expireOverdueSubscriptions, withSubscription, isPaidPlan } = require('../utils/subscription');
-const { ensureOpenPayment, instructionsFor, paymentEmailLines } = require('../utils/payment');
+const { ensureOpenPayment, instructionsFor } = require('../utils/payment');
 const { syncProfileCustomUrl } = require('../utils/profileUrl');
 
 const RESET_GENERIC_MESSAGE = 'If that email is registered, we sent a reset link.';
@@ -273,16 +273,24 @@ async function register(req, res, next) {
         instagram ? `Instagram: ${instagram}` : null,
       ].filter(Boolean).join('\n')
     );
+    const welcomeName = professionalName || fullName;
+    const welcomeAmount = Number(paymentRow?.amount);
     void emailUser(
       user.id,
-      'Application received',
+      'Welcome to BOOK\'D HAUS',
       [
-        'Thanks for applying to BOOK\'D HAUS. An admin will review your profile. You can log in now to track your application and update your details.',
+        `Welcome to BOOK'D HAUS, ${welcomeName}.`,
         '',
-        'Pay by card from your dashboard. After payment is confirmed and an admin approves your profile, your 7-day free trial starts (first period is 1 month + 7 days from approval).',
-        ...paymentEmailLines(user, paymentRow),
-      ].join('\n'),
-      '/auth/login'
+        'To activate your account, open Payment in your dashboard and pay.',
+        Number.isFinite(welcomeAmount) && welcomeAmount > 0
+          ? `The payment is $${welcomeAmount.toFixed(2)} USD.`
+          : null,
+        'After you pay, we review your profile. When it is approved, your profile appears on the home page.',
+        '',
+        'If your profile is rejected, you will receive a refund.',
+      ].filter((line) => line != null).join('\n'),
+      '/dashboard/pay',
+      'Go to payment'
     );
 
     res.status(201).json({

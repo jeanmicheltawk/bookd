@@ -52,8 +52,6 @@ services:
         value: info@bookdhaus.com
       - key: SMTP_PASS
         sync: false
-      - key: WHISH_ENV
-        value: sandbox
       - key: WHISH_WEBSITE_URL
         value: bookdhaus.com
       - key: WHISH_CHANNEL

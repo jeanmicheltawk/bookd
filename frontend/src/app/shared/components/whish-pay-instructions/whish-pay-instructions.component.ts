@@ -2,7 +2,6 @@ import { Component, Input, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AnimatedButtonComponent } from '../animated-button/animated-button.component';
-import { WhishSandboxTest } from '../../../core/models';
 
 @Component({
   selector: 'app-whish-pay-instructions',
@@ -17,13 +16,6 @@ import { WhishSandboxTest } from '../../../core/models';
         @if (planLabel) { for your {{ planLabel }} }
         by card. You'll be sent to a secure page to confirm.
       </p>
-
-      @if (sandbox && sandboxTest) {
-        <div class="whish-sandbox">
-          <span>Sandbox test values</span>
-          <p>Phone <strong>{{ sandboxTest.phone }}</strong> · OTP <strong>{{ sandboxTest.otp }}</strong></p>
-        </div>
-      }
 
       <ol class="pay-steps">
         @if (requireLogin()) {
@@ -85,23 +77,6 @@ import { WhishSandboxTest } from '../../../core/models';
       color: var(--text);
     }
 
-    .whish-sandbox {
-      padding: 12px 14px;
-      margin-bottom: 16px;
-      background: var(--acid-lime);
-      color: var(--ink-black);
-
-      span {
-        display: block;
-        font-size: 0.68rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-      }
-
-      p { margin: 0; font-size: 0.88rem; }
-    }
-
     .pay-steps {
       margin: 0;
       padding: 0;
@@ -149,7 +124,5 @@ export class WhishPayInstructionsComponent {
   @Input() currency = 'USD';
   @Input() planLabel = '';
   @Input() showCta = false;
-  @Input() sandbox = false;
-  @Input() sandboxTest: WhishSandboxTest | null = null;
   requireLogin = input(false);
 }

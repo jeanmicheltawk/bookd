@@ -79,11 +79,6 @@ export interface SubscriptionPayment {
   created_at: string;
 }
 
-export interface WhishSandboxTest {
-  phone: string;
-  otp: string;
-}
-
 export interface WhishPaymentInstructions {
   method: 'whish_pay' | 'whish_p2p';
   amount: number;
@@ -92,8 +87,6 @@ export interface WhishPaymentInstructions {
   plan_label: string;
   payment: SubscriptionPayment | null;
   collect_url?: string | null;
-  sandbox?: boolean;
-  sandbox_test?: WhishSandboxTest | null;
   configured?: boolean;
   payment_due?: boolean;
   paid_until?: string | null;

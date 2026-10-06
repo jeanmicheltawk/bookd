@@ -62,10 +62,9 @@ module.exports = {
     || ''
   ),
   whish: {
-    env: (process.env.WHISH_ENV || 'sandbox').toLowerCase() === 'production' ? 'production' : 'sandbox',
-    channel: process.env.WHISH_CHANNEL || '',
-    secret: process.env.WHISH_SECRET || '',
-    websiteUrl: process.env.WHISH_WEBSITE_URL || '',
+    channel: String(process.env.WHISH_CHANNEL || '').trim(),
+    secret: String(process.env.WHISH_SECRET || '').trim(),
+    websiteUrl: String(process.env.WHISH_WEBSITE_URL || '').trim(),
     userAgent: process.env.WHISH_USER_AGENT
       || "BookdHaus/1.0 (https://bookdhaus.com; info@bookdhaus.com)",
   },

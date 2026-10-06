@@ -211,7 +211,7 @@ export class DashboardPayComponent implements OnInit {
           this.success.set('Your card payment was confirmed.');
           this.auth.me().subscribe();
         } else if (result === 'failed') {
-          this.error.set('That attempt did not go through. The payment link is still open — tap Pay by card to try again.');
+          this.error.set('That attempt did not go through. The payment link is still open — tap Pay to try again.');
         } else {
           this.success.set('Checking your payment. If you just paid, this page will update in a moment — tap Refresh status.');
         }
