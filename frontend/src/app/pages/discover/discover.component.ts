@@ -98,7 +98,7 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((res) => this.announcements.set(res.data));
     this.onBoardService.list()
       .pipe(catchError(() => of({ data: [] })))
-      .subscribe((res) => this.onBoard.set(res.data));
+      .subscribe((res) => this.onBoard.set(this.shuffle(res.data)));
 
     this.route.queryParamMap.subscribe((params) => {
       this.filters.category = params.get('category') || '';
@@ -168,6 +168,15 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   clearFilters(): void {
     this.filters = { category: '', country: '', availability: '', verified: false, gender: '' };
     this.applyFilters();
+  }
+
+  private shuffle<T>(items: T[]): T[] {
+    const list = [...items];
+    for (let i = list.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
   }
 
   private createShuffleSeed(): string {
