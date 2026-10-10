@@ -31,7 +31,9 @@
         <button type="button" class="news-ticker__nav" (click)="scroll(1)" aria-label="Scroll news right">›</button>
       </div>
     } @else if (loaded()) {
-      <p class="container news-ticker__empty">No news yet.</p>
+      <div class="container">
+        <p class="news-ticker__empty">No news yet.</p>
+      </div>
     }
   </div>
 
