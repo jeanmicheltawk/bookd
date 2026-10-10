@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticate, optionalAuth, requireRole, requireApproved } = require('../middleware/auth');
+const { authenticate, optionalAuth, requireRole, requireApproved, requireCreator } = require('../middleware/auth');
 const { upload, imageUpload, forceUploadFolder } = require('../middleware/upload');
 
 const auth = require('../controllers/authController');
@@ -27,6 +27,7 @@ const payments = require('../controllers/paymentController');
 const router = express.Router();
 const admin = [authenticate, requireRole('admin')];
 const approved = [authenticate, requireApproved];
+const creator = [authenticate, requireCreator];
 
 // Auth
 router.post('/auth/register', auth.registerValidators, auth.register);
@@ -96,17 +97,17 @@ router.post(
   imageUpload.single('file'),
   profile.uploadProfilePhoto
 );
-router.get('/profiles/me/portfolio', ...approved, profile.listPortfolio);
+router.get('/profiles/me/portfolio', ...creator, profile.listPortfolio);
 router.post(
   '/profiles/me/portfolio/upload',
-  ...approved,
+  ...creator,
   forceUploadFolder('portfolio'),
   upload.single('file'),
   profile.uploadPortfolioMedia
 );
-router.post('/profiles/me/portfolio', ...approved, profile.addPortfolioItem);
-router.patch('/profiles/me/portfolio/:id', ...approved, profile.updatePortfolioItem);
-router.delete('/profiles/me/portfolio/:id', ...approved, profile.deletePortfolioItem);
+router.post('/profiles/me/portfolio', ...creator, profile.addPortfolioItem);
+router.patch('/profiles/me/portfolio/:id', ...creator, profile.updatePortfolioItem);
+router.delete('/profiles/me/portfolio/:id', ...creator, profile.deletePortfolioItem);
 router.patch('/profiles/me', authenticate, profile.updateMyProfile);
 router.get('/profiles/:slug/:shortId', optionalAuth, profile.getPublicProfile);
 router.get('/profiles/:idOrSlug', optionalAuth, profile.getPublicProfile);

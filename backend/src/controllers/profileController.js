@@ -80,24 +80,44 @@ async function resolveProfileId(idOrSlug) {
   return null;
 }
 
+async function requesterIsAdmin(req) {
+  if (!req.user?.id || req.user.role !== 'admin') return false;
+  const result = await query(
+    `SELECT role FROM users WHERE id = $1 AND is_active = TRUE`,
+    [req.user.id]
+  );
+  return result.rows[0]?.role === 'admin';
+}
+
 async function getPublicProfile(req, res, next) {
   try {
     await expireOverdueSubscriptions();
     const profileId = await resolveProfileId(req.params.shortId || req.params.idOrSlug);
     if (!profileId) return res.status(404).json({ error: 'Profile not found' });
 
-    const result = await query(
-      `SELECT ${PUBLIC_PROFILE_FIELDS}
+    const profileSelect = `SELECT ${PUBLIC_PROFILE_FIELDS}
        FROM profiles p
        JOIN users u ON u.id = p.user_id
        LEFT JOIN categories c ON c.id = p.category_id
-       WHERE p.id = $1
+       WHERE p.id = $1`;
+
+    let result = await query(
+      `${profileSelect}
          AND p.is_public = TRUE
          AND u.is_active = TRUE
          AND u.role = 'member'
          AND u.approval_status = 'approved'`,
       [profileId]
     );
+    let preview = false;
+    if (!result.rows[0] && await requesterIsAdmin(req)) {
+      result = await query(
+        `${profileSelect}
+           AND u.role = 'member'`,
+        [profileId]
+      );
+      preview = !!result.rows[0];
+    }
     if (!result.rows[0]) return res.status(404).json({ error: 'Profile not found' });
 
     const profile = result.rows[0];
@@ -117,13 +137,15 @@ async function getPublicProfile(req, res, next) {
       [profileId]
     );
 
-    await query(
-      `INSERT INTO analytics_events (event_type, path, user_id, profile_id, metadata)
-       VALUES ('profile_view', $1, $2, $3, '{}'::jsonb)`,
-      [profilePublicPath(profile.full_name, profile.id), req.user?.id || null, profileId]
-    );
+    if (!preview) {
+      await query(
+        `INSERT INTO analytics_events (event_type, path, user_id, profile_id, metadata)
+         VALUES ('profile_view', $1, $2, $3, '{}'::jsonb)`,
+        [profilePublicPath(profile.full_name, profile.id), req.user?.id || null, profileId]
+      );
+    }
 
-    res.json({ ...profile, portfolio: portfolio.rows });
+    res.json({ ...profile, portfolio: portfolio.rows, preview });
   } catch (err) {
     next(err);
   }

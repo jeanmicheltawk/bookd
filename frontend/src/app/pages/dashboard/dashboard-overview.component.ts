@@ -13,11 +13,13 @@ import { AnimatedButtonComponent } from '../../shared/components/animated-button
 import { WhishPayInstructionsComponent } from '../../shared/components/whish-pay-instructions/whish-pay-instructions.component';
 import { formatSubDate, postTrialPlanCopy, subscriptionStatusLabel } from '../../core/utils/subscription';
 import { profileRouterLink } from '../../core/utils/profile-url';
+import { CreatorSetupService } from '../../core/services/creator-setup.service';
+import { DashboardStepperComponent } from './dashboard-stepper.component';
 
 @Component({
   selector: 'app-dashboard-overview',
   standalone: true,
-  imports: [CommonModule, RouterLink, DashboardNavComponent, LoadingScreenComponent, AnimatedButtonComponent, WhishPayInstructionsComponent],
+  imports: [CommonModule, RouterLink, DashboardNavComponent, LoadingScreenComponent, AnimatedButtonComponent, WhishPayInstructionsComponent, DashboardStepperComponent],
   templateUrl: './dashboard-overview.component.html',
   styleUrl: './dashboard-overview.component.scss',
 })
@@ -25,6 +27,7 @@ export class DashboardOverviewComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private alerts = inject(AlertService);
   auth = inject(AuthService);
+  setup = inject(CreatorSetupService);
 
   summary = signal<DashboardSummary | null>(null);
   loading = signal(true);

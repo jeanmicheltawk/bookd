@@ -1,6 +1,21 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .auth-card {
   width: 100%;
+  min-width: 0;
   max-width: 420px;
+  margin-inline: auto;
+
+  h2 {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    font-size: clamp(1.7rem, 6vw, 3.15rem);
+  }
 
   &__sub { margin: 8px 0 32px; }
 }

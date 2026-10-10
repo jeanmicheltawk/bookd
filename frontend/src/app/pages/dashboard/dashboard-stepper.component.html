@@ -1,0 +1,120 @@
+<section class="container stepper-page">
+  <div class="dash-head">
+    <div>
+      <span class="eyebrow">FIRST LOGIN</span>
+      <h1 class="display-lg">GET <span class="text-gradient">STARTED</span></h1>
+      <p class="stepper-lead">Add your profile photo, then your portfolio, then pay. A profile photo is mandatory.</p>
+    </div>
+  </div>
+
+  <div class="stepper-track" role="tablist">
+    @for (item of steps(); track item.label; let i = $index) {
+      <button
+        type="button"
+        class="step"
+        [class.is-active]="step() === i"
+        [class.is-done]="step() > i"
+        [disabled]="!canOpen(i)"
+        (click)="go(i)"
+      >
+        <small>Step {{ i + 1 }}</small>
+        <strong>{{ item.label }}</strong>
+      </button>
+    }
+  </div>
+
+  @if (error()) { <p class="form-error">{{ error() }}</p> }
+
+  @if (step() === 0) {
+    <div class="step-panel">
+      <h2>Profile photo</h2>
+      <p>A profile photo is mandatory before an admin can accept or reject you.</p>
+      <div class="photo-row">
+        <img [src]="photoUrl() ? api.assetUrl(photoUrl()) : 'assets/placeholder-avatar.svg'" alt="Profile photo" />
+        <label class="upload-btn">
+          <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
+          {{ uploadingPhoto() ? 'Uploading...' : (hasPhoto() ? 'Change photo' : 'Add photo') }}
+        </label>
+      </div>
+      <div class="step-actions">
+        <app-animated-button variant="primary" [disabled]="!hasPhoto()" (clicked)="next()">Continue</app-animated-button>
+      </div>
+    </div>
+  } @else if (step() === 1) {
+    <div class="step-panel">
+      <h2>Portfolio</h2>
+      <p>Add at least one image or video link. This stays private until you're accepted.</p>
+      <div class="upload-row">
+        <label class="upload-btn" [class.is-disabled]="uploadingWork()">
+          <input type="file" [accept]="caps().allowPdf ? 'image/*,.pdf,application/pdf' : 'image/*'" multiple hidden (change)="onFilesSelected($event)" [disabled]="uploadingWork()" />
+          {{ uploadingWork() ? 'Uploading...' : (caps().allowPdf ? '+ Upload images / PDF' : '+ Upload images') }}
+        </label>
+      </div>
+      <div class="upload-row">
+        <input type="url" placeholder="Video link (YouTube, Vimeo, Instagram...)" [(ngModel)]="videoUrl" name="videoUrl" (keydown.enter)="addVideoLink()" />
+        <button type="button" class="upload-btn" [disabled]="addingLink()" (click)="addVideoLink()">
+          {{ addingLink() ? 'Adding...' : '+ Add video link' }}
+        </button>
+      </div>
+      <p class="count">{{ items().length }} piece{{ items().length === 1 ? '' : 's' }} added</p>
+      @if (items().length) {
+        <div class="thumbs">
+          @for (item of items(); track item.id) {
+            <div class="thumb">
+              @if (item.media_type === 'video') {
+                <span>VIDEO</span>
+              } @else if (item.media_type === 'pdf') {
+                <span>PDF</span>
+              } @else {
+                <img [src]="api.assetUrl(item.url)" [alt]="item.title || 'Portfolio piece'" />
+              }
+            </div>
+          }
+        </div>
+      }
+      <div class="step-actions">
+        <app-animated-button variant="outline" (clicked)="back()">Back</app-animated-button>
+        @if (auth.isComplimentary()) {
+          <app-animated-button variant="primary" [disabled]="!hasPortfolio()" (clicked)="finish()">Go to dashboard</app-animated-button>
+        } @else {
+          <app-animated-button variant="primary" [disabled]="!hasPortfolio()" (clicked)="next()">Continue</app-animated-button>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="step-panel">
+      <h2>Payment</h2>
+      @if (loadingPay()) {
+        <app-loading-screen [fullscreen]="false" label="LOADING PAYMENT..." />
+      } @else if (paid()) {
+        <p>{{ payNote() || 'Your card payment is confirmed. Your trial starts when an admin approves you.' }}</p>
+      } @else {
+        <p>
+          Pay
+          @if (payment(); as bill) {
+            <strong>{{ bill.amount | currency: bill.currency:'symbol':'1.2-2' }}</strong> for {{ bill.plan_label }}
+          }
+          by card. You'll be sent to a secure page, then brought back here.
+        </p>
+        @if (payNote()) { <p>{{ payNote() }}</p> }
+      }
+      <div class="step-actions">
+        <app-animated-button variant="outline" (clicked)="back()">Back</app-animated-button>
+        @if (!paid()) {
+          <app-animated-button variant="primary" [loading]="paying()" [disabled]="paying() || loadingPay()" (clicked)="pay()">Pay</app-animated-button>
+        }
+        <app-animated-button variant="outline" (clicked)="finish()">Go to dashboard</app-animated-button>
+      </div>
+    </div>
+  }
+
+  @if (pendingPhoto(); as photo) {
+    <app-image-cropper
+      [file]="photo"
+      heading="Choose your frame"
+      confirmLabel="Use this frame"
+      (cropped)="onPhotoCropped($event)"
+      (cancelled)="pendingPhoto.set(null)"
+    />
+  }
+</section>

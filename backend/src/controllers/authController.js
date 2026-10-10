@@ -271,6 +271,7 @@ async function register(req, res, next) {
         city ? `City: ${city}` : null,
         phone ? `Phone: ${phone}` : null,
         instagram ? `Instagram: ${instagram}` : null,
+        'They still need to log in, fill their portfolio, and add a profile photo before you accept or reject them. A profile photo is mandatory.',
       ].filter(Boolean).join('\n')
     );
     const welcomeName = professionalName || fullName;
@@ -281,20 +282,23 @@ async function register(req, res, next) {
       [
         `Welcome to BOOK'D HAUS, ${welcomeName}.`,
         '',
-        'To activate your account, open Payment in your dashboard and pay.',
+        'The first time you log in, follow the steps in order: add a profile photo, fill your portfolio, then pay.',
+        'A profile photo is mandatory. Your portfolio and photo stay private until you are accepted.',
+        '',
+        'Also open Payment in your dashboard and pay.',
         Number.isFinite(welcomeAmount) && welcomeAmount > 0
           ? `The payment is $${welcomeAmount.toFixed(2)} USD.`
           : null,
-        'After you pay, we review your profile. When it is approved, your profile appears on the home page.',
+        'After your portfolio is filled, your profile photo is added, and you pay, we review your profile. When it is approved, your profile appears on the home page.',
         '',
         'If your profile is rejected, you will receive a refund.',
       ].filter((line) => line != null).join('\n'),
-      '/dashboard/pay',
-      'Go to payment'
+      '/dashboard',
+      'Open your dashboard'
     );
 
     res.status(201).json({
-      message: 'Application submitted. An admin will review it before your profile goes live.',
+      message: 'Application submitted. Log in, fill your portfolio, and add a profile photo so an admin can accept or reject you. A profile photo is mandatory.',
       user: payloadUser,
       payment,
     });
@@ -310,7 +314,7 @@ async function login(req, res, next) {
     await expireOverdueSubscriptions();
     const result = await query(
       `SELECT u.id, u.email, u.password_hash, u.role, u.membership, u.is_verified, u.is_active, u.approval_status,
-              u.is_complimentary, u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
+              u.last_login_at, u.is_complimentary, u.membership_started_at, u.membership_trial_ends_at, u.membership_ends_at,
               p.id AS profile_id, p.full_name, p.professional_name, p.profile_photo_url,
               p.custom_url, c.slug AS category_slug, c.name AS category_name
        FROM users u
@@ -336,12 +340,14 @@ async function login(req, res, next) {
       }
     }
 
+    const firstLogin = !user.last_login_at;
     await query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [user.id]);
     delete user.password_hash;
     delete user.is_active;
+    delete user.last_login_at;
     const payloadUser = withSubscription(user);
     const tokens = signTokens(payloadUser);
-    res.json({ user: payloadUser, ...tokens });
+    res.json({ user: payloadUser, first_login: firstLogin, ...tokens });
   } catch (err) {
     next(err);
   }

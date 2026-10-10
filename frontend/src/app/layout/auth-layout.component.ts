@@ -32,10 +32,10 @@ import { RouterLink, RouterOutlet } from '@angular/router';
       max-height: 100dvh;
       overflow: hidden;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
       background: var(--toxic-orange);
 
-      @media (max-width: 900px) {
+      @media (max-width: 1024px) {
         grid-template-columns: 1fr;
         height: auto;
         max-height: none;
@@ -46,36 +46,40 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 
     .auth-shell__visual {
       position: relative;
+      min-width: 0;
       min-height: 0;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 64px;
+      padding: clamp(32px, 4vw, 64px);
       background: var(--uv-purple);
       color: #ffffff;
 
-      @media (max-width: 900px) { padding: 48px 24px; min-height: 280px; }
+      @media (max-width: 1024px) { padding: 40px 24px; min-height: 240px; }
+      @media (max-width: 640px) { padding: 32px 20px; min-height: 200px; }
     }
 
     .auth-shell__logo {
       display: block;
-      width: min(280px, 70%);
+      width: min(280px, 100%);
       margin-bottom: 40px;
       img { width: 100%; height: auto; }
     }
 
     .auth-shell__headline {
+      max-width: 100%;
       font-family: var(--font-campaign);
-      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-size: clamp(2rem, 4vw, 3.6rem);
       font-weight: 800;
       line-height: 0.9;
       letter-spacing: -0.01em;
       text-transform: uppercase;
+      overflow-wrap: break-word;
     }
 
     .auth-shell__sub {
-      max-width: 420px;
+      max-width: min(420px, 100%);
       font-size: 1rem;
       font-weight: 600;
       margin-top: 16px;
@@ -83,6 +87,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     }
 
     .auth-shell__form {
+      min-width: 0;
       min-height: 0;
       overflow-x: hidden;
       overflow-y: auto;
@@ -90,7 +95,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
       flex-direction: column;
       background: var(--toxic-orange);
 
-      @media (max-width: 900px) {
+      @media (max-width: 1024px) {
         overflow: visible;
         height: auto;
       }
@@ -98,10 +103,11 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 
     .auth-shell__form-inner {
       width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
       margin-block: auto;
-      display: flex;
-      justify-content: center;
-      padding: 48px 24px;
+      padding: clamp(24px, 4vw, 48px) clamp(16px, 3vw, 32px);
     }
   `],
 })

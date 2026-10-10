@@ -5,6 +5,7 @@
       <h1 class="display-lg">PLATFORM <span class="text-gradient">USERS</span></h1>
       <p class="admin-page__hint">
         Review applications, approve or reject creatives, verify profiles, and manage membership.
+        Creators are asked to log in, fill their portfolio, and add a profile photo before you accept or reject them. A profile photo is mandatory.
         Confirm the card payment first — then approve the profile to start the 7-day free trial (first period is 1 month + 7 days).
         You can also add a free profile: pick Starter or Premium, and it goes live immediately with no payment and no approval. Client accounts live under Clients.
       </p>
@@ -54,6 +55,20 @@
               @if (u.country) { · {{ u.city ? u.city + ', ' : '' }}{{ u.country }} }
             </span>
             <p>{{ u.bio || 'No bio provided.' }}</p>
+            @if (u.role === 'member' && u.approval_status === 'pending') {
+              <p class="portfolio-wait">
+                @if ((u.portfolio_count || 0) > 0) {
+                  Portfolio filled ({{ u.portfolio_count }} {{ u.portfolio_count === 1 ? 'piece' : 'pieces' }}).
+                } @else {
+                  Portfolio not filled yet.
+                }
+                @if (u.profile_photo_url) {
+                  Profile photo added.
+                } @else {
+                  Profile photo missing — it is mandatory before you accept or reject.
+                }
+              </p>
+            }
             @if (u.subscription && u.subscription.status !== 'none' && u.subscription.status !== 'complimentary') {
               <div class="sub-line">
                 <span class="sub-badge" [attr.data-status]="u.subscription.status">{{ subStatus(u.subscription) }}</span>
@@ -96,6 +111,9 @@
           </div>
 
           <div class="mod-row__actions">
+            @if (u.role === 'member' && u.profile_id) {
+              <a class="edit-btn view-btn" [routerLink]="previewLink(u)" target="_blank" rel="noopener">View</a>
+            }
             <button type="button" class="edit-btn" (click)="openEdit(u)">Edit</button>
 
             @if (u.approval_status === 'pending' && !isComplimentary(u)) {

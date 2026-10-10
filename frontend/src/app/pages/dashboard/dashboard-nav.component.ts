@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AlertService } from '../../core/services/alert.service';
+import { CreatorSetupService } from '../../core/services/creator-setup.service';
 
 interface DashNavItem {
   label: string;
@@ -15,8 +16,17 @@ interface DashNavItem {
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
   template: `
-    @if (!spamHintDismissed() || !auth.isPending()) {
+    @if (!spamHintDismissed() || !auth.isPending() || !auth.isBrand()) {
       <div class="dash-notices">
+        @if (setup.isMissing()) {
+          <div class="dash-notice dash-notice--portfolio">
+            <p>Fill your portfolio and add a profile photo. A profile photo is mandatory. An admin can accept or reject you after both are in.</p>
+            <span class="dash-notice__links">
+              <a routerLink="/dashboard/portfolio">Portfolio</a>
+              <a routerLink="/dashboard/settings">Profile photo</a>
+            </span>
+          </div>
+        }
         @if (!spamHintDismissed()) {
           <div class="dash-notice dash-notice--spam">
             <p>Emails from {{ mailFrom }} can land in spam. Check junk/spam for messages, bookings, and approvals — then mark as not spam.</p>
@@ -82,6 +92,18 @@ interface DashNavItem {
       &--message { background: var(--acid-lime); }
       &--booking { background: var(--nuclear-yellow); }
       &--pay { background: var(--hyper-pink); color: #fff; }
+      &--portfolio {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: var(--nuclear-yellow);
+        letter-spacing: 0.04em;
+        text-transform: none;
+        &:hover { transform: none; }
+        p { margin: 0; max-width: 46rem; font-weight: 800; color: #000 !important; }
+      }
       &:hover { transform: translateY(-1px); }
       &--spam {
         display: flex;
@@ -148,6 +170,22 @@ interface DashNavItem {
       }
     }
 
+    .dash-notice__links {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      a {
+        padding: 8px 14px;
+        border: 1px solid var(--ink-black);
+        color: var(--ink-black);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        &:hover { background: var(--ink-black); color: var(--nuclear-yellow); }
+      }
+    }
+
     .nav-badge {
       min-width: 20px;
       height: 20px;
@@ -165,13 +203,15 @@ interface DashNavItem {
 export class DashboardNavComponent implements OnInit {
   auth = inject(AuthService);
   alerts = inject(AlertService);
+  setup = inject(CreatorSetupService);
   readonly mailFrom = 'info@bookdhaus.com';
 
   private readonly spamHintKey = 'bookd-mail-spam-hint-dismissed';
   spamHintDismissed = signal(typeof localStorage !== 'undefined' && localStorage.getItem(this.spamHintKey) === '1');
 
   ngOnInit(): void {
-    if (!this.auth.isPending()) this.alerts.refresh();
+    if (this.auth.isPending()) this.setup.refresh();
+    else this.alerts.refresh();
   }
 
   dismissSpamHint(): void {
@@ -187,6 +227,7 @@ export class DashboardNavComponent implements OnInit {
         { label: 'Status', path: '/dashboard', exact: true },
       ];
       if (!complimentary) pending.push({ label: 'Pay', path: '/dashboard/pay' });
+      pending.push({ label: 'Portfolio', path: '/dashboard/portfolio' });
       pending.push({ label: 'Profile', path: '/dashboard/settings' });
       return pending;
     }

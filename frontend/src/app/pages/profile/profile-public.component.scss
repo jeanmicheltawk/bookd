@@ -1,5 +1,29 @@
 .not-found-block { padding: 120px 24px; text-align: center; }
 
+.preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 22px;
+  background: #000;
+  color: #fff;
+
+  p { margin: 0; max-width: 52rem; font-weight: 700; }
+  a {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+}
+
 .p-hero {
   position: relative;
   height: 120px;
@@ -108,16 +132,6 @@
   font-weight: 900;
   font-size: 0.9rem;
 }
-.premium-badge {
-  padding: 3px 12px;
-  background: var(--laser-cyan);
-  color: var(--ink-black);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .availability-pill {
   display: inline-block;
   font-size: 0.75rem;

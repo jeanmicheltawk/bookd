@@ -45,7 +45,11 @@ const USER_SELECT = `
   p.id AS profile_id, p.full_name, p.professional_name, p.country, p.city,
   p.bio, p.instagram, p.phone, p.whatsapp, p.website, p.gender, p.age,
   p.profile_photo_url, p.is_public, p.custom_fields, p.availability,
-  c.slug AS category_slug, c.name AS category_name
+  c.slug AS category_slug, c.name AS category_name,
+  (
+    SELECT COUNT(*)::int FROM portfolio_items pi
+    WHERE pi.profile_id = p.id
+  ) AS portfolio_count
 `;
 
 async function fetchAdminUser(userId) {

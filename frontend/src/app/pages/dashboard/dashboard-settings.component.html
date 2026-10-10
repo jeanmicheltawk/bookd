@@ -8,8 +8,8 @@
 
   <app-dashboard-nav />
 
-  @if (auth.isPending()) {
-    <p class="pending-banner">Your application is under review. You can update your info here — it stays private until you're accepted.</p>
+  @if (setup.isMissing()) {
+    <p class="pending-banner">A profile photo is mandatory — add it below. Also open Portfolio and add your work. An admin can accept or reject you after both are in. Everything stays private until you're accepted.</p>
   }
 
   @if (loading()) {
@@ -61,7 +61,13 @@
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
             {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
           </label>
-          <p class="photo-hint">Pick a photo, then choose the frame before it uploads.</p>
+          <p class="photo-hint">
+            @if (auth.isPending() && !form.profilePhotoUrl) {
+              A profile photo is mandatory. Pick a photo, then choose the frame before it uploads.
+            } @else {
+              Pick a photo, then choose the frame before it uploads.
+            }
+          </p>
         </div>
       </div>
 

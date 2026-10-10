@@ -9,6 +9,7 @@ import { CountryService } from '../../core/services/country.service';
 import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
 import { ApiService } from '../../core/services/api.service';
 import { Category, CategoryField, Country } from '../../core/models';
+import { CreatorSetupService } from '../../core/services/creator-setup.service';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
@@ -25,6 +26,7 @@ import { toGenderValue } from '../../core/utils/gender';
 })
 export class DashboardSettingsComponent implements OnInit {
   auth = inject(AuthService);
+  setup = inject(CreatorSetupService);
   api = inject(ApiService);
   private profileService = inject(ProfileService);
   private countryService = inject(CountryService);

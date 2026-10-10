@@ -149,7 +149,7 @@
   &[data-status='complimentary'] { background: var(--acid-lime); }
 }
 
-.edit-btn, .approve-btn, .reject-btn, .delete-btn {
+.edit-btn, .view-btn, .approve-btn, .reject-btn, .delete-btn {
   padding: 9px 18px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -164,8 +164,25 @@
   border: 1px solid currentColor;
   color: var(--text);
 }
+a.view-btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  background: #000;
+  color: #fff;
+  border: 1px solid #000;
+}
 .approve-btn { background: var(--acid-lime); color: var(--ink-black); }
 .reject-btn { background: var(--hyper-pink); color: #ffffff; }
+
+.portfolio-wait {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nuclear-yellow);
+}
 
 .pay-wait {
   align-self: center;

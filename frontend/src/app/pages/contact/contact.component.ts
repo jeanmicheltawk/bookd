@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ContactService } from '../../core/services/contact.service';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
+import { buildPortfolioWhatsappUrl } from '../../core/utils/bookd-whatsapp';
 
 @Component({
   selector: 'app-contact',
@@ -18,6 +19,7 @@ export class ContactComponent {
   sending = signal(false);
   sent = signal(false);
   error = signal('');
+  readonly buildPortfolioUrl = buildPortfolioWhatsappUrl();
 
   submit(ngForm: NgForm): void {
     if (ngForm.invalid) return;

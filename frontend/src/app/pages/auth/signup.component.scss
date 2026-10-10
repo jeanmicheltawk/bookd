@@ -1,7 +1,28 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .auth-card {
   width: 100%;
+  min-width: 0;
   max-width: 440px;
-  &__sub { margin: 8px 0 28px; }
+  margin-inline: auto;
+  container-type: inline-size;
+  container-name: signup;
+
+  h2 {
+    max-width: 100%;
+    font-size: clamp(1.7rem, 6.5cqi, 3.15rem);
+    overflow-wrap: break-word;
+  }
+
+  &__sub {
+    margin: 8px 0 28px;
+    overflow-wrap: break-word;
+  }
 
   &--wide {
     max-width: 720px;
@@ -30,6 +51,10 @@
   gap: 14px 16px;
   margin-bottom: 14px;
 
+  @container signup (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
@@ -42,7 +67,10 @@
 .checkbox-field label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.85rem;
@@ -50,7 +78,31 @@
   cursor: pointer;
 }
 
+.checkbox-field input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--ink-black);
+}
+
 .form-field {
+  min-width: 0;
+
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  app-select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  label {
+    overflow-wrap: break-word;
+  }
+
   textarea {
     width: 100%;
     resize: vertical;
@@ -75,6 +127,10 @@
   gap: 10px;
   margin-bottom: 16px;
 
+  @container signup (max-width: 460px) {
+    grid-template-columns: 1fr;
+  }
+
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
@@ -84,6 +140,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 0;
   gap: 4px;
   padding: 14px 16px;
   border: 1px solid currentColor;

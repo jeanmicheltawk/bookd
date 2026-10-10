@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { ApprovalStatus, Category, CategoryField, Country, SubscriptionInfo } from '../../core/models';
@@ -21,6 +22,7 @@ import { LoadingScreenComponent } from '../../shared/components/loading-screen/l
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 import { toGenderValue } from '../../core/utils/gender';
 import { subscriptionStatusLabel, membershipLabel, isComplimentaryMember } from '../../core/utils/subscription';
+import { profileRouterLink } from '../../core/utils/profile-url';
 
 interface EditForm {
   email: string;
@@ -45,7 +47,7 @@ interface EditForm {
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingScreenComponent, SelectComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LoadingScreenComponent, SelectComponent],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss',
 })
@@ -156,6 +158,15 @@ export class AdminUsersComponent implements OnInit {
     this.editCategorySlug.set('');
     this.editForm = this.emptyEditForm();
     this.editForm.membership = '';
+  }
+
+  previewLink(user: AdminUser): string[] {
+    return profileRouterLink({
+      id: user.profile_id,
+      full_name: user.full_name,
+      professional_name: user.professional_name,
+      custom_url: undefined,
+    }) || ['/profile', user.profile_id || ''];
   }
 
   openEdit(user: AdminUser): void {

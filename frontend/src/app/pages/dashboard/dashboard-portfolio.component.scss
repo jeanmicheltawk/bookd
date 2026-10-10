@@ -1,6 +1,16 @@
 .dash-page { padding: 48px 0 100px; }
 .dash-head { margin-bottom: 32px; }
 
+.pending-banner {
+  margin: -8px 0 24px;
+  padding: 14px 18px;
+  background: var(--nuclear-yellow);
+  color: var(--ink-black);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .upload-panel {
   display: flex;
   gap: 12px;

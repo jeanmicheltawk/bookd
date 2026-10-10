@@ -55,6 +55,21 @@
     }
   }
 
+  &__links a#{&}__portfolio-btn,
+  &__portfolio-btn {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border: 1px solid currentColor;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    &:hover { color: var(--ink-black); background: var(--acid-lime); border-color: var(--acid-lime); }
+    &::after { display: none !important; }
+  }
+
   &__actions {
     display: flex;
     align-items: center;

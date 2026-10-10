@@ -7,6 +7,7 @@ import { ApiService } from './api.service';
 const ACCESS_TOKEN_KEY = 'bkd_access_token';
 const REFRESH_TOKEN_KEY = 'bkd_refresh_token';
 const USER_KEY = 'bkd_user';
+const STEPPER_KEY = 'bkd_first_login_stepper';
 
 export interface RegisterPayload {
   email: string;
@@ -48,6 +49,7 @@ export class AuthService {
   private router = inject(Router);
 
   private readonly userSignal = signal<User | null>(this.readUserFromStorage());
+  private readonly stepperUserId = signal<string | null>(this.readStepperUserId());
 
   readonly user = computed(() => this.userSignal());
   readonly isAuthenticated = computed(() => !!this.userSignal());
@@ -62,10 +64,25 @@ export class AuthService {
     const user = this.userSignal();
     return !!user && user.role !== 'admin' && user.role !== 'brand' && user.approval_status === 'pending';
   });
+  readonly showStepper = computed(() => {
+    const user = this.userSignal();
+    return !!user
+      && user.role === 'member'
+      && user.approval_status === 'pending'
+      && this.stepperUserId() === user.id;
+  });
   readonly isComplimentary = computed(() => {
     const user = this.userSignal();
     return !!user && user.role === 'member' && (!!user.is_complimentary || user.membership === 'free');
   });
+
+  private readStepperUserId(): string | null {
+    try {
+      return localStorage.getItem(STEPPER_KEY);
+    } catch {
+      return null;
+    }
+  }
 
   private readUserFromStorage(): User | null {
     try {
@@ -137,6 +154,25 @@ export class AuthService {
     localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));
     this.userSignal.set(res.user);
+    if (typeof res.first_login === 'boolean') {
+      this.rememberStepper(res.first_login, res.user);
+    }
+  }
+
+  finishStepper(): void {
+    localStorage.removeItem(STEPPER_KEY);
+    this.stepperUserId.set(null);
+  }
+
+  private rememberStepper(firstLogin: boolean, user: User): void {
+    const show = firstLogin && user.role === 'member' && user.approval_status === 'pending';
+    if (show) {
+      localStorage.setItem(STEPPER_KEY, user.id);
+      this.stepperUserId.set(user.id);
+      return;
+    }
+    localStorage.removeItem(STEPPER_KEY);
+    this.stepperUserId.set(null);
   }
 
   updateStoredUser(patch: Partial<User>): void {
@@ -149,6 +185,8 @@ export class AuthService {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(STEPPER_KEY);
+    this.stepperUserId.set(null);
     this.userSignal.set(null);
     if (redirect) this.router.navigate(['/auth/login']);
   }

@@ -7,6 +7,12 @@
   </div>
 } @else {
 @if (profile(); as p) {
+  @if (p.preview) {
+    <div class="preview-banner">
+      <p>Admin preview. This is how the profile and portfolio will look once the creator is accepted. It is not public yet.</p>
+      <a routerLink="/admin/users">Back to users</a>
+    </div>
+  }
   <section
     class="p-hero"
     [class.p-hero--cover]="!!p.cover_photo_url"
@@ -36,7 +42,6 @@
         <div class="p-header__name-row">
           <h1>{{ p.professional_name || p.full_name }}</h1>
           @if (p.is_verified) { <span class="verified-badge" title="Verified">✓</span> }
-          @if (p.membership === 'premium') { <span class="premium-badge">PREMIUM PLAN</span> }
         </div>
         <p class="p-header__meta">
           @if (p.category_name) { <span class="chip">{{ p.category_name }}</span> }

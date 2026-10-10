@@ -1,3 +1,6 @@
+@if (auth.showStepper()) {
+  <app-dashboard-stepper />
+} @else {
 <section class="container dash-page">
   <div class="dash-head">
     <div>
@@ -19,12 +22,27 @@
       <div class="pending-status">
         <span class="pending-status__pill">UNDER REVIEW</span>
         <h2 class="display-lg">APPLICATION <span class="text-gradient">UNDER REVIEW</span></h2>
-        <p>
-          Thanks for applying to BOOK'D HAUS. An admin is reviewing your profile.
-          You'll get an email when a decision is made (check spam/junk too). Until then you can update your info —
-          nothing goes live until you're accepted.
-        </p>
-        <app-animated-button routerLink="/dashboard/settings" variant="primary">Update Profile</app-animated-button>
+        @if (setup.isReady()) {
+          <p>
+            Thanks for applying to BOOK'D HAUS. Your portfolio and profile photo are in.
+            An admin is reviewing your profile. You'll get an email when a decision is made (check spam/junk too).
+            Nothing goes live until you're accepted.
+          </p>
+        } @else if (setup.isMissing()) {
+          <p>
+            Thanks for applying to BOOK'D HAUS. Before an admin can accept or reject you, open Portfolio and add your work, and add a profile photo on Profile. A profile photo is mandatory.
+            You'll get an email when a decision is made (check spam/junk too). Nothing goes live until you're accepted.
+          </p>
+          <div class="pending-actions">
+            <app-animated-button routerLink="/dashboard/portfolio" variant="primary">Fill Portfolio</app-animated-button>
+            <app-animated-button routerLink="/dashboard/settings" variant="outline">Add Profile Photo</app-animated-button>
+          </div>
+        } @else {
+          <p>
+            Thanks for applying to BOOK'D HAUS. You'll get an email when a decision is made (check spam/junk too).
+            Nothing goes live until you're accepted.
+          </p>
+        }
       </div>
 
       <div class="pending-guide">
@@ -32,7 +50,7 @@
         <h3>What you'll get in the dashboard</h3>
         <ul>
           <li>A live public profile in search so clients can find you</li>
-          <li>Portfolio to showcase your work</li>
+          <li>The portfolio you filled, visible on your public profile</li>
           <li>Booking requests from brands and clients</li>
           <li>Direct messages</li>
           @if (auth.isComplimentary()) {
@@ -227,3 +245,4 @@
   }
   }
 </section>
+}

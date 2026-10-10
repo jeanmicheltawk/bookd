@@ -4,9 +4,9 @@
       <span class="eyebrow">BILLING</span>
       <h1 class="display-lg">PAY BY <span class="text-gradient">CARD</span></h1>
       @if (auth.isPending() && isPaymentConfirmed) {
-        <p class="pay-pending-note">Your card payment is confirmed. The 7-day free trial starts when an admin approves your profile.</p>
+        <p class="pay-pending-note">Your card payment is confirmed.@if (setup.isMissing()) { Fill your portfolio and add a profile photo. A profile photo is mandatory. An admin can accept or reject you after both are in. } The 7-day free trial starts when you're approved.</p>
       } @else if (auth.isPending()) {
-        <p class="pay-pending-note">Your application is still under review. You can pay by card now. The trial starts when you're approved, not when payment is confirmed.</p>
+        <p class="pay-pending-note">Your application is still under review.@if (setup.isMissing()) { Open Portfolio and add your work, and add a profile photo on Profile. A profile photo is mandatory. An admin can accept or reject you after both are in. } You can pay by card now. The trial starts when you're approved, not when payment is confirmed.</p>
       } @else if (canUpgrade) {
         <p class="pay-pending-note">
           You can upgrade to Premium anytime.

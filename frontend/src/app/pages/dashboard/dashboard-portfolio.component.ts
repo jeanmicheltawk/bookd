@@ -21,6 +21,7 @@ import {
   portfolioFileTooLargeMessage,
 } from '../../core/utils/portfolio-limit';
 import { effectiveMembership } from '../../core/utils/subscription';
+import { CreatorSetupService } from '../../core/services/creator-setup.service';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
@@ -34,6 +35,7 @@ import { PortfolioLightboxComponent } from '../../shared/components/portfolio-li
 })
 export class DashboardPortfolioComponent implements OnInit {
   private profileService = inject(ProfileService);
+  setup = inject(CreatorSetupService);
   api = inject(ApiService);
   auth = inject(AuthService);
 
@@ -68,6 +70,7 @@ export class DashboardPortfolioComponent implements OnInit {
       .pipe(catchError(() => of({ data: [] })))
       .subscribe((res) => {
         this.items.set(res.data);
+        this.setup.setPortfolioCount(res.data?.length || 0);
         this.loading.set(false);
       });
   }
@@ -141,7 +144,11 @@ export class DashboardPortfolioComponent implements OnInit {
     }
 
     if (uploaded.length) {
-      this.items.update((list) => [...uploaded, ...list]);
+      this.items.update((list) => {
+        const next = [...uploaded, ...list];
+        this.setup.setPortfolioCount(next.length);
+        return next;
+      });
       this.newTitle = '';
     }
     this.uploading.set(false);
@@ -174,7 +181,11 @@ export class DashboardPortfolioComponent implements OnInit {
       title: this.newTitle || null,
     }).subscribe({
       next: (item) => {
-        this.items.update((list) => [item, ...list]);
+        this.items.update((list) => {
+          const next = [item, ...list];
+          this.setup.setPortfolioCount(next.length);
+          return next;
+        });
         this.newTitle = '';
         this.newVideoUrl = '';
         this.addingLink.set(false);
@@ -214,7 +225,11 @@ export class DashboardPortfolioComponent implements OnInit {
 
   remove(item: PortfolioItem): void {
     this.profileService.deletePortfolioItem(item.id).subscribe(() => {
-      this.items.update((list) => list.filter((i) => i.id !== item.id));
+      this.items.update((list) => {
+        const next = list.filter((i) => i.id !== item.id);
+        this.setup.setPortfolioCount(next.length);
+        return next;
+      });
       this.lightboxIndex.set(null);
     });
   }

@@ -5,9 +5,6 @@
     } @else {
       <div class="p-card__placeholder">{{ initials }}</div>
     }
-    @if (profile.membership === 'premium') {
-      <span class="p-card__badge badge-premium">PREMIUM PLAN</span>
-    }
     @if (profile.is_verified) {
       <span class="p-card__badge badge-verified" title="Verified">✓</span>
     }

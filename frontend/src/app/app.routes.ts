@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { talentGuard } from './core/guards/talent.guard';
 import { approvedGuard } from './core/guards/approved.guard';
+import { stepperGuard } from './core/guards/stepper.guard';
 
 export const routes: Routes = [
   {
@@ -145,21 +146,21 @@ export const routes: Routes = [
       },
       {
         path: 'bookings',
-        canActivate: [approvedGuard],
+        canActivate: [stepperGuard, approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-bookings.component').then((m) => m.DashboardBookingsComponent),
         title: 'My Bookings',
       },
       {
         path: 'messages',
-        canActivate: [approvedGuard],
+        canActivate: [stepperGuard, approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-messages.component').then((m) => m.DashboardMessagesComponent),
         title: 'Messages',
       },
       {
         path: 'notifications',
-        canActivate: [approvedGuard],
+        canActivate: [stepperGuard, approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-notifications.component').then(
             (m) => m.DashboardNotificationsComponent,
@@ -168,14 +169,14 @@ export const routes: Routes = [
       },
       {
         path: 'portfolio',
-        canActivate: [talentGuard, approvedGuard],
+        canActivate: [stepperGuard, talentGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-portfolio.component').then((m) => m.DashboardPortfolioComponent),
         title: 'My Portfolio',
       },
       {
         path: 'announcements',
-        canActivate: [talentGuard, approvedGuard],
+        canActivate: [stepperGuard, talentGuard, approvedGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-announcements.component').then(
             (m) => m.DashboardAnnouncementsComponent,
@@ -184,13 +185,14 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
+        canActivate: [stepperGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-settings.component').then((m) => m.DashboardSettingsComponent),
         title: 'Profile',
       },
       {
         path: 'pay',
-        canActivate: [talentGuard],
+        canActivate: [stepperGuard, talentGuard],
         loadComponent: () =>
           import('./pages/dashboard/dashboard-pay.component').then((m) => m.DashboardPayComponent),
         title: 'Pay by card',

@@ -10,6 +10,7 @@
       <!-- FUTURE: <a routerLink="/challenges" routerLinkActive="active">Challenges</a> -->
       <!-- FUTURE: <a routerLink="/learn" routerLinkActive="active">Learn</a> -->
       <a routerLink="/pricing" routerLinkActive="active">Pricing</a>
+      <a class="navbar__portfolio-btn" [href]="buildPortfolioUrl" target="_blank" rel="noopener">Build my portfolio</a>
     </nav>
 
     <div class="navbar__actions">
@@ -49,6 +50,8 @@
           <a mat-menu-item routerLink="/dashboard">Dashboard</a>
           @if (!auth.isPending() && !auth.isBrand()) {
             <a mat-menu-item routerLink="/dashboard/bookings">Bookings</a>
+          } @else if (auth.isPending() && !auth.isBrand() && !auth.showStepper()) {
+            <a mat-menu-item routerLink="/dashboard/portfolio">Portfolio</a>
           } @else if (!auth.isPending() && auth.isBrand()) {
             <a mat-menu-item routerLink="/dashboard/bookings">History</a>
             <a mat-menu-item routerLink="/dashboard/messages">Messages</a>
@@ -69,6 +72,7 @@
       <mat-menu #moreMenu="matMenu" xPosition="before">
         <a mat-menu-item routerLink="/about">About</a>
         <a mat-menu-item routerLink="/contact">Contact</a>
+        <a mat-menu-item [href]="buildPortfolioUrl" target="_blank" rel="noopener">Build my portfolio</a>
         <!-- FUTURE: <a mat-menu-item routerLink="/challenges">Challenges &amp; Events</a> -->
         <!-- FUTURE: <a mat-menu-item routerLink="/learn">Learning Hub</a> -->
       </mat-menu>
@@ -90,6 +94,7 @@
       <a routerLink="/pricing" (click)="closeMobileMenu()">Pricing</a>
       <a routerLink="/about" (click)="closeMobileMenu()">About</a>
       <a routerLink="/contact" (click)="closeMobileMenu()">Contact</a>
+      <a [href]="buildPortfolioUrl" target="_blank" rel="noopener" (click)="closeMobileMenu()">Build my portfolio</a>
       <hr class="divider-neon" />
       @if (!auth.isAuthenticated()) {
         <a routerLink="/auth/login" (click)="closeMobileMenu()">Log In</a>
@@ -98,7 +103,10 @@
         <a routerLink="/dashboard" (click)="closeMobileMenu()">Dashboard</a>
         @if (!auth.isPending()) {
           <a routerLink="/dashboard/messages" (click)="closeMobileMenu()">Messages</a>
-        } @else {
+        } @else if (!auth.showStepper()) {
+          @if (!auth.isBrand()) {
+            <a routerLink="/dashboard/portfolio" (click)="closeMobileMenu()">Portfolio</a>
+          }
           <a routerLink="/dashboard/settings" (click)="closeMobileMenu()">Profile</a>
         }
         <button class="btn-reset" (click)="logout(); closeMobileMenu()">Log Out</button>

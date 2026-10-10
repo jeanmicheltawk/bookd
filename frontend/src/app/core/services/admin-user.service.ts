@@ -40,6 +40,7 @@ export interface AdminUser {
   payment_confirmed?: boolean;
   payment_status?: string | null;
   payment_reference?: string | null;
+  portfolio_count?: number;
   custom_fields?: Record<string, string>;
 }
 

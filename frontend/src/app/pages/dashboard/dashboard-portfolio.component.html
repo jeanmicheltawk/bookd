@@ -8,6 +8,10 @@
 
   <app-dashboard-nav />
 
+  @if (setup.isMissing()) {
+    <p class="pending-banner">Add your work here, and add a profile photo on Profile. A profile photo is mandatory. An admin can accept or reject you after both are in. It stays private until you're accepted.</p>
+  }
+
   <div class="upload-panel glass-panel">
     <input type="text" placeholder="Title (optional)" [(ngModel)]="newTitle" name="newTitle" [disabled]="uploading() || addingLink()" />
     <label class="upload-btn" [class.upload-btn--disabled]="atFileLimit() || uploading()">
@@ -85,7 +89,11 @@
   } @else {
     <div class="empty-state">
       <h3>Your portfolio is empty.</h3>
-      <p>{{ isPremium() ? 'Upload images or PDFs, and add video links to start getting noticed by brands and clients.' : 'Upload images and add video links to start getting noticed by brands and clients.' }}</p>
+      @if (auth.isPending()) {
+        <p>Add images or video links. This is required before an admin can accept or reject you.</p>
+      } @else {
+        <p>{{ isPremium() ? 'Upload images or PDFs, and add video links to start getting noticed by brands and clients.' : 'Upload images and add video links to start getting noticed by brands and clients.' }}</p>
+      }
     </div>
   }
 

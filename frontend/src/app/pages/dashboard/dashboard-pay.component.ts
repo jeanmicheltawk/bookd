@@ -7,6 +7,7 @@ import { PaymentService } from '../../core/services/payment.service';
 import { AuthService } from '../../core/services/auth.service';
 import { WhishPaymentInstructions } from '../../core/models';
 import { formatSubDate, membershipLabel, subscriptionStatusLabel } from '../../core/utils/subscription';
+import { CreatorSetupService } from '../../core/services/creator-setup.service';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
@@ -20,6 +21,7 @@ import { LoadingScreenComponent } from '../../shared/components/loading-screen/l
 })
 export class DashboardPayComponent implements OnInit {
   auth = inject(AuthService);
+  setup = inject(CreatorSetupService);
   private payments = inject(PaymentService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);

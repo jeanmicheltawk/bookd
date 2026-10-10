@@ -5,6 +5,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { ApiService } from '../../../core/services/api.service';
+import { buildPortfolioWhatsappUrl } from '../../../core/utils/bookd-whatsapp';
 
 @Component({
   selector: 'app-navbar',
@@ -20,6 +21,7 @@ export class NavbarComponent implements OnInit {
 
   scrolled = signal(false);
   mobileMenuOpen = signal(false);
+  readonly buildPortfolioUrl = buildPortfolioWhatsappUrl();
 
   ngOnInit(): void {
     if (!this.auth.isPending()) this.alerts.refresh();

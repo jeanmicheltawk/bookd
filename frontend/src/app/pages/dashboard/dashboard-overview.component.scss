@@ -234,6 +234,12 @@
   }
 }
 
+.pending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .pending-guide {
   .eyebrow { display: block; margin-bottom: 10px; }
 

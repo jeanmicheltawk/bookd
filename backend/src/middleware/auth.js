@@ -46,6 +46,26 @@ function requireMembership(...levels) {
   };
 }
 
+function requireCreator(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  if (req.user.role === 'admin') return next();
+
+  query('SELECT role, approval_status FROM users WHERE id = $1', [req.user.id])
+    .then((result) => {
+      const row = result.rows[0];
+      if (!row || row.role === 'brand') {
+        return res.status(403).json({ error: 'Portfolio is for creators.' });
+      }
+      if (row.role === 'admin' || row.approval_status === 'approved' || row.approval_status === 'pending') {
+        return next();
+      }
+      return res.status(403).json({ error: 'Your application was not approved.' });
+    })
+    .catch(next);
+}
+
 function requireApproved(req, res, next) {
   if (!req.user) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -70,4 +90,4 @@ function requireApproved(req, res, next) {
     .catch(next);
 }
 
-module.exports = { authenticate, optionalAuth, requireRole, requireMembership, requireApproved };
+module.exports = { authenticate, optionalAuth, requireRole, requireMembership, requireApproved, requireCreator };

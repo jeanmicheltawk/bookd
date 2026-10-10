@@ -59,9 +59,9 @@ export class ProfilePublicComponent implements OnInit {
             this.profile.set(res);
             const canonical = profileRouterLink(res);
             const prettyPath = profilePublicPath(res);
-            if (canonical && prettyPath && (slug !== canonical[1] || shortId !== canonical[2])) {
+            if (!res.preview && canonical && prettyPath && (slug !== canonical[1] || shortId !== canonical[2])) {
               this.router.navigate(canonical, { replaceUrl: true });
-            } else {
+            } else if (!res.preview) {
               this.analytics.trackPageview(prettyPath || `/profile/${lookup}`, res.id);
             }
           }
@@ -147,7 +147,7 @@ export class ProfilePublicComponent implements OnInit {
 
   bookNow(): void {
     const p = this.profile();
-    if (!p) return;
+    if (!p || p.preview) return;
     if (!this.auth.isAuthenticated()) {
       this.router.navigate(['/auth/signup'], {
         queryParams: { role: 'brand', redirect: `/book/${p.id}` },
@@ -159,7 +159,7 @@ export class ProfilePublicComponent implements OnInit {
 
   messageNow(): void {
     const p = this.profile();
-    if (!p) return;
+    if (!p || p.preview) return;
     if (!this.auth.isAuthenticated()) {
       this.router.navigate(['/auth/login'], { queryParams: { redirect: this.router.url } });
       return;

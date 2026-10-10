@@ -48,6 +48,7 @@ export interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
+  first_login?: boolean;
 }
 
 export type PaymentStatus = 'awaiting' | 'pending' | 'confirmed' | 'rejected';
@@ -208,6 +209,7 @@ export interface Profile {
   membership?: Membership;
   custom_fields?: Record<string, string>;
   portfolio?: PortfolioItem[];
+  preview?: boolean;
   created_at?: string;
   updated_at?: string;
 }
