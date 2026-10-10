@@ -1,6 +1,11 @@
 @if (categories().length) {
   <div class="cat-bar">
-    <div class="cat-bar__track container">
+    @if (canScrollLeft()) {
+      <button type="button" class="cat-bar__arrow cat-bar__arrow--prev" (click)="scrollBy(-1)" aria-label="Show previous categories">
+        <span aria-hidden="true">←</span>
+      </button>
+    }
+    <div #track class="cat-bar__track" (scroll)="updateArrows()">
       <a
         routerLink="/"
         [queryParams]="{ view: null, category: null, country: null, availability: null, verified: null, gender: null, q: null, page: null }"
@@ -28,5 +33,10 @@
         </a>
       }
     </div>
+    @if (canScrollRight()) {
+      <button type="button" class="cat-bar__arrow cat-bar__arrow--next" (click)="scrollBy(1)" aria-label="Show next categories">
+        <span aria-hidden="true">→</span>
+      </button>
+    }
   </div>
 }

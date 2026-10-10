@@ -5,16 +5,29 @@
   min-height: var(--category-bar-height);
   height: auto;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   background: var(--toxic-orange);
   border-bottom: 1px solid currentColor;
-  padding: 8px 0;
 
   &__track {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
     gap: 8px 10px;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   &__chip {
@@ -36,5 +49,23 @@
       background: var(--acid-lime);
       border-color: var(--acid-lime);
     }
+  }
+
+  &__arrow {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    width: 44px;
+    padding: 0;
+    border: 0;
+    background: var(--toxic-orange);
+    color: var(--acid-lime);
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+
+    &--prev { border-right: 1px solid currentColor; }
+    &--next { border-left: 1px solid currentColor; }
   }
 }
