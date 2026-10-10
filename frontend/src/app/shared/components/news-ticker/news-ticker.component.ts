@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { catchError, of } from 'rxjs';
@@ -36,14 +36,13 @@ export class NewsTickerComponent implements OnInit, OnDestroy {
   showForm = signal(false);
   editingId = signal<string | null>(null);
   saving = signal(false);
+  loaded = signal(false);
   error = signal('');
   form = { ...EMPTY_FORM };
   imageFile: File | null = null;
   imagePreview = '';
   removeImage = false;
   private objectUrl = '';
-  visible = computed(() => this.news().length > 0 || this.auth.isAdmin());
-
   ngOnInit(): void {
     this.load();
   }
@@ -55,7 +54,10 @@ export class NewsTickerComponent implements OnInit, OnDestroy {
 
   load(): void {
     const request = this.auth.isAdmin() ? this.newsService.listAllAdmin() : this.newsService.list();
-    request.pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.news.set(res.data));
+    request.pipe(catchError(() => of({ data: [] }))).subscribe((res) => {
+      this.news.set(res.data);
+      this.loaded.set(true);
+    });
   }
 
   scroll(direction: number): void {

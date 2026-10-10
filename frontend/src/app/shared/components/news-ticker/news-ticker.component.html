@@ -1,5 +1,4 @@
-@if (visible()) {
-  <div class="news-ticker">
+<div class="news-ticker">
     <div class="container news-ticker__head">
       <span class="eyebrow">NEWS</span>
       @if (auth.isAdmin()) {
@@ -31,11 +30,10 @@
         </div>
         <button type="button" class="news-ticker__nav" (click)="scroll(1)" aria-label="Scroll news right">›</button>
       </div>
-    } @else {
-      <p class="container news-ticker__empty">No news yet — add the first item.</p>
+    } @else if (loaded()) {
+      <p class="container news-ticker__empty">No news yet.</p>
     }
   </div>
-}
 
 @if (selected(); as item) {
   <div class="news-popup" (click)="close()" role="dialog" aria-modal="true" [attr.aria-label]="item.title">

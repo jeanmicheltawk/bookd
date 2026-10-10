@@ -2,19 +2,19 @@
   position: sticky;
   top: var(--nav-height);
   z-index: 900;
-  height: var(--category-bar-height);
+  min-height: var(--category-bar-height);
+  height: auto;
   display: flex;
   align-items: center;
   background: var(--toxic-orange);
   border-bottom: 1px solid currentColor;
+  padding: 8px 0;
 
   &__track {
     display: flex;
     align-items: center;
-    gap: 10px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
+    flex-wrap: wrap;
+    gap: 8px 10px;
   }
 
   &__chip {

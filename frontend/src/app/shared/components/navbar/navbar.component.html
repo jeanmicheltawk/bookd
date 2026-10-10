@@ -1,4 +1,10 @@
 <header class="navbar" [class.is-scrolled]="scrolled()">
+  <p class="navbar__slogan">
+    <span>Not a modeling agency</span>
+    <span class="navbar__slogan-mark" aria-hidden="true"></span>
+    <span>No middle man, only direct bookings</span>
+  </p>
+
   <div class="navbar__inner container">
     <a routerLink="/" class="navbar__logo" (click)="closeMobileMenu()">
       <img class="navbar__logo-mark" src="assets/logo.svg" alt="BOOK'D" />

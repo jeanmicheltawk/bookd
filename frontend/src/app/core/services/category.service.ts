@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Category, CategoryField, CategoryFieldType } from '../models';
 import { ApiService, QueryParams } from './api.service';
 
@@ -24,7 +24,14 @@ export class CategoryService {
   private api = inject(ApiService);
 
   list(params?: QueryParams): Observable<{ data: Category[] }> {
-    return this.api.get('/categories', params);
+    return this.api.get<{ data: Category[] }>('/categories', params).pipe(
+      map((res) => ({
+        ...res,
+        data: [...(res.data || [])].sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+        ),
+      })),
+    );
   }
 
   create(payload: CategoryPayload): Observable<Category> {

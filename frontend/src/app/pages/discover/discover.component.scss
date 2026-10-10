@@ -92,6 +92,14 @@
   margin-bottom: 14px;
 }
 
+.home-section-empty {
+  margin: 0;
+  padding: 28px 20px;
+  border: 1px solid currentColor;
+  color: var(--text);
+  font-weight: 700;
+}
+
 .home-announcements__all {
   font-weight: 700;
   text-transform: uppercase;

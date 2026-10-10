@@ -32,14 +32,20 @@
           <app-animated-button variant="outline" (clicked)="sent.set(false)">Send Another</app-animated-button>
         </div>
       } @else {
-        <form #contactForm="ngForm" (ngSubmit)="submit(contactForm)">
+        <form #contactForm="ngForm" (ngSubmit)="submit(contactForm)" novalidate>
           <div class="form-field">
             <label>Name *</label>
             <input type="text" name="name" [(ngModel)]="form.name" required minlength="2" />
+            @if (showError(contactForm, 'name')) {
+              <p class="field-error">Enter your name.</p>
+            }
           </div>
           <div class="form-field">
             <label>Email *</label>
             <input type="email" name="email" [(ngModel)]="form.email" required email />
+            @if (showError(contactForm, 'email')) {
+              <p class="field-error">Enter a valid email.</p>
+            }
           </div>
           <div class="form-field">
             <label>Subject</label>
@@ -48,11 +54,21 @@
           <div class="form-field">
             <label>Message *</label>
             <textarea name="message" [(ngModel)]="form.message" required minlength="10" rows="6"></textarea>
+            @if (showError(contactForm, 'message')) {
+              <p class="field-error">Write a message of at least 10 characters.</p>
+            }
           </div>
 
           @if (error()) { <p class="contact-error">{{ error() }}</p> }
 
-          <app-animated-button type="submit" variant="primary" size="lg" [loading]="sending()" [fullWidth]="true">
+          <app-animated-button
+            type="button"
+            variant="primary"
+            size="lg"
+            [loading]="sending()"
+            [fullWidth]="true"
+            (clicked)="submit(contactForm)"
+          >
             Send Message
           </app-animated-button>
         </form>

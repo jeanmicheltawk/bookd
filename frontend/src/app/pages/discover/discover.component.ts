@@ -44,7 +44,9 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
   countries = signal<Country[]>([]);
   results = signal<SearchResult[]>([]);
   announcements = signal<Announcement[]>([]);
+  announcementsLoaded = signal(false);
   onBoard = signal<CreativesOnBoardItem[]>([]);
+  onBoardLoaded = signal(false);
   loading = signal(true);
   loadingMore = signal(false);
   total = signal(0);
@@ -95,10 +97,16 @@ export class DiscoverComponent implements OnInit, AfterViewInit, OnDestroy {
     this.countryService.list().pipe(catchError(() => of({ data: [] }))).subscribe((res) => this.countries.set(res.data));
     this.announcementService.list({ limit: 12 })
       .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } })))
-      .subscribe((res) => this.announcements.set(res.data));
+      .subscribe((res) => {
+        this.announcements.set(res.data);
+        this.announcementsLoaded.set(true);
+      });
     this.onBoardService.list()
       .pipe(catchError(() => of({ data: [] })))
-      .subscribe((res) => this.onBoard.set(this.shuffle(res.data)));
+      .subscribe((res) => {
+        this.onBoard.set(this.shuffle(res.data));
+        this.onBoardLoaded.set(true);
+      });
 
     this.route.queryParamMap.subscribe((params) => {
       this.filters.category = params.get('category') || '';

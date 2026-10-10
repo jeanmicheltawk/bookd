@@ -61,7 +61,11 @@
 
 .news-ticker__empty {
   margin: 0;
+  padding: 28px 20px;
+  border: 1px solid currentColor;
+  color: var(--text);
   font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .news-ticker__card {

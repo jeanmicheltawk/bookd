@@ -2,26 +2,3 @@
   display: block;
   min-height: 100vh;
 }
-
-.build-portfolio-float {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 1200;
-  padding: 8px 12px;
-  background: transparent;
-  color: #fff;
-  border: 1px solid #fff;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-decoration: none;
-  line-height: 1;
-
-  &:hover {
-    background: var(--acid-lime);
-    color: #000;
-    border-color: var(--acid-lime);
-  }
-}

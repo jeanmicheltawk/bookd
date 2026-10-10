@@ -2,13 +2,13 @@
   <section class="featured-home">
     <app-news-ticker />
 
-    @if (announcements().length) {
-      <section class="home-announcements">
+    <section class="home-announcements">
         <div class="container">
           <div class="home-announcements__head">
             <span class="eyebrow">ANNOUNCEMENTS</span>
             <a routerLink="/announcements" class="home-announcements__all">View all →</a>
           </div>
+          @if (announcements().length) {
           <div class="home-announcements__row">
             <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollAnnouncements(-1)" aria-label="Scroll announcements left">‹</button>
             <div class="home-announcements__scroller" #announcementScroller tabindex="0" aria-label="Announcements">
@@ -34,16 +34,18 @@
             </div>
             <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollAnnouncements(1)" aria-label="Scroll announcements right">›</button>
           </div>
+          } @else if (announcementsLoaded()) {
+            <p class="home-section-empty">No announcements yet.</p>
+          }
         </div>
       </section>
-    }
 
-    @if (onBoard().length) {
-      <section class="home-onboard">
+    <section class="home-onboard">
         <div class="container">
           <div class="home-announcements__head">
             <span class="eyebrow">CREATIVES ON BOARD</span>
           </div>
+          @if (onBoard().length) {
           <div class="home-onboard__row">
             <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollOnBoard(-1)" aria-label="Scroll creatives left">‹</button>
             <div class="home-onboard__scroller" #onBoardScroller tabindex="0" aria-label="Creatives on board">
@@ -55,9 +57,11 @@
             </div>
             <button type="button" class="home-scroll-nav home-scroll-nav--tall" (click)="scrollOnBoard(1)" aria-label="Scroll creatives right">›</button>
           </div>
+          } @else if (onBoardLoaded()) {
+            <p class="home-section-empty">No creatives on board yet.</p>
+          }
         </div>
       </section>
-    }
   </section>
 } @else {
   <section class="discover-hero">

@@ -84,7 +84,7 @@
   --dur-medium: 0.4s;
   --dur-slow: 0.8s;
 
-  --nav-height: 76px;
+  --nav-height: 108px;
   --category-bar-height: 52px;
   --content-max: 1360px;
 }
@@ -100,4 +100,10 @@
   --color-button: var(--hyper-pink);
   --color-button-text: #ffffff;
   --color-success: var(--electric-blue);
+}
+
+@media (max-width: 720px) {
+  :root {
+    --nav-height: 136px;
+  }
 }

@@ -44,7 +44,7 @@ async function listCategories(req, res, next) {
        LEFT JOIN category_fields f ON f.category_id = c.id
        ${searchableOnly ? 'WHERE c.is_searchable = TRUE' : ''}
        GROUP BY c.id
-       ORDER BY c.sort_order, c.name`
+       ORDER BY c.name`
     );
     res.json({ data: result.rows });
   } catch (err) {

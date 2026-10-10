@@ -21,15 +21,36 @@ export class ContactComponent {
   error = signal('');
   readonly buildPortfolioUrl = buildPortfolioWhatsappUrl();
 
-  submit(ngForm: NgForm): void {
-    if (ngForm.invalid) return;
-    this.sending.set(true);
-    this.error.set('');
+  attempted = signal(false);
 
-    this.contactService.send(this.form).subscribe({
+  showError(ngForm: NgForm, controlName: string): boolean {
+    const control = ngForm.controls[controlName];
+    return this.attempted() && !!control && control.invalid;
+  }
+
+  submit(ngForm: NgForm): void {
+    if (this.sending()) return;
+    this.attempted.set(true);
+    this.error.set('');
+    ngForm.control.markAllAsTouched();
+
+    if (ngForm.invalid) {
+      this.error.set('Fill in your name, a valid email, and a message of at least 10 characters.');
+      return;
+    }
+
+    this.sending.set(true);
+    this.contactService.send({
+      name: this.form.name.trim(),
+      email: this.form.email.trim(),
+      subject: this.form.subject.trim(),
+      message: this.form.message.trim(),
+    }).subscribe({
       next: () => {
         this.sending.set(false);
         this.sent.set(true);
+        this.attempted.set(false);
+        this.form = { name: '', email: '', subject: '', message: '' };
         ngForm.resetForm();
       },
       error: (err) => {
