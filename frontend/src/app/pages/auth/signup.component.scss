@@ -45,6 +45,258 @@
   line-height: 1.45;
 }
 
+.plan-compare-btn {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 16px;
+  text-align: center;
+  line-height: 1.35;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--acid-lime);
+    border-color: var(--acid-lime);
+    color: var(--ink-black);
+    outline: none;
+  }
+}
+
+.plan-compare {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--ink-black) 78%, transparent);
+}
+
+.plan-compare__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(88vh, 820px);
+  padding: 28px 24px 20px;
+  background: var(--toxic-orange);
+  color: var(--text);
+  border: 1px solid currentColor;
+  animation: plan-compare-in 0.28s var(--ease-out-expo);
+}
+
+.plan-compare__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--acid-lime);
+    color: var(--ink-black);
+    border-color: var(--acid-lime);
+    outline: none;
+  }
+}
+
+.plan-compare__intro {
+  padding-right: 44px;
+
+  h2 {
+    margin: 8px 0 10px;
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 4vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  p {
+    max-width: 46ch;
+    margin: 0 0 18px;
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+}
+
+.plan-compare__table {
+  overflow: auto;
+  border: 1px solid currentColor;
+}
+
+.plan-compare__head,
+.plan-compare__row {
+  display: grid;
+  grid-template-columns: minmax(132px, 1.25fr) 1fr 1.15fr;
+}
+
+.plan-compare__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ink-black);
+  color: #ffffff;
+
+  span {
+    padding: 12px 14px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .is-premium {
+    background: var(--electric-blue);
+  }
+}
+
+.plan-compare__row {
+  border-top: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+
+  &.is-diff .is-premium {
+    font-weight: 800;
+  }
+}
+
+.plan-compare__label,
+.plan-compare__cell {
+  padding: 13px 14px;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.plan-compare__label {
+  font-weight: 700;
+}
+
+.plan-compare__cell.is-premium {
+  background: color-mix(in srgb, var(--electric-blue) 28%, transparent);
+}
+
+.plan-compare__cell.is-missing {
+  opacity: 0.55;
+}
+
+.plan-compare__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.plan-pick {
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--nuclear-yellow);
+    border-color: var(--nuclear-yellow);
+    color: var(--ink-black);
+    outline: none;
+  }
+
+  &.is-selected {
+    background: var(--ink-black);
+    border-color: var(--ink-black);
+    color: #ffffff;
+  }
+
+  &--premium {
+    background: var(--acid-lime);
+    border-color: var(--acid-lime);
+    color: var(--ink-black);
+
+    &:hover,
+    &:focus-visible,
+    &.is-selected {
+      background: var(--ink-black);
+      border-color: var(--ink-black);
+      color: var(--acid-lime);
+    }
+  }
+}
+
+@keyframes plan-compare-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-compare__panel { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .plan-compare {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .plan-compare__panel {
+    width: 100%;
+    max-height: min(92vh, 820px);
+    padding: 22px 16px 16px;
+  }
+
+  .plan-compare__head,
+  .plan-compare__row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .plan-compare__head span:first-child,
+  .plan-compare__label {
+    grid-column: 1 / -1;
+  }
+
+  .plan-compare__head span:first-child {
+    display: none;
+  }
+
+  .plan-compare__label {
+    padding-bottom: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  .plan-compare__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

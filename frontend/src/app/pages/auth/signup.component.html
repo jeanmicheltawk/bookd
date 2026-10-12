@@ -223,6 +223,9 @@
             <label>Membership Program *</label>
             <app-select name="talentMembership" [(ngModel)]="talent.membership" required [options]="membershipSelectOptions" />
           </div>
+          <button type="button" class="plan-compare-btn" (click)="openPlanCompare()">
+            See difference between Premium and Starter
+          </button>
           <p class="pay-note">
             You pay {{ selectedPlanAmount() | currency:'USD':'symbol':'1.2-2' }}
             <strong>by card</strong>.
@@ -356,5 +359,52 @@
     }
 
     <p class="auth-switch">Already approved? <a routerLink="/auth/login">Log In</a></p>
+  </div>
+}
+
+@if (planCompareOpen()) {
+  <div class="plan-compare" (click)="closePlanCompare()" role="dialog" aria-modal="true" aria-labelledby="plan-compare-title">
+    <div class="plan-compare__panel" (click)="$event.stopPropagation()">
+      <button type="button" class="plan-compare__close" (click)="closePlanCompare()" aria-label="Close">✕</button>
+      <div class="plan-compare__intro">
+        <span class="eyebrow">MEMBERSHIP</span>
+        <h2 id="plan-compare-title">STARTER <span class="text-gradient">VS</span> PREMIUM</h2>
+        <p>Same trial on both plans. Premium adds more portfolio space, stronger visibility, and announcements.</p>
+      </div>
+
+      <div class="plan-compare__table" role="table" aria-label="Starter and Premium comparison">
+        <div class="plan-compare__head" role="row">
+          <span role="columnheader">What's included</span>
+          <span role="columnheader">Starter</span>
+          <span class="is-premium" role="columnheader">Premium</span>
+        </div>
+        @for (row of planCompareRows; track row.label) {
+          <div class="plan-compare__row" role="row" [class.is-diff]="row.differs">
+            <span class="plan-compare__label" role="rowheader">{{ row.label }}</span>
+            <span class="plan-compare__cell" role="cell" [class.is-missing]="row.starter === 'Not included'">{{ row.starter }}</span>
+            <span class="plan-compare__cell is-premium" role="cell">{{ row.premium }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="plan-compare__actions">
+        <button
+          type="button"
+          class="plan-pick"
+          [class.is-selected]="talent.membership === 'basic'"
+          (click)="choosePlan('basic')"
+        >
+          {{ talent.membership === 'basic' ? 'Starter selected' : 'Choose Starter · $6.99' }}
+        </button>
+        <button
+          type="button"
+          class="plan-pick plan-pick--premium"
+          [class.is-selected]="talent.membership === 'premium'"
+          (click)="choosePlan('premium')"
+        >
+          {{ talent.membership === 'premium' ? 'Premium selected' : 'Choose Premium · $14.99' }}
+        </button>
+      </div>
+    </div>
   </div>
 }

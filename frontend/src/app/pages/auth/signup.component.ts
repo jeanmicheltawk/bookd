@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -21,6 +21,19 @@ import {
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { SelectComponent, SelectOption, selectOptions } from '../../shared/components/select/select.component';
 import { WhishPayInstructionsComponent } from '../../shared/components/whish-pay-instructions/whish-pay-instructions.component';
+import {
+  PREMIUM_FILE_LIMIT,
+  PREMIUM_LINK_LIMIT,
+  STARTER_FILE_LIMIT,
+  STARTER_LINK_LIMIT,
+} from '../../core/utils/portfolio-limit';
+
+interface PlanCompareRow {
+  label: string;
+  starter: string;
+  premium: string;
+  differs: boolean;
+}
 
 interface MembershipOption {
   value: Membership;
@@ -81,6 +94,20 @@ export class SignupComponent implements OnInit {
   membershipOptions: MembershipOption[] = [
     { value: 'basic', label: 'Starter plan', description: '$6.99 / month · 7-day free trial' },
     { value: 'premium', label: 'Premium plan', description: '$14.99 / month · 7-day free trial' },
+  ];
+
+  planCompareOpen = signal(false);
+  readonly planCompareRows: PlanCompareRow[] = [
+    { label: 'Monthly price', starter: '$6.99', premium: '$14.99', differs: true },
+    { label: 'Free trial', starter: '7 days', premium: '7 days', differs: false },
+    { label: 'First billing period', starter: '1 month + 7 days', premium: '1 month + 7 days', differs: false },
+    { label: 'Public profile', starter: 'Included', premium: 'Included', differs: false },
+    { label: 'Portfolio uploads', starter: `Up to ${STARTER_FILE_LIMIT} images`, premium: `Up to ${PREMIUM_FILE_LIMIT} images & PDFs`, differs: true },
+    { label: 'Video links', starter: `Up to ${STARTER_LINK_LIMIT}`, premium: `Up to ${PREMIUM_LINK_LIMIT}`, differs: true },
+    { label: 'Direct messaging', starter: 'Included', premium: 'Included', differs: false },
+    { label: 'Search visibility', starter: 'Standard', premium: 'Enhanced', differs: true },
+    { label: 'Spotlight placement', starter: 'Not included', premium: 'Priority', differs: true },
+    { label: 'Announcements', starter: 'Not included', premium: 'Post announcements', differs: true },
   ];
 
   talent: TalentFormModel = {
@@ -148,6 +175,10 @@ export class SignupComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => {
+      document.body.style.overflow = '';
+    });
+
     this.categoryService.list().pipe(catchError(() => of({ data: [] }))).subscribe((res) => {
       this.categories.set(res.data);
     });
@@ -192,6 +223,7 @@ export class SignupComponent implements OnInit {
     this.error.set('');
     this.fieldErrors.set({});
     this.passwordError.set('');
+    if (role === 'brand') this.closePlanCompare();
     if (role === 'member') {
       this.categorySlug.set(this.talent.categorySlug || '');
       this.onCategoryChange();
@@ -447,6 +479,27 @@ export class SignupComponent implements OnInit {
         this.error.set(err?.error?.error || 'Could not submit your application. Try again.');
       },
     });
+  }
+
+  openPlanCompare(): void {
+    this.planCompareOpen.set(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closePlanCompare(): void {
+    if (!this.planCompareOpen()) return;
+    this.planCompareOpen.set(false);
+    document.body.style.overflow = '';
+  }
+
+  choosePlan(plan: 'basic' | 'premium'): void {
+    this.talent.membership = plan;
+    this.closePlanCompare();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closePlanCompare();
   }
 
   selectedPlanAmount(): number {
