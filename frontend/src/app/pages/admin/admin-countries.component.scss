@@ -58,6 +58,12 @@
   gap: 10px;
   padding: 14px;
 
+  &__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
   strong {
     display: block;
     font-size: 0.95rem;
@@ -70,6 +76,37 @@
     font-size: 0.75rem;
     color: var(--text);
   }
+}
+
+.country-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+}
+
+.edit-btn {
+  background: none;
+  border: 1px solid currentColor;
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--ink-black);
+    background: var(--acid-lime);
+    border-color: var(--acid-lime);
+  }
+
+  &:disabled { opacity: 0.5; cursor: wait; }
 }
 
 .delete-btn {

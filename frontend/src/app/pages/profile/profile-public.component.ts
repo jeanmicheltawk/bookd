@@ -12,12 +12,13 @@ import { isPlayableVideoFile, isPortfolioPdf } from '../../core/utils/portfolio-
 import { profilePublicPath, profileRouterLink } from '../../core/utils/profile-url';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { PdfCoverComponent } from '../../shared/components/pdf-cover/pdf-cover.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
 
 @Component({
   selector: 'app-profile-public',
   standalone: true,
-  imports: [CommonModule, RouterLink, AnimatedButtonComponent, LoadingScreenComponent, PortfolioLightboxComponent],
+  imports: [CommonModule, RouterLink, AnimatedButtonComponent, LoadingScreenComponent, PdfCoverComponent, PortfolioLightboxComponent],
   templateUrl: './profile-public.component.html',
   styleUrl: './profile-public.component.scss',
 })

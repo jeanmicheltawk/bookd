@@ -1,4 +1,4 @@
-const { query } = require('../config/db');
+const { query, getClient } = require('../config/db');
 
 function slugify(value) {
   return String(value || '')
@@ -45,15 +45,21 @@ async function createCountry(req, res, next) {
 }
 
 async function updateCountry(req, res, next) {
+  const client = await getClient();
   try {
     const { id } = req.params;
     const { name, slug: rawSlug, sort_order: sortOrder } = req.body;
     const updates = [];
     const params = [];
+    let nextName = null;
 
     if (name !== undefined) {
-      if (!String(name).trim()) return res.status(400).json({ error: 'Country name is required' });
-      params.push(String(name).trim());
+      nextName = String(name).trim();
+      if (!nextName) return res.status(400).json({ error: 'Country name is required' });
+      if (nextName.length > 128) {
+        return res.status(400).json({ error: 'Country name must be 128 characters or less' });
+      }
+      params.push(nextName);
       updates.push(`name = $${params.length}`);
     }
     if (rawSlug !== undefined) {
@@ -69,18 +75,49 @@ async function updateCountry(req, res, next) {
 
     if (!updates.length) return res.status(400).json({ error: 'No fields to update' });
 
+    await client.query('BEGIN');
+    const existing = await client.query('SELECT id, name, slug FROM countries WHERE id = $1', [id]);
+    if (!existing.rows[0]) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Country not found' });
+    }
+
+    const previousName = existing.rows[0].name;
+    if (
+      nextName &&
+      rawSlug === undefined &&
+      existing.rows[0].slug === slugify(previousName)
+    ) {
+      const slug = slugify(nextName);
+      if (slug && slug !== existing.rows[0].slug) {
+        params.push(slug);
+        updates.push(`slug = $${params.length}`);
+      }
+    }
+
     params.push(id);
-    const result = await query(
+    const result = await client.query(
       `UPDATE countries SET ${updates.join(', ')}
        WHERE id = $${params.length}
        RETURNING id, slug, name, sort_order, created_at`,
       params
     );
-    if (!result.rows[0]) return res.status(404).json({ error: 'Country not found' });
+
+    if (nextName && nextName !== previousName) {
+      await client.query(
+        `UPDATE profiles SET country = $1, updated_at = NOW() WHERE country ILIKE $2`,
+        [nextName, previousName]
+      );
+    }
+
+    await client.query('COMMIT');
     res.json(result.rows[0]);
   } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
     if (err.code === '23505') return res.status(409).json({ error: 'Country already exists' });
     next(err);
+  } finally {
+    client.release();
   }
 }
 

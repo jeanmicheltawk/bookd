@@ -1,0 +1,9 @@
+<canvas #page [class.is-ready]="ready()"></canvas>
+@if (failed()) {
+  <div class="pdf-cover__fallback">
+    <span class="pdf-cover__badge">PDF</span>
+    <span class="pdf-cover__name">{{ title() }}</span>
+  </div>
+} @else {
+  <span class="pdf-cover__badge">PDF</span>
+}

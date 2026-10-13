@@ -75,10 +75,7 @@
               </div>
             }
           } @else if (isPdf(item)) {
-            <div class="portfolio-pdf">
-              <span class="portfolio-pdf__badge">PDF</span>
-              <span class="portfolio-pdf__name">{{ item.title || 'Document' }}</span>
-            </div>
+            <app-pdf-cover [src]="api.assetUrl(item.url)" [title]="item.title || 'Document'" />
           } @else {
             <img [src]="api.assetUrl(item.url)" [alt]="item.title || 'Portfolio piece'" />
           }

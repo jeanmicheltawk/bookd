@@ -22,11 +22,12 @@ import { effectiveMembership } from '../../core/utils/subscription';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { ImageCropperComponent } from '../../shared/components/image-cropper/image-cropper.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
+import { PdfCoverComponent } from '../../shared/components/pdf-cover/pdf-cover.component';
 
 @Component({
   selector: 'app-dashboard-stepper',
   standalone: true,
-  imports: [CommonModule, FormsModule, AnimatedButtonComponent, ImageCropperComponent, LoadingScreenComponent],
+  imports: [CommonModule, FormsModule, AnimatedButtonComponent, ImageCropperComponent, LoadingScreenComponent, PdfCoverComponent],
   templateUrl: './dashboard-stepper.component.html',
   styleUrl: './dashboard-stepper.component.scss',
 })

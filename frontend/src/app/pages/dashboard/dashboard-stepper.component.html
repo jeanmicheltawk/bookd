@@ -64,7 +64,7 @@
               @if (item.media_type === 'video') {
                 <span>VIDEO</span>
               } @else if (item.media_type === 'pdf') {
-                <span>PDF</span>
+                <app-pdf-cover [src]="api.assetUrl(item.url)" [title]="item.title || 'Document'" />
               } @else {
                 <img [src]="api.assetUrl(item.url)" [alt]="item.title || 'Portfolio piece'" />
               }
