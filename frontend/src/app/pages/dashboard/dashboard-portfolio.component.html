@@ -66,14 +66,7 @@
       @for (item of items(); track item.id; let i = $index) {
         <div class="portfolio-tile" (click)="openLightbox(i)" role="button" tabindex="0" (keydown.enter)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
           @if (item.media_type === 'video') {
-            @if (isPlayableVideo(item)) {
-              <video [src]="api.assetUrl(item.url)" muted playsinline></video>
-            } @else {
-              <div class="portfolio-video">
-                <span class="portfolio-video__badge">VIDEO</span>
-                <span class="portfolio-video__play">▶</span>
-              </div>
-            }
+            <app-video-cover [src]="api.assetUrl(item.url)" [playable]="isPlayableVideo(item)" [posterUrl]="item.thumbnail_url ? api.assetUrl(item.thumbnail_url) : ''" />
           } @else if (isPdf(item)) {
             <app-pdf-cover [src]="api.assetUrl(item.url)" [title]="item.title || 'Document'" />
           } @else {

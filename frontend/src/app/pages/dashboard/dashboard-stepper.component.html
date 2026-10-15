@@ -62,7 +62,7 @@
           @for (item of items(); track item.id) {
             <div class="thumb">
               @if (item.media_type === 'video') {
-                <span>VIDEO</span>
+                <app-video-cover [src]="api.assetUrl(item.url)" [playable]="isPlayableVideo(item)" />
               } @else if (item.media_type === 'pdf') {
                 <app-pdf-cover [src]="api.assetUrl(item.url)" [title]="item.title || 'Document'" />
               } @else {

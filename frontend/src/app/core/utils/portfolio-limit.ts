@@ -41,6 +41,45 @@ export function isPlayableVideoFile(item: { media_type?: string; url?: string | 
   return !/^https?:\/\//i.test(url);
 }
 
+export function youtubeVideoId(raw?: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw.trim());
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+    if (host === 'youtu.be') {
+      return parsed.pathname.split('/').filter(Boolean)[0] || null;
+    }
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+      return (
+        parsed.searchParams.get('v') ||
+        parsed.pathname.match(/\/(?:embed|shorts|live)\/([^/?#]+)/)?.[1] ||
+        null
+      );
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+export function videoPosterUrl(raw?: string | null): string | null {
+  const id = youtubeVideoId(raw);
+  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null;
+}
+
+export function vimeoOembedUrl(raw?: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw.trim());
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+    if (host !== 'vimeo.com' && host !== 'player.vimeo.com') return null;
+    if (!/(\d+)/.test(parsed.pathname)) return null;
+    return `https://vimeo.com/api/oembed.json?url=${encodeURIComponent(parsed.href)}`;
+  } catch {
+    return null;
+  }
+}
+
 export function videoEmbedUrl(raw?: string | null): string | null {
   if (!raw) return null;
   try {

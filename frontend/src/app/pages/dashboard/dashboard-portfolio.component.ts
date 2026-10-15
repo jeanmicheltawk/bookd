@@ -25,12 +25,13 @@ import { CreatorSetupService } from '../../core/services/creator-setup.service';
 import { DashboardNavComponent } from './dashboard-nav.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PdfCoverComponent } from '../../shared/components/pdf-cover/pdf-cover.component';
+import { VideoCoverComponent } from '../../shared/components/video-cover/video-cover.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
 
 @Component({
   selector: 'app-dashboard-portfolio',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DashboardNavComponent, LoadingScreenComponent, PdfCoverComponent, PortfolioLightboxComponent],
+  imports: [CommonModule, FormsModule, RouterLink, DashboardNavComponent, LoadingScreenComponent, PdfCoverComponent, VideoCoverComponent, PortfolioLightboxComponent],
   templateUrl: './dashboard-portfolio.component.html',
   styleUrl: './dashboard-portfolio.component.scss',
 })

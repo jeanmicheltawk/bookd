@@ -1,0 +1,6 @@
+@if (playable()) {
+  <video [src]="frameSrc()" [poster]="poster() || ''" muted playsinline preload="metadata" (loadedmetadata)="paintFrame($event)"></video>
+} @else if (poster()) {
+  <img [src]="poster()" alt="" />
+}
+<span class="video-cover__badge">VIDEO</span>

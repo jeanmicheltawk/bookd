@@ -14,6 +14,7 @@ import {
   isHttpUrl,
   isImageUpload,
   isPdfUpload,
+  isPlayableVideoFile,
   isVideoUpload,
   portfolioCapsFor,
   portfolioFileTooLargeMessage,
@@ -23,11 +24,12 @@ import { AnimatedButtonComponent } from '../../shared/components/animated-button
 import { ImageCropperComponent } from '../../shared/components/image-cropper/image-cropper.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PdfCoverComponent } from '../../shared/components/pdf-cover/pdf-cover.component';
+import { VideoCoverComponent } from '../../shared/components/video-cover/video-cover.component';
 
 @Component({
   selector: 'app-dashboard-stepper',
   standalone: true,
-  imports: [CommonModule, FormsModule, AnimatedButtonComponent, ImageCropperComponent, LoadingScreenComponent, PdfCoverComponent],
+  imports: [CommonModule, FormsModule, AnimatedButtonComponent, ImageCropperComponent, LoadingScreenComponent, PdfCoverComponent, VideoCoverComponent],
   templateUrl: './dashboard-stepper.component.html',
   styleUrl: './dashboard-stepper.component.scss',
 })
@@ -206,6 +208,10 @@ export class DashboardStepperComponent implements OnInit {
         this.error.set(err?.error?.error || 'Could not add that video link.');
       },
     });
+  }
+
+  isPlayableVideo(item: PortfolioItem): boolean {
+    return isPlayableVideoFile(item);
   }
 
   pay(): void {

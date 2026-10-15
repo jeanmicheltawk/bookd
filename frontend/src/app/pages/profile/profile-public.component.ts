@@ -13,12 +13,13 @@ import { profilePublicPath, profileRouterLink } from '../../core/utils/profile-u
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
 import { LoadingScreenComponent } from '../../shared/components/loading-screen/loading-screen.component';
 import { PdfCoverComponent } from '../../shared/components/pdf-cover/pdf-cover.component';
+import { VideoCoverComponent } from '../../shared/components/video-cover/video-cover.component';
 import { PortfolioLightboxComponent } from '../../shared/components/portfolio-lightbox/portfolio-lightbox.component';
 
 @Component({
   selector: 'app-profile-public',
   standalone: true,
-  imports: [CommonModule, RouterLink, AnimatedButtonComponent, LoadingScreenComponent, PdfCoverComponent, PortfolioLightboxComponent],
+  imports: [CommonModule, RouterLink, AnimatedButtonComponent, LoadingScreenComponent, PdfCoverComponent, VideoCoverComponent, PortfolioLightboxComponent],
   templateUrl: './profile-public.component.html',
   styleUrl: './profile-public.component.scss',
 })

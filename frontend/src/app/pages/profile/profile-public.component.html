@@ -123,14 +123,7 @@
             @for (item of p.portfolio; track item.id; let i = $index) {
               <button type="button" class="portfolio-item" (click)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
                 @if (item.media_type === 'video') {
-                  @if (isPlayableVideo(item)) {
-                    <video [src]="photo(item.url)" [poster]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" muted playsinline></video>
-                  } @else {
-                    <div class="portfolio-video">
-                      <span class="portfolio-video__badge">VIDEO</span>
-                      <span class="portfolio-video__play">▶</span>
-                    </div>
-                  }
+                  <app-video-cover [src]="photo(item.url)" [playable]="isPlayableVideo(item)" [posterUrl]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" />
                 } @else if (isPdf(item)) {
                   <app-pdf-cover [src]="photo(item.url)" [title]="item.title || 'Document'" />
                 } @else {
