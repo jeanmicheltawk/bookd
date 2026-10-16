@@ -5,6 +5,7 @@ const { insertUploadedMedia } = require('../utils/mediaStore');
 const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
 const { buildCustomUrl, profilePublicPath, syncProfileCustomUrl } = require('../utils/profileUrl');
+const { trackEvent } = require('../utils/analytics');
 
 function portfolioMediaType(file) {
   const mime = (file?.mimetype || '').toLowerCase();
@@ -138,11 +139,12 @@ async function getPublicProfile(req, res, next) {
     );
 
     if (!preview) {
-      await query(
-        `INSERT INTO analytics_events (event_type, path, user_id, profile_id, metadata)
-         VALUES ('profile_view', $1, $2, $3, '{}'::jsonb)`,
-        [profilePublicPath(profile.full_name, profile.id), req.user?.id || null, profileId]
-      );
+      await trackEvent({
+        eventType: 'profile_view',
+        path: profilePublicPath(profile.full_name, profile.id),
+        userId: req.user?.id || null,
+        profileId,
+      });
     }
 
     res.json({ ...profile, portfolio: portfolio.rows, preview });

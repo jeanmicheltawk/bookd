@@ -1,6 +1,7 @@
 const { query } = require('../config/db');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
 const { notify, displayName } = require('../utils/notify');
+const { trackEvent } = require('../utils/analytics');
 
 async function userInConversation(conversationId, userId) {
   const result = await query(
@@ -224,11 +225,12 @@ async function reportMessage(req, res, next) {
     );
     if (!msg.rows[0]) return res.status(404).json({ error: 'Message not found' });
 
-    await query(
-      `INSERT INTO analytics_events (event_type, path, user_id, metadata)
-       VALUES ('message_report', '/api/messages/report', $1, $2::jsonb)`,
-      [req.user.id, JSON.stringify({ messageId, reason: reason || null, senderId: msg.rows[0].sender_id })]
-    );
+    await trackEvent({
+      eventType: 'message_report',
+      path: '/api/messages/report',
+      userId: req.user.id,
+      metadata: { messageId, reason: reason || null, senderId: msg.rows[0].sender_id },
+    });
 
     res.json({ success: true, message: 'Report submitted' });
   } catch (err) {

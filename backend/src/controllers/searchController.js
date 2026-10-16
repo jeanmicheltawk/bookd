@@ -1,6 +1,7 @@
 const { query } = require('../config/db');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
+const { trackEvent } = require('../utils/analytics');
 
 function shuffle(arr) {
   const a = [...arr];
@@ -99,11 +100,12 @@ async function searchProfiles(req, res, next) {
     );
 
     if (page === 1) {
-      await query(
-        `INSERT INTO analytics_events (event_type, path, user_id, metadata)
-         VALUES ('search', '/api/search', $1, $2::jsonb)`,
-        [req.user?.id || null, JSON.stringify({ q, category, results: total })]
-      );
+      await trackEvent({
+        eventType: 'search',
+        path: '/api/search',
+        userId: req.user?.id || null,
+        metadata: { q, category, results: total },
+      });
     }
 
     res.json({

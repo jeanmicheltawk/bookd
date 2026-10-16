@@ -1,44 +1,43 @@
 const crypto = require('crypto');
 const { query } = require('../config/db');
+const { trackEvent } = require('../utils/analytics');
 
 function hashIp(ip) {
   if (!ip) return null;
   return crypto.createHash('sha256').update(ip).digest('hex');
 }
 
-async function trackPageview(req, res, next) {
-  try {
-    const { path: pagePath, profileId, metadata } = req.body;
-    if (!pagePath) return res.status(400).json({ error: 'path required' });
+async function trackPageview(req, res) {
+  const { path: pagePath, profileId, metadata } = req.body;
+  if (!pagePath) return res.status(400).json({ error: 'path required' });
 
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress;
-    const userAgent = req.headers['user-agent'] || null;
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress;
+  const userAgent = req.headers['user-agent'] || null;
 
-    await query(
-      `INSERT INTO analytics_events (event_type, path, user_id, profile_id, metadata, ip_hash, user_agent)
-       VALUES ('pageview', $1, $2, $3, $4::jsonb, $5, $6)`,
-      [
-        pagePath,
-        req.user?.id || null,
-        profileId || null,
-        JSON.stringify(metadata || {}),
-        hashIp(ip),
-        userAgent,
-      ]
-    );
+  // Best-effort: never fail the request or leave FK ERROR spam in Postgres logs.
+  await trackEvent({
+    eventType: 'pageview',
+    path: pagePath,
+    userId: req.user?.id || null,
+    profileId: profileId || null,
+    metadata: metadata || {},
+    ipHash: hashIp(ip),
+    userAgent,
+  });
 
-    if (profileId) {
+  if (profileId) {
+    try {
       await query(
         `UPDATE profiles SET performance_score = performance_score + 0.1, updated_at = NOW()
          WHERE id = $1`,
         [profileId]
       );
+    } catch (err) {
+      console.warn('analytics performance_score update failed:', err.message);
     }
-
-    res.status(201).json({ success: true });
-  } catch (err) {
-    next(err);
   }
+
+  res.status(201).json({ success: true });
 }
 
 async function getAdminDashboard(_req, res, next) {
