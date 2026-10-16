@@ -263,7 +263,7 @@ async function register(req, res, next) {
     void emailAdmin(
       'New creator application',
       [
-        `${professionalName || fullName} applied as a creator.`,
+        `${fullName || professionalName} applied as a creator.`,
         `Email: ${user.email}`,
         `Membership: ${membership}`,
         categorySlug ? `Category: ${categorySlug}` : null,
