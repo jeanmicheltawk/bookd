@@ -34,7 +34,7 @@ export class DashboardSettingsComponent implements OnInit {
 
   countries = signal<Country[]>([]);
   categories = signal<Category[]>([]);
-  categorySlug = signal('');
+  categorySlugs = signal<string[]>([]);
   customFields = signal<Record<string, string>>({});
   loading = signal(true);
   saving = signal(false);
@@ -57,18 +57,16 @@ export class DashboardSettingsComponent implements OnInit {
     gender: '',
     age: null as number | null,
     availability: 'available',
+    studioAccess: false,
     isPublic: true,
     profilePhotoUrl: '',
-    categorySlug: '',
+    categorySlugs: [] as string[],
   };
 
-  categoryOptions = computed<SelectOption[]>(() =>
-    selectOptions(
-      this.categories()
-        .filter((c) => c.slug !== 'brand-client')
-        .map((c) => ({ value: c.slug, label: c.name })),
-      'Choose your category',
-    ),
+  talentCategoryOptions = computed(() =>
+    this.categories()
+      .filter((c) => c.slug !== 'brand-client')
+      .map((c) => ({ value: c.slug, label: c.name })),
   );
 
   countryOptions = computed<SelectOption[]>(() =>
@@ -87,14 +85,23 @@ export class DashboardSettingsComponent implements OnInit {
   ];
 
   selectedCategoryFields = computed<CategoryField[]>(() => {
-    const slug = this.categorySlug();
-    if (!slug) return [];
-    const cat = this.categories().find((c) => c.slug === slug);
-    return sortCategoryFields(cat?.fields);
+    const slugs = this.categorySlugs();
+    if (!slugs.length) return [];
+    const byKey = new Map<string, CategoryField>();
+    for (const slug of slugs) {
+      const cat = this.categories().find((c) => c.slug === slug);
+      for (const field of sortCategoryFields(cat?.fields)) {
+        if (!byKey.has(field.field_key)) byKey.set(field.field_key, field);
+      }
+    }
+    return [...byKey.values()];
   });
 
   get isBrand(): boolean {
-    return this.auth.user()?.role === 'brand' || this.form.categorySlug === 'brand-client';
+    return (
+      this.auth.user()?.role === 'brand' ||
+      this.form.categorySlugs?.includes('brand-client')
+    );
   }
 
   ngOnInit(): void {
@@ -124,19 +131,37 @@ export class DashboardSettingsComponent implements OnInit {
             gender: toGenderValue(p.gender),
             age: p.age ?? null,
             availability: p.availability || 'available',
+            studioAccess: !!p.studio_access,
             isPublic: p.is_public ?? true,
             profilePhotoUrl: p.profile_photo_url || '',
-            categorySlug: p.category_slug || '',
+            categorySlugs:
+              p.category_slugs?.length
+                ? [...p.category_slugs]
+                : p.category_slug
+                  ? [p.category_slug]
+                  : [],
           };
-          this.categorySlug.set(p.category_slug || '');
+          this.categorySlugs.set([...(this.form.categorySlugs || [])]);
           this.customFields.set({ ...(p.custom_fields || {}) });
         }
         this.loading.set(false);
       });
   }
 
+  isCategorySelected(slug: string): boolean {
+    return (this.form.categorySlugs || []).includes(slug);
+  }
+
+  toggleCategory(slug: string, checked: boolean): void {
+    const current = new Set(this.form.categorySlugs || []);
+    if (checked) current.add(slug);
+    else current.delete(slug);
+    this.form.categorySlugs = [...current];
+    this.onCategoryChange();
+  }
+
   onCategoryChange(): void {
-    this.categorySlug.set(this.form.categorySlug || '');
+    this.categorySlugs.set([...(this.form.categorySlugs || [])]);
     const next: Record<string, string> = {};
     for (const field of this.selectedCategoryFields()) {
       next[field.field_key] = this.customFields()[field.field_key] || '';
@@ -214,6 +239,12 @@ export class DashboardSettingsComponent implements OnInit {
       return;
     }
 
+    if (!this.form.categorySlugs?.length) {
+      this.error.set('Please choose at least one category.');
+      this.saving.set(false);
+      return;
+    }
+
     for (const field of this.selectedCategoryFields()) {
       const value = (this.customFields()[field.field_key] || '').trim();
       if (field.is_required && !value) {
@@ -250,9 +281,11 @@ export class DashboardSettingsComponent implements OnInit {
         gender: this.form.gender || null,
         age: ageNumber,
         availability: this.form.availability,
+        studio_access: !!this.form.studioAccess,
         is_public: this.auth.isPending() ? false : this.form.isPublic,
         profile_photo_url: this.form.profilePhotoUrl,
-        categorySlug: this.form.categorySlug || undefined,
+        categorySlugs: this.form.categorySlugs,
+        categorySlug: this.form.categorySlugs[0],
         custom_fields: this.selectedCategoryFields().length ? this.customFields() : {},
       } as any)
       .subscribe({

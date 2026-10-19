@@ -54,7 +54,7 @@ interface TalentFormModel {
   professionalName: string;
   email: string;
   password: string;
-  categorySlug: string;
+  categorySlugs: string[];
   membership: Membership;
   country: string;
   city: string;
@@ -89,7 +89,7 @@ export class SignupComponent implements OnInit {
   payment = signal<WhishPaymentInstructions | null>(null);
   customFields = signal<Record<string, string>>({});
   role = signal<'member' | 'brand'>(this.initialRole());
-  categorySlug = signal('');
+  categorySlugs = signal<string[]>([]);
 
   membershipOptions: MembershipOption[] = [
     { value: 'basic', label: 'Starter plan', description: '$6.99 / month · 7-day free trial' },
@@ -115,7 +115,7 @@ export class SignupComponent implements OnInit {
     professionalName: '',
     email: '',
     password: '',
-    categorySlug: '',
+    categorySlugs: [],
     membership: 'basic',
     country: '',
     city: '',
@@ -146,7 +146,7 @@ export class SignupComponent implements OnInit {
   emailPattern = EMAIL_FORMAT_PATTERN;
   phonePattern = PHONE_CHAR_PATTERN;
 
-  categoryOptions = computed<SelectOption[]>(() =>
+  talentCategoryOptions = computed(() =>
     this.categories()
       .filter((c) => c.slug !== 'brand-client')
       .map((c) => ({ value: c.slug, label: c.name })),
@@ -168,10 +168,16 @@ export class SignupComponent implements OnInit {
 
   selectedCategoryFields = computed<CategoryField[]>(() => {
     if (this.role() !== 'member') return [];
-    const slug = this.categorySlug();
-    if (!slug) return [];
-    const cat = this.categories().find((c) => c.slug === slug);
-    return sortCategoryFields(cat?.fields);
+    const slugs = this.categorySlugs();
+    if (!slugs.length) return [];
+    const byKey = new Map<string, CategoryField>();
+    for (const slug of slugs) {
+      const cat = this.categories().find((c) => c.slug === slug);
+      for (const field of sortCategoryFields(cat?.fields)) {
+        if (!byKey.has(field.field_key)) byKey.set(field.field_key, field);
+      }
+    }
+    return [...byKey.values()];
   });
 
   ngOnInit(): void {
@@ -225,7 +231,7 @@ export class SignupComponent implements OnInit {
     this.passwordError.set('');
     if (role === 'brand') this.closePlanCompare();
     if (role === 'member') {
-      this.categorySlug.set(this.talent.categorySlug || '');
+      this.categorySlugs.set([...(this.talent.categorySlugs || [])]);
       this.onCategoryChange();
     }
     if (syncUrl) {
@@ -238,8 +244,20 @@ export class SignupComponent implements OnInit {
     }
   }
 
+  isCategorySelected(slug: string): boolean {
+    return this.talent.categorySlugs.includes(slug);
+  }
+
+  toggleCategory(slug: string, checked: boolean): void {
+    const current = new Set(this.talent.categorySlugs);
+    if (checked) current.add(slug);
+    else current.delete(slug);
+    this.talent.categorySlugs = [...current];
+    this.onCategoryChange();
+  }
+
   onCategoryChange(): void {
-    this.categorySlug.set(this.talent.categorySlug || '');
+    this.categorySlugs.set([...(this.talent.categorySlugs || [])]);
     const next: Record<string, string> = {};
     for (const field of this.selectedCategoryFields()) {
       next[field.field_key] = this.customFields()[field.field_key] || '';
@@ -401,8 +419,8 @@ export class SignupComponent implements OnInit {
       this.error.set('Password must be at least 6 characters.');
       return;
     }
-    if (!this.talent.categorySlug) {
-      this.error.set('Please choose a category.');
+    if (!this.talent.categorySlugs.length) {
+      this.error.set('Please choose at least one category.');
       return;
     }
     if (!this.talent.country.trim()) {
@@ -448,11 +466,23 @@ export class SignupComponent implements OnInit {
         : Number(ageValue);
 
     this.register({
-      ...this.talent,
-      role: 'member',
+      fullName: this.talent.fullName,
       professionalName: this.talent.professionalName || this.talent.fullName,
-      categorySlug: this.talent.categorySlug,
+      email: this.talent.email,
+      password: this.talent.password,
+      role: 'member',
+      categorySlugs: this.talent.categorySlugs,
+      categorySlug: this.talent.categorySlugs[0],
       membership: this.talent.membership,
+      country: this.talent.country,
+      city: this.talent.city,
+      bio: this.talent.bio,
+      instagram: this.talent.instagram,
+      phone: this.talent.phone,
+      whatsapp: this.talent.whatsapp,
+      showNumbersPublic: this.talent.showNumbersPublic,
+      website: this.talent.website,
+      gender: this.talent.gender,
       age: ageNumber != null && !Number.isNaN(ageNumber) ? ageNumber : undefined,
       customFields: this.selectedCategoryFields().length ? this.customFields() : undefined,
     });

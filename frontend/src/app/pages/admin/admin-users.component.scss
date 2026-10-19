@@ -284,6 +284,31 @@ a.view-btn {
 
   .form-field--full { grid-column: 1 / -1; margin-top: 12px; }
 
+  .category-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+  }
+
+  .category-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid currentColor;
+    cursor: pointer;
+    font-size: 0.8rem;
+
+    input[type='checkbox'] {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      margin: 0;
+      accent-color: var(--ink-black);
+    }
+  }
+
   .category-fields {
     margin-top: 20px;
     padding-top: 16px;

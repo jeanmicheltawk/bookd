@@ -17,6 +17,7 @@ export interface ProfileCardData {
   is_verified?: boolean;
   category_slug?: string;
   category_name?: string;
+  category_names?: string[];
   spotlight_label?: string;
 }
 

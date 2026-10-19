@@ -2,6 +2,7 @@ const { query } = require('../config/db');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
 const { parsePageLimit, paginationMeta } = require('../utils/pagination');
 const { trackEvent } = require('../utils/analytics');
+const { getCategoriesForProfiles, attachCategories } = require('../utils/profileCategories');
 
 function shuffle(arr) {
   const a = [...arr];
@@ -36,10 +37,14 @@ async function searchProfiles(req, res, next) {
     const params = [];
     const where = [
       'p.is_public = TRUE',
-      'c.is_searchable = TRUE',
       'u.is_active = TRUE',
       `u.role = 'member'`,
       `u.approval_status = 'approved'`,
+      `EXISTS (
+         SELECT 1 FROM profile_categories pc
+         JOIN categories sc ON sc.id = pc.category_id
+         WHERE pc.profile_id = p.id AND sc.is_searchable = TRUE
+       )`,
     ];
 
     if (q) {
@@ -48,7 +53,11 @@ async function searchProfiles(req, res, next) {
     }
     if (category) {
       params.push(category);
-      where.push(`c.slug = $${params.length}`);
+      where.push(`EXISTS (
+        SELECT 1 FROM profile_categories pc
+        JOIN categories sc ON sc.id = pc.category_id
+        WHERE pc.profile_id = p.id AND sc.slug = $${params.length} AND sc.is_searchable = TRUE
+      )`);
     }
     if (country) {
       params.push(country);
@@ -108,8 +117,16 @@ async function searchProfiles(req, res, next) {
       });
     }
 
+    const categoriesByProfile = await getCategoriesForProfiles(
+      query,
+      result.rows.map((row) => row.id)
+    );
+    const data = result.rows.map((row) =>
+      attachCategories(row, categoriesByProfile.get(String(row.id)) || [])
+    );
+
     res.json({
-      data: result.rows,
+      data,
       pagination: paginationMeta(page, limit, total),
     });
   } catch (err) {
@@ -133,14 +150,25 @@ async function getSpotlight(req, res, next) {
        JOIN users u ON u.id = p.user_id
        LEFT JOIN categories c ON c.id = p.category_id
        WHERE p.is_public = TRUE
-         AND c.is_searchable = TRUE
          AND u.is_active = TRUE
          AND u.role = 'member'
          AND u.approval_status = 'approved'
+         AND EXISTS (
+           SELECT 1 FROM profile_categories pc
+           JOIN categories sc ON sc.id = pc.category_id
+           WHERE pc.profile_id = p.id AND sc.is_searchable = TRUE
+         )
        ORDER BY CASE WHEN u.membership = 'premium' THEN 0 ELSE 1 END, RANDOM()
        LIMIT 16`
     );
-    res.json({ data: result.rows });
+    const categoriesByProfile = await getCategoriesForProfiles(
+      query,
+      result.rows.map((row) => row.id)
+    );
+    const data = result.rows.map((row) =>
+      attachCategories(row, categoriesByProfile.get(String(row.id)) || [])
+    );
+    res.json({ data });
   } catch (err) {
     next(err);
   }

@@ -15,7 +15,9 @@ export class ProfileService {
     return this.api.get<Profile>('/profiles/me');
   }
 
-  updateMine(payload: Partial<Profile> & { categorySlug?: string }): Observable<Profile> {
+  updateMine(
+    payload: Partial<Profile> & { categorySlug?: string; categorySlugs?: string[] },
+  ): Observable<Profile> {
     return this.api.patch<Profile>('/profiles/me', payload);
   }
 

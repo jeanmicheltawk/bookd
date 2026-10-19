@@ -44,7 +44,13 @@
           @if (p.is_verified) { <span class="verified-badge" title="Verified">✓</span> }
         </div>
         <p class="p-header__meta">
-          @if (p.category_name) { <span class="chip">{{ p.category_name }}</span> }
+          @if (p.category_names?.length) {
+            @for (name of p.category_names; track name) {
+              <span class="chip">{{ name }}</span>
+            }
+          } @else if (p.category_name) {
+            <span class="chip">{{ p.category_name }}</span>
+          }
           @if (p.city || p.country) { <span>{{ p.city }}{{ p.city && p.country ? ', ' : '' }}{{ p.country }}</span> }
           @if (p.years_experience) { <span>{{ p.years_experience }}+ yrs experience</span> }
         </p>

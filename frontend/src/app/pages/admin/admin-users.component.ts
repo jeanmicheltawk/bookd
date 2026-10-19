@@ -30,7 +30,7 @@ interface EditForm {
   confirmPassword: string;
   full_name: string;
   professional_name: string;
-  categorySlug: string;
+  categorySlugs: string[];
   membership: string;
   country: string;
   city: string;
@@ -73,7 +73,7 @@ export class AdminUsersComponent implements OnInit {
   listError = signal('');
   listNotice = signal('');
   fieldErrors = signal<ContactFieldErrors>({});
-  editCategorySlug = signal('');
+  editCategorySlugs = signal<string[]>([]);
   editForm: EditForm = this.emptyEditForm();
 
   statuses: Array<ApprovalStatus | 'all'> = ['pending', 'approved', 'rejected', 'all'];
@@ -91,8 +91,10 @@ export class AdminUsersComponent implements OnInit {
     { value: 'premium', label: 'Premium plan' },
   ];
 
-  categoryOptions = computed<SelectOption[]>(() =>
-    selectOptions(this.categories().map((c) => ({ value: c.slug, label: c.name })), 'No category'),
+  talentCategoryOptions = computed(() =>
+    this.categories()
+      .filter((c) => c.slug !== 'brand-client')
+      .map((c) => ({ value: c.slug, label: c.name })),
   );
 
   countryOptions = computed<SelectOption[]>(() =>
@@ -109,10 +111,16 @@ export class AdminUsersComponent implements OnInit {
   }
 
   get selectedCategoryFields(): CategoryField[] {
-    const slug = this.editCategorySlug();
-    if (!slug) return [];
-    const cat = this.categories().find((c) => c.slug === slug);
-    return sortCategoryFields(cat?.fields);
+    const slugs = this.editCategorySlugs();
+    if (!slugs.length) return [];
+    const byKey = new Map<string, CategoryField>();
+    for (const slug of slugs) {
+      const cat = this.categories().find((c) => c.slug === slug);
+      for (const field of sortCategoryFields(cat?.fields)) {
+        if (!byKey.has(field.field_key)) byKey.set(field.field_key, field);
+      }
+    }
+    return [...byKey.values()];
   }
 
   ngOnInit(): void {
@@ -155,7 +163,7 @@ export class AdminUsersComponent implements OnInit {
     this.fieldErrors.set({});
     this.editingUser.set(null);
     this.creating.set(true);
-    this.editCategorySlug.set('');
+    this.editCategorySlugs.set([]);
     this.editForm = this.emptyEditForm();
     this.editForm.membership = '';
   }
@@ -174,14 +182,20 @@ export class AdminUsersComponent implements OnInit {
     this.editError.set('');
     this.fieldErrors.set({});
     this.editingUser.set(user);
-    this.editCategorySlug.set(user.category_slug || '');
+    const slugs =
+      user.category_slugs?.length
+        ? [...user.category_slugs]
+        : user.category_slug
+          ? [user.category_slug]
+          : [];
+    this.editCategorySlugs.set(slugs);
     this.editForm = {
       email: user.email || '',
       password: '',
       confirmPassword: '',
       full_name: user.full_name || '',
       professional_name: user.professional_name || '',
-      categorySlug: user.category_slug || '',
+      categorySlugs: slugs,
       membership: user.membership || 'basic',
       country: user.country || '',
       city: user.city || '',
@@ -199,7 +213,7 @@ export class AdminUsersComponent implements OnInit {
   closeEdit(): void {
     this.editingUser.set(null);
     this.creating.set(false);
-    this.editCategorySlug.set('');
+    this.editCategorySlugs.set([]);
     this.editError.set('');
     this.fieldErrors.set({});
     this.editSaving.set(false);
@@ -229,8 +243,20 @@ export class AdminUsersComponent implements OnInit {
     }));
   }
 
+  isCategorySelected(slug: string): boolean {
+    return (this.editForm.categorySlugs || []).includes(slug);
+  }
+
+  toggleCategory(slug: string, checked: boolean): void {
+    const current = new Set(this.editForm.categorySlugs || []);
+    if (checked) current.add(slug);
+    else current.delete(slug);
+    this.editForm.categorySlugs = [...current];
+    this.onEditCategoryChange();
+  }
+
   onEditCategoryChange(): void {
-    this.editCategorySlug.set(this.editForm.categorySlug || '');
+    this.editCategorySlugs.set([...(this.editForm.categorySlugs || [])]);
     const next: Record<string, string> = {};
     for (const field of this.selectedCategoryFields) {
       next[field.field_key] = this.editForm.custom_fields[field.field_key] || '';
@@ -295,7 +321,8 @@ export class AdminUsersComponent implements OnInit {
         email: this.editForm.email.trim(),
         full_name: this.editForm.full_name.trim(),
         professional_name: this.editForm.professional_name.trim() || this.editForm.full_name.trim(),
-        categorySlug: this.editForm.categorySlug || null,
+        categorySlugs: this.editForm.categorySlugs,
+        categorySlug: this.editForm.categorySlugs[0] || null,
         membership: this.editForm.membership,
         country: this.editForm.country || null,
         city: this.editForm.city || null,
@@ -382,7 +409,8 @@ export class AdminUsersComponent implements OnInit {
         full_name: this.editForm.full_name.trim(),
         professional_name: this.editForm.professional_name.trim() || this.editForm.full_name.trim(),
         membership: this.editForm.membership as 'basic' | 'premium',
-        categorySlug: this.editForm.categorySlug || null,
+        categorySlugs: this.editForm.categorySlugs,
+        categorySlug: this.editForm.categorySlugs[0] || null,
         country: this.editForm.country || null,
         city: this.editForm.city || null,
         instagram: this.editForm.instagram || null,
@@ -554,7 +582,7 @@ export class AdminUsersComponent implements OnInit {
       confirmPassword: '',
       full_name: '',
       professional_name: '',
-      categorySlug: '',
+      categorySlugs: [],
       membership: 'basic',
       country: '',
       city: '',

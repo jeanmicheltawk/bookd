@@ -205,6 +205,9 @@ export interface Profile {
   performance_score?: number;
   category_slug?: string;
   category_name?: string;
+  category_slugs?: string[];
+  category_names?: string[];
+  categories?: { slug: string; name: string }[];
   is_verified?: boolean;
   membership?: Membership;
   custom_fields?: Record<string, string>;
@@ -227,6 +230,9 @@ export interface SearchResult {
   is_verified: boolean;
   category_slug?: string;
   category_name?: string;
+  category_slugs?: string[];
+  category_names?: string[];
+  categories?: { slug: string; name: string }[];
   bio?: string;
 }
 

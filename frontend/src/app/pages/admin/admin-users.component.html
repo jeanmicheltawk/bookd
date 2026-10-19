@@ -49,7 +49,7 @@
               </span>
             </div>
             <span>
-              {{ u.category_name || 'No category' }}
+              {{ (u.category_names?.join(', ')) || u.category_name || 'No category' }}
               · {{ planName(u.membership) }}
               · {{ u.role }}
               @if (u.country) { · {{ u.city ? u.city + ', ' : '' }}{{ u.country }} }
@@ -242,15 +242,21 @@
               <app-select name="membership" [(ngModel)]="editForm.membership" [options]="membershipOptions" />
             }
           </div>
-          <div class="form-field">
-            <label>Category</label>
-            <app-select
-              name="categorySlug"
-              [(ngModel)]="editForm.categorySlug"
-              placeholder="No category"
-              [options]="categoryOptions()"
-              (ngModelChange)="onEditCategoryChange()"
-            />
+          <div class="form-field form-field--full">
+            <label>Categories</label>
+            <div class="category-checkboxes">
+              @for (opt of talentCategoryOptions(); track opt.value) {
+                <label class="category-check">
+                  <input
+                    type="checkbox"
+                    [name]="'adminCategory-' + opt.value"
+                    [checked]="isCategorySelected(opt.value)"
+                    (change)="toggleCategory(opt.value, $any($event.target).checked)"
+                  />
+                  <span>{{ opt.label }}</span>
+                </label>
+              }
+            </div>
           </div>
           <div class="form-field">
             <label>Country</label>
@@ -310,7 +316,7 @@
           <div class="category-fields">
             <span class="eyebrow">CATEGORY DETAILS</span>
             <div class="form-grid">
-              @for (field of selectedCategoryFields; track field.id) {
+              @for (field of selectedCategoryFields; track field.field_key) {
                 <div class="form-field" [class.form-field--full]="field.field_type === 'textarea'">
                   <label>
                     {{ field.label }}

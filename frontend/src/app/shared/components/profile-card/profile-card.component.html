@@ -19,7 +19,13 @@
   <div class="p-card__body">
     <h4 class="p-card__name">{{ displayName }}</h4>
     <p class="p-card__meta">
-      @if (profile.category_name) { <span class="chip-sm">{{ profile.category_name }}</span> }
+      @if (profile.category_names?.length) {
+        @for (name of profile.category_names; track name) {
+          <span class="chip-sm">{{ name }}</span>
+        }
+      } @else if (profile.category_name) {
+        <span class="chip-sm">{{ profile.category_name }}</span>
+      }
     </p>
     @if (profile.city || profile.country) {
       <span class="p-card__location">{{ profile.city }}{{ profile.city && profile.country ? ', ' : '' }}{{ profile.country }}</span>

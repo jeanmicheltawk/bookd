@@ -37,6 +37,9 @@ export interface AdminUser {
   availability?: string;
   category_slug?: string;
   category_name?: string;
+  category_slugs?: string[];
+  category_names?: string[];
+  categories?: { slug: string; name: string }[];
   payment_confirmed?: boolean;
   payment_status?: string | null;
   payment_reference?: string | null;
@@ -64,6 +67,7 @@ export type AdminUserUpdatePayload = Partial<{
   gender: string | null;
   age: number | null;
   categorySlug: string | null;
+  categorySlugs: string[];
   custom_fields: Record<string, string>;
   availability: string | null;
 }>;
@@ -83,6 +87,7 @@ export type AdminUserCreatePayload = {
   gender?: string | null;
   age?: number | null;
   categorySlug?: string | null;
+  categorySlugs?: string[];
   membership: 'basic' | 'premium';
   custom_fields?: Record<string, string>;
 };

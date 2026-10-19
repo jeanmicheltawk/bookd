@@ -6,6 +6,13 @@ const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
 const { buildCustomUrl, profilePublicPath, syncProfileCustomUrl } = require('../utils/profileUrl');
 const { trackEvent } = require('../utils/analytics');
+const {
+  parseCategorySlugs,
+  resolveCategoriesBySlugs,
+  replaceProfileCategories,
+  getCategoriesForProfiles,
+  attachCategories,
+} = require('../utils/profileCategories');
 
 function portfolioMediaType(file) {
   const mime = (file?.mimetype || '').toLowerCase();
@@ -138,6 +145,9 @@ async function getPublicProfile(req, res, next) {
       [profileId]
     );
 
+    const categoriesByProfile = await getCategoriesForProfiles(query, [profileId]);
+    attachCategories(profile, categoriesByProfile.get(String(profileId)) || []);
+
     if (!preview) {
       await trackEvent({
         eventType: 'profile_view',
@@ -170,6 +180,8 @@ async function getMyProfile(req, res, next) {
       await syncProfileCustomUrl(query, mine.id, mine.full_name);
       mine.custom_url = customUrl;
     }
+    const categoriesByProfile = await getCategoriesForProfiles(query, [mine.id]);
+    attachCategories(mine, categoriesByProfile.get(String(mine.id)) || []);
     res.json(mine);
   } catch (err) {
     next(err);
@@ -211,14 +223,23 @@ async function updateMyProfile(req, res, next) {
       }
     }
 
-    if (req.body.categorySlug) {
-      const cat = await query('SELECT id FROM categories WHERE slug = $1', [req.body.categorySlug]);
-      if (!cat.rows[0]) return res.status(400).json({ error: 'Invalid category' });
-      params.push(cat.rows[0].id);
+    const requestedCategorySlugs = parseCategorySlugs(req.body);
+    const hasCategoryUpdate =
+      req.body.categorySlugs !== undefined || req.body.categorySlug !== undefined;
+    let nextCategoryIds = null;
+    if (hasCategoryUpdate) {
+      if (!requestedCategorySlugs.length) {
+        return res.status(400).json({ error: 'At least one category is required' });
+      }
+      const cats = await resolveCategoriesBySlugs(query, requestedCategorySlugs, { allowBrand: false });
+      nextCategoryIds = cats.map((c) => c.id);
+      params.push(nextCategoryIds[0]);
       updates.push(`category_id = $${params.length}`);
     }
 
-    if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
+    if (!updates.length && !nextCategoryIds) {
+      return res.status(400).json({ error: 'Nothing to update' });
+    }
 
     if (req.body.is_public === true) {
       const statusRes = await query(
@@ -237,19 +258,32 @@ async function updateMyProfile(req, res, next) {
       }
     }
 
-    params.push(profile.id);
-    const result = await query(
-      `UPDATE profiles SET ${updates.join(', ')}, updated_at = NOW()
-       WHERE id = $${params.length}
-       RETURNING *`,
-      params
-    );
-    const row = result.rows[0];
+    let row;
+    if (updates.length) {
+      params.push(profile.id);
+      const result = await query(
+        `UPDATE profiles SET ${updates.join(', ')}, updated_at = NOW()
+         WHERE id = $${params.length}
+         RETURNING *`,
+        params
+      );
+      row = result.rows[0];
+    } else {
+      const result = await query('SELECT * FROM profiles WHERE id = $1', [profile.id]);
+      row = result.rows[0];
+    }
+
+    if (nextCategoryIds) {
+      await replaceProfileCategories(query, profile.id, nextCategoryIds);
+    }
+
     const customUrl = buildCustomUrl(row.full_name, row.id);
     if (row.custom_url !== customUrl) {
       await syncProfileCustomUrl(query, row.id, row.full_name);
       row.custom_url = customUrl;
     }
+    const categoriesByProfile = await getCategoriesForProfiles(query, [profile.id]);
+    attachCategories(row, categoriesByProfile.get(String(profile.id)) || []);
     res.json(row);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'custom_url already taken' });

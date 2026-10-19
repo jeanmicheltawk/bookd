@@ -15,6 +15,7 @@ export interface RegisterPayload {
   fullName: string;
   professionalName?: string;
   categorySlug?: string;
+  categorySlugs?: string[];
   role?: 'member' | 'brand';
   membership?: Membership;
   country?: string;

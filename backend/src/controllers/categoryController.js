@@ -122,7 +122,11 @@ async function deleteCategory(req, res, next) {
   try {
     const { id } = req.params;
     const inUse = await query(
-      `SELECT COUNT(*)::int AS total FROM profiles WHERE category_id = $1`,
+      `SELECT COUNT(DISTINCT profile_id)::int AS total FROM (
+         SELECT id AS profile_id FROM profiles WHERE category_id = $1
+         UNION
+         SELECT profile_id FROM profile_categories WHERE category_id = $1
+       ) t`,
       [id]
     );
     if (inUse.rows[0].total > 0) {

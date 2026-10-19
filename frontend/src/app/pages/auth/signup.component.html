@@ -208,16 +208,22 @@
               <p class="field-error">{{ passwordError() }}</p>
             }
           </div>
-          <div class="form-field">
-            <label>Category *</label>
-            <app-select
-              name="talentCategory"
-              [(ngModel)]="talent.categorySlug"
-              required
-              placeholder="Choose your category"
-              [options]="categoryOptions()"
-              (ngModelChange)="onCategoryChange()"
-            />
+          <div class="form-field form-field--full">
+            <label>Categories *</label>
+            <p class="field-hint">Select all that apply — you will appear in each chosen category in search.</p>
+            <div class="category-checkboxes">
+              @for (opt of talentCategoryOptions(); track opt.value) {
+                <label class="category-check">
+                  <input
+                    type="checkbox"
+                    [name]="'talentCategory-' + opt.value"
+                    [checked]="isCategorySelected(opt.value)"
+                    (change)="toggleCategory(opt.value, $any($event.target).checked)"
+                  />
+                  <span>{{ opt.label }}</span>
+                </label>
+              }
+            </div>
           </div>
           <div class="form-field">
             <label>Membership Program *</label>
@@ -304,7 +310,7 @@
           <div class="category-fields">
             <span class="eyebrow">CATEGORY DETAILS</span>
             <div class="form-grid">
-              @for (field of selectedCategoryFields(); track field.id) {
+              @for (field of selectedCategoryFields(); track field.field_key) {
                 <div class="form-field" [class.form-field--full]="field.field_type === 'textarea'">
                   <label>{{ field.label }} *</label>
 

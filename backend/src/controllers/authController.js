@@ -8,6 +8,11 @@ const { emailAdmin, emailUser } = require('../utils/mailer');
 const { expireOverdueSubscriptions, withSubscription, isPaidPlan } = require('../utils/subscription');
 const { ensureOpenPayment, instructionsFor } = require('../utils/payment');
 const { syncProfileCustomUrl } = require('../utils/profileUrl');
+const {
+  parseCategorySlugs,
+  resolveCategoriesBySlugs,
+  replaceProfileCategories,
+} = require('../utils/profileCategories');
 
 const RESET_GENERIC_MESSAGE = 'If that email is registered, we sent a reset link.';
 
@@ -48,7 +53,8 @@ const registerValidators = [
   body('email').isEmail().withMessage('Valid email required'),
   body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
   body('fullName').trim().notEmpty().withMessage('Full name required'),
-  body('categorySlug').if(isTalentSignup).trim().notEmpty().withMessage('Category required'),
+  body('categorySlug').if(isTalentSignup).optional({ values: 'falsy' }).trim().isString(),
+  body('categorySlugs').if(isTalentSignup).optional().isArray({ min: 1 }).withMessage('At least one category required'),
   body('membership').if(isTalentSignup).optional().isIn(PUBLIC_TALENT_MEMBERSHIPS).withMessage('Invalid membership program'),
   body('professionalName').if(isTalentSignup).trim().notEmpty().withMessage('Professional name required'),
   body('country').if(isTalentSignup).trim().notEmpty().withMessage('Country required'),
@@ -111,7 +117,6 @@ async function register(req, res, next) {
       password,
       fullName,
       professionalName,
-      categorySlug,
       role,
       membership: requestedMembership,
       country,
@@ -134,18 +139,27 @@ async function register(req, res, next) {
     }
 
     let categoryId = null;
+    let categoryIds = [];
+    let categorySlugs = [];
     let userRole = role === 'brand' ? 'brand' : 'member';
     let categoryFields = [];
-    if (categorySlug) {
-      const cat = await query('SELECT id, slug FROM categories WHERE slug = $1', [categorySlug]);
-      if (!cat.rows[0]) return res.status(400).json({ error: 'Invalid category' });
-      categoryId = cat.rows[0].id;
-      if (cat.rows[0].slug === 'brand-client') userRole = 'brand';
+
+    if (userRole === 'member') {
+      const requestedSlugs = parseCategorySlugs(req.body);
+      if (!requestedSlugs.length) {
+        return res.status(400).json({ error: 'At least one category is required' });
+      }
+      const cats = await resolveCategoriesBySlugs(query, requestedSlugs, { allowBrand: false });
+      categoryIds = cats.map((c) => c.id);
+      categorySlugs = cats.map((c) => c.slug);
+      categoryId = categoryIds[0] || null;
 
       const fieldsRes = await query(
-        `SELECT field_key, label, field_type, options, is_required
-         FROM category_fields WHERE category_id = $1 ORDER BY sort_order, label`,
-        [categoryId]
+        `SELECT DISTINCT ON (field_key) field_key, label, field_type, options, is_required
+         FROM category_fields
+         WHERE category_id = ANY($1::uuid[])
+         ORDER BY field_key, sort_order, label`,
+        [categoryIds]
       );
       categoryFields = fieldsRes.rows;
     }
@@ -156,10 +170,10 @@ async function register(req, res, next) {
     const approvalStatus = userRole === 'brand' ? 'approved' : 'pending';
 
     if (userRole === 'brand') {
-      if (!categoryId) {
-        const brandCat = await query(`SELECT id FROM categories WHERE slug = 'brand-client' LIMIT 1`);
-        categoryId = brandCat.rows[0]?.id || null;
-      }
+      const brandCat = await query(`SELECT id, slug FROM categories WHERE slug = 'brand-client' LIMIT 1`);
+      categoryId = brandCat.rows[0]?.id || null;
+      categoryIds = categoryId ? [categoryId] : [];
+      categorySlugs = brandCat.rows[0] ? [brandCat.rows[0].slug] : [];
       categoryFields = [];
     }
 
@@ -222,6 +236,9 @@ async function register(req, res, next) {
       ]
     );
     await syncProfileCustomUrl(query, profileRes.rows[0].id, fullName);
+    if (categoryIds.length) {
+      await replaceProfileCategories(query, profileRes.rows[0].id, categoryIds);
+    }
 
     const payloadUser = {
       id: user.id,
@@ -266,7 +283,7 @@ async function register(req, res, next) {
         `${fullName || professionalName} applied as a creator.`,
         `Email: ${user.email}`,
         `Membership: ${membership}`,
-        categorySlug ? `Category: ${categorySlug}` : null,
+        categorySlugs.length ? `Categories: ${categorySlugs.join(', ')}` : null,
         country ? `Country: ${country}` : null,
         city ? `City: ${city}` : null,
         phone ? `Phone: ${phone}` : null,

@@ -15,6 +15,13 @@ const {
 } = require('../utils/subscription');
 const { hasConfirmedPayment, markPaymentsApplied, closeOpenPayments } = require('../utils/payment');
 const { syncProfileCustomUrl } = require('../utils/profileUrl');
+const {
+  parseCategorySlugs,
+  resolveCategoriesBySlugs,
+  replaceProfileCategories,
+  getCategoriesForProfiles,
+  attachCategories,
+} = require('../utils/profileCategories');
 
 const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
 
@@ -61,7 +68,23 @@ async function fetchAdminUser(userId) {
      WHERE u.id = $1`,
     [userId]
   );
-  return result.rows[0] || null;
+  const user = result.rows[0] || null;
+  if (user?.profile_id) {
+    const categoriesByProfile = await getCategoriesForProfiles(query, [user.profile_id]);
+    attachCategories(user, categoriesByProfile.get(String(user.profile_id)) || []);
+  }
+  return user;
+}
+
+async function attachCategoriesToUsers(users) {
+  const profileIds = users.map((u) => u.profile_id).filter(Boolean);
+  const categoriesByProfile = await getCategoriesForProfiles(query, profileIds);
+  return users.map((user) => {
+    if (user.profile_id) {
+      attachCategories(user, categoriesByProfile.get(String(user.profile_id)) || []);
+    }
+    return user;
+  });
 }
 
 async function listUsers(req, res, next) {
@@ -112,8 +135,9 @@ async function listUsers(req, res, next) {
       params
     );
 
+    const withCats = await attachCategoriesToUsers(result.rows);
     res.json({
-      data: result.rows.map(withSubscription),
+      data: withCats.map(withSubscription),
       pagination: {
         page,
         limit,
@@ -399,14 +423,19 @@ async function updateUser(req, res, next) {
       profileParams.push(availability || null);
       profileUpdates.push(`availability = $${profileParams.length}`);
     }
-    if (categorySlug !== undefined) {
-      if (!categorySlug) {
+    let nextCategoryIds = null;
+    const hasCategoryUpdate =
+      categorySlug !== undefined || req.body.categorySlugs !== undefined;
+    if (hasCategoryUpdate) {
+      const slugs = parseCategorySlugs({ categorySlug, categorySlugs: req.body.categorySlugs });
+      if (!slugs.length) {
         profileParams.push(null);
         profileUpdates.push(`category_id = $${profileParams.length}`);
+        nextCategoryIds = [];
       } else {
-        const cat = await query('SELECT id FROM categories WHERE slug = $1', [categorySlug]);
-        if (!cat.rows[0]) return res.status(400).json({ error: 'Invalid category' });
-        profileParams.push(cat.rows[0].id);
+        const cats = await resolveCategoriesBySlugs(query, slugs, { allowBrand: true });
+        nextCategoryIds = cats.map((c) => c.id);
+        profileParams.push(nextCategoryIds[0]);
         profileUpdates.push(`category_id = $${profileParams.length}`);
       }
     }
@@ -431,6 +460,9 @@ async function updateUser(req, res, next) {
         return res.status(404).json({ error: 'Profile not found for this user' });
       }
       await syncProfileCustomUrl(query, profileRes.rows[0].id, profileRes.rows[0].full_name);
+      if (nextCategoryIds) {
+        await replaceProfileCategories(query, profileRes.rows[0].id, nextCategoryIds);
+      }
     }
 
     const updated = await fetchAdminUser(id);
@@ -512,18 +544,19 @@ async function createComplimentaryUser(req, res, next) {
     }
 
     let categoryId = null;
+    let categoryIds = [];
     let categoryFields = [];
-    if (categorySlug) {
-      const cat = await query(
-        `SELECT id FROM categories WHERE slug = $1 AND slug != 'brand-client'`,
-        [categorySlug]
-      );
-      if (!cat.rows[0]) return res.status(400).json({ error: 'Invalid category' });
-      categoryId = cat.rows[0].id;
+    const createSlugs = parseCategorySlugs({ categorySlug, categorySlugs: req.body.categorySlugs });
+    if (createSlugs.length) {
+      const cats = await resolveCategoriesBySlugs(query, createSlugs, { allowBrand: false });
+      categoryIds = cats.map((c) => c.id);
+      categoryId = categoryIds[0] || null;
       const fieldsRes = await query(
-        `SELECT field_key, label, field_type, options, is_required
-         FROM category_fields WHERE category_id = $1 ORDER BY sort_order, label`,
-        [categoryId]
+        `SELECT DISTINCT ON (field_key) field_key, label, field_type, options, is_required
+         FROM category_fields
+         WHERE category_id = ANY($1::uuid[])
+         ORDER BY field_key, sort_order, label`,
+        [categoryIds]
       );
       categoryFields = fieldsRes.rows;
     }
@@ -588,6 +621,9 @@ async function createComplimentaryUser(req, res, next) {
       ]
     );
     await syncProfileCustomUrl(client.query.bind(client), profileRes.rows[0].id, nextName);
+    if (categoryIds.length) {
+      await replaceProfileCategories(client.query.bind(client), profileRes.rows[0].id, categoryIds);
+    }
 
     await client.query('COMMIT');
 
