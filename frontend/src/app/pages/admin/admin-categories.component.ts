@@ -30,6 +30,8 @@ export class AdminCategoriesComponent implements OnInit {
   });
 
   newCategory = { name: '', slug: '' };
+  editingId = signal<string | null>(null);
+  editName = '';
 
   fieldDraft = {
     label: '',
@@ -71,8 +73,56 @@ export class AdminCategoriesComponent implements OnInit {
   }
 
   select(category: Category): void {
+    if (this.editingId() === category.id) return;
     this.selectedId.set(category.id);
     this.error.set('');
+  }
+
+  startEdit(category: Category, event?: Event): void {
+    event?.stopPropagation();
+    this.selectedId.set(category.id);
+    this.editingId.set(category.id);
+    this.editName = category.name;
+    this.error.set('');
+  }
+
+  cancelEdit(event?: Event): void {
+    event?.stopPropagation();
+    this.editingId.set(null);
+    this.editName = '';
+  }
+
+  saveEdit(category: Category, event?: Event): void {
+    event?.stopPropagation();
+    const name = this.editName.trim();
+    if (!name) {
+      this.error.set('Category name is required.');
+      return;
+    }
+    if (name === category.name) {
+      this.cancelEdit();
+      return;
+    }
+    this.saving.set(true);
+    this.error.set('');
+    this.categoriesApi.update(category.id, { name }).subscribe({
+      next: (updated) => {
+        this.saving.set(false);
+        this.editingId.set(null);
+        this.editName = '';
+        this.categories.update((list) =>
+          list.map((item) =>
+            item.id === updated.id
+              ? { ...item, name: updated.name, slug: updated.slug }
+              : item,
+          ),
+        );
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.error.set(err?.error?.error || 'Could not update category.');
+      },
+    });
   }
 
   createCategory(): void {

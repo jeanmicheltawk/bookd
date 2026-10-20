@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
@@ -7,7 +7,8 @@ import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
-import { PortfolioItem, Profile } from '../../core/models';
+import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
+import { Category, CategoryField, PortfolioItem, Profile } from '../../core/models';
 import { isPlayableVideoFile, isPortfolioPdf } from '../../core/utils/portfolio-limit';
 import { profilePublicPath, profileRouterLink } from '../../core/utils/profile-url';
 import { AnimatedButtonComponent } from '../../shared/components/animated-button/animated-button.component';
@@ -27,17 +28,57 @@ export class ProfilePublicComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private profileService = inject(ProfileService);
+  private categoryService = inject(CategoryService);
   private analytics = inject(AnalyticsService);
   auth = inject(AuthService);
   api = inject(ApiService);
 
   profile = signal<Profile | null>(null);
+  categories = signal<Category[]>([]);
   loading = signal(true);
   notFound = signal(false);
   lightboxIndex = signal<number | null>(null);
   photoLightboxIndex = signal<number | null>(null);
 
+  /** Extra fields in the same order the admin set on the category. */
+  orderedCustomFields = computed(() => {
+    const p = this.profile();
+    const custom = p?.custom_fields || {};
+    if (!p || !Object.keys(custom).length) return [];
+
+    const slugs = p.category_slugs?.length
+      ? p.category_slugs
+      : p.category_slug
+        ? [p.category_slug]
+        : [];
+
+    const byKey = new Map<string, CategoryField>();
+    for (const slug of slugs) {
+      const cat = this.categories().find((c) => c.slug === slug);
+      for (const field of sortCategoryFields(cat?.fields)) {
+        if (!byKey.has(field.field_key)) byKey.set(field.field_key, field);
+      }
+    }
+
+    const entries: { key: string; label: string; value: string }[] = [];
+    for (const field of byKey.values()) {
+      const value = custom[field.field_key];
+      if (value) entries.push({ key: field.field_key, label: field.label, value: String(value) });
+    }
+    for (const [key, value] of Object.entries(custom)) {
+      if (value && !byKey.has(key)) {
+        entries.push({ key, label: key, value: String(value) });
+      }
+    }
+    return entries;
+  });
+
   ngOnInit(): void {
+    this.categoryService
+      .list()
+      .pipe(catchError(() => of({ data: [] as Category[] })))
+      .subscribe((res) => this.categories.set(res.data || []));
+
     this.route.paramMap.subscribe((params) => {
       const shortId = params.get('shortId');
       const slug = params.get('slug');

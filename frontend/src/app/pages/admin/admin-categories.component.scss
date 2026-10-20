@@ -78,7 +78,7 @@
   &:hover, &:focus-visible { background: var(--uv-purple); }
   &.active { background: var(--acid-lime); color: var(--ink-black); }
 
-  div {
+  > div:not(.cat-row__actions) {
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -87,6 +87,39 @@
 
   strong { font-size: 0.9rem; text-transform: uppercase; }
   span { font-size: 0.75rem; }
+}
+
+.cat-row__actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cat-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.edit-btn {
+  padding: 7px 12px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { background: currentColor; color: var(--bg, #0a0a0a); }
+  &:disabled { opacity: 0.6; cursor: wait; }
 }
 
 .cat-detail {
@@ -208,9 +241,9 @@
 
 .delete-btn {
   padding: 7px 12px;
-  border: 1px solid var(--hyper-pink);
+  border: 1px solid currentColor;
   background: transparent;
-  color: var(--hyper-pink);
+  color: inherit;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -218,7 +251,13 @@
   cursor: pointer;
   white-space: nowrap;
 
-  &:hover { background: var(--hyper-pink); color: #ffffff; }
+  &:hover:not(:disabled) {
+    background: var(--ink-black);
+    border-color: var(--ink-black);
+    color: #ffffff;
+  }
+
+  &:disabled { opacity: 0.6; cursor: wait; }
 }
 
 .muted, .empty-detail {

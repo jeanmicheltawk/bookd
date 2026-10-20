@@ -44,6 +44,7 @@ export class DashboardPortfolioComponent implements OnInit {
   items = signal<PortfolioItem[]>([]);
   loading = signal(true);
   uploading = signal(false);
+  reordering = signal(false);
   uploadStatus = signal('');
   addingLink = signal(false);
   uploadError = signal('');
@@ -223,6 +224,36 @@ export class DashboardPortfolioComponent implements OnInit {
 
   openLightbox(index: number): void {
     this.lightboxIndex.set(index);
+  }
+
+  moveItem(item: PortfolioItem, direction: -1 | 1): void {
+    const list = [...this.items()];
+    const index = list.findIndex((i) => i.id === item.id);
+    const next = index + direction;
+    if (index < 0 || next < 0 || next >= list.length || this.reordering()) return;
+
+    const swapped = list[next];
+    list[index] = swapped;
+    list[next] = item;
+    this.persistOrder(list);
+  }
+
+  private persistOrder(ordered: PortfolioItem[]): void {
+    const withSort = ordered.map((item, i) => ({ ...item, sort_order: i }));
+    this.items.set(withSort);
+    this.reordering.set(true);
+    this.uploadError.set('');
+    this.profileService.reorderPortfolio(withSort.map((item) => item.id)).subscribe({
+      next: (res) => {
+        this.reordering.set(false);
+        this.items.set(res.data || withSort);
+      },
+      error: (err) => {
+        this.reordering.set(false);
+        this.uploadError.set(err?.error?.error || 'Could not save portfolio order.');
+        this.load();
+      },
+    });
   }
 
   remove(item: PortfolioItem): void {

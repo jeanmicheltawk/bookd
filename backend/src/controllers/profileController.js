@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { query } = require('../config/db');
+const { query, getClient } = require('../config/db');
 const { insertUploadedMedia } = require('../utils/mediaStore');
 const { assertPortfolioCapacity } = require('../utils/portfolioLimit');
 const { expireOverdueSubscriptions } = require('../utils/subscription');
@@ -338,6 +338,25 @@ async function listPortfolio(req, res, next) {
   }
 }
 
+async function nextPortfolioSortOrder(queryFn, profileId, { preferFront = true } = {}) {
+  if (preferFront) {
+    const minRes = await queryFn(
+      `SELECT COALESCE(MIN(sort_order), 0) AS min_order, COUNT(*)::int AS total
+       FROM portfolio_items WHERE profile_id = $1`,
+      [profileId]
+    );
+    const total = Number(minRes.rows[0]?.total || 0);
+    if (!total) return 0;
+    return Number(minRes.rows[0].min_order) - 1;
+  }
+  const maxRes = await queryFn(
+    `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next
+     FROM portfolio_items WHERE profile_id = $1`,
+    [profileId]
+  );
+  return Number(maxRes.rows[0]?.next || 0);
+}
+
 async function addPortfolioItem(req, res, next) {
   try {
     const { mediaType, url, thumbnailUrl, title, sortOrder } = req.body;
@@ -358,6 +377,11 @@ async function addPortfolioItem(req, res, next) {
       });
     }
 
+    const resolvedSort =
+      sortOrder !== undefined && sortOrder !== null
+        ? Number(sortOrder) || 0
+        : await nextPortfolioSortOrder(query, capacity.profile.id);
+
     const result = await query(
       `INSERT INTO portfolio_items (profile_id, media_type, url, thumbnail_url, title, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -368,12 +392,68 @@ async function addPortfolioItem(req, res, next) {
         normalizedUrl,
         thumbnailUrl || null,
         title || null,
-        sortOrder ?? 0,
+        resolvedSort,
       ]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     next(err);
+  }
+}
+
+async function reorderPortfolio(req, res, next) {
+  const client = await getClient();
+  try {
+    const itemIds = req.body.itemIds || req.body.item_ids;
+    if (!Array.isArray(itemIds) || !itemIds.length) {
+      return res.status(400).json({ error: 'itemIds array is required' });
+    }
+    const ids = itemIds.map((id) => String(id || '').trim()).filter(Boolean);
+    if (ids.length !== itemIds.length || new Set(ids).size !== ids.length) {
+      return res.status(400).json({ error: 'itemIds must be unique non-empty strings' });
+    }
+
+    const profileRes = await client.query('SELECT id FROM profiles WHERE user_id = $1', [req.user.id]);
+    if (!profileRes.rows[0]) return res.status(404).json({ error: 'Profile not found' });
+    const profileId = profileRes.rows[0].id;
+
+    await client.query('BEGIN');
+    const existing = await client.query(
+      `SELECT id FROM portfolio_items WHERE profile_id = $1`,
+      [profileId]
+    );
+    if (!existing.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'No portfolio items to reorder' });
+    }
+    const existingIds = new Set(existing.rows.map((row) => String(row.id)));
+    if (ids.length !== existingIds.size || ids.some((id) => !existingIds.has(id))) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'itemIds must include every portfolio item' });
+    }
+
+    for (let i = 0; i < ids.length; i += 1) {
+      await client.query(
+        `UPDATE portfolio_items SET sort_order = $1 WHERE id = $2 AND profile_id = $3`,
+        [i, ids[i], profileId]
+      );
+    }
+    await client.query('COMMIT');
+
+    const result = await query(
+      `SELECT * FROM portfolio_items WHERE profile_id = $1 ORDER BY sort_order, created_at DESC`,
+      [profileId]
+    );
+    res.json({ data: result.rows });
+  } catch (err) {
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      /* ignore */
+    }
+    next(err);
+  } finally {
+    client.release();
   }
 }
 
@@ -460,11 +540,12 @@ async function uploadPortfolioMedia(req, res, next) {
       uploadedBy: req.user.id,
     });
 
+    const sortOrder = await nextPortfolioSortOrder(query, capacity.profile.id);
     const result = await query(
       `INSERT INTO portfolio_items (profile_id, media_type, url, thumbnail_url, title, sort_order)
-       VALUES ($1, $2, $3, NULL, $4, 0)
+       VALUES ($1, $2, $3, NULL, $4, $5)
        RETURNING *`,
-       [capacity.profile.id, mediaType, url, title]
+       [capacity.profile.id, mediaType, url, title, sortOrder]
     );
 
     res.status(201).json(result.rows[0]);
@@ -482,5 +563,6 @@ module.exports = {
   addPortfolioItem,
   uploadPortfolioMedia,
   updatePortfolioItem,
+  reorderPortfolio,
   deletePortfolioItem,
 };

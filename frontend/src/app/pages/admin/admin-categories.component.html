@@ -4,7 +4,7 @@
       <span class="eyebrow">TAXONOMY</span>
       <h1 class="display-lg">CATEGORIES &amp; <span class="text-gradient">FIELDS</span></h1>
       <p class="admin-page__hint">
-        Add or delete categories, then define extra fields for each one (height, weight, photographer type, etc.).
+        Add, rename, or delete categories, then define extra fields for each one (height, weight, photographer type, etc.).
       </p>
     </div>
   </div>
@@ -37,11 +37,31 @@
             tabindex="0"
             role="button"
           >
-            <div>
-              <strong>{{ c.name }}</strong>
-              <span>{{ c.slug }} · {{ (c.fields || []).length }} field(s)</span>
-            </div>
-            <button type="button" class="delete-btn" (click)="$event.stopPropagation(); deleteCategory(c)">Delete</button>
+            @if (editingId() === c.id) {
+              <input
+                type="text"
+                class="cat-name-input"
+                [(ngModel)]="editName"
+                [name]="'edit-' + c.id"
+                autofocus
+                (click)="$event.stopPropagation()"
+                (keydown.enter)="saveEdit(c, $event)"
+                (keydown.escape)="cancelEdit($event)"
+              />
+              <div class="cat-row__actions">
+                <button type="button" class="edit-btn" [disabled]="saving()" (click)="saveEdit(c, $event)">Save</button>
+                <button type="button" class="delete-btn" [disabled]="saving()" (click)="cancelEdit($event)">Cancel</button>
+              </div>
+            } @else {
+              <div>
+                <strong>{{ c.name }}</strong>
+                <span>{{ c.slug }} · {{ (c.fields || []).length }} field(s)</span>
+              </div>
+              <div class="cat-row__actions">
+                <button type="button" class="edit-btn" [disabled]="saving()" (click)="startEdit(c, $event)">Edit</button>
+                <button type="button" class="delete-btn" [disabled]="saving()" (click)="$event.stopPropagation(); deleteCategory(c)">Delete</button>
+              </div>
+            }
           </div>
         }
       </div>

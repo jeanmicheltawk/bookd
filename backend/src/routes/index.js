@@ -106,6 +106,7 @@ router.post(
   profile.uploadPortfolioMedia
 );
 router.post('/profiles/me/portfolio', ...creator, profile.addPortfolioItem);
+router.put('/profiles/me/portfolio/reorder', ...creator, profile.reorderPortfolio);
 router.patch('/profiles/me/portfolio/:id', ...creator, profile.updatePortfolioItem);
 router.delete('/profiles/me/portfolio/:id', ...creator, profile.deletePortfolioItem);
 router.patch('/profiles/me', authenticate, profile.updateMyProfile);

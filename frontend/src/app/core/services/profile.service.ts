@@ -46,6 +46,10 @@ export class ProfileService {
     return this.api.patch(`/profiles/me/portfolio/${id}`, payload);
   }
 
+  reorderPortfolio(itemIds: string[]): Observable<{ data: PortfolioItem[] }> {
+    return this.api.put('/profiles/me/portfolio/reorder', { itemIds });
+  }
+
   deletePortfolioItem(id: string): Observable<{ success: boolean; id: string }> {
     return this.api.delete(`/profiles/me/portfolio/${id}`);
   }

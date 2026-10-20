@@ -109,12 +109,8 @@
             @if (p.languages; as langs) { @if (langs.length) { <li><span>Languages</span><strong>{{ langs.join(', ') }}</strong></li> } }
             @if (p.equipment_owned) { <li><span>Equipment</span><strong>{{ p.equipment_owned }}</strong></li> }
             @if (p.studio_access !== undefined) { <li><span>Studio Access</span><strong>{{ p.studio_access ? 'Yes' : 'No' }}</strong></li> }
-            @if (p.custom_fields) {
-              @for (entry of p.custom_fields | keyvalue; track entry.key) {
-                @if (entry.value) {
-                  <li><span>{{ entry.key }}</span><strong>{{ entry.value }}</strong></li>
-                }
-              }
+            @for (entry of orderedCustomFields(); track entry.key) {
+              <li><span>{{ entry.label }}</span><strong>{{ entry.value }}</strong></li>
             }
             @if (p.website) { <li><span>Website</span><a [href]="websiteHref(p.website)" target="_blank" rel="noopener">Visit ↗</a></li> }
             @if (p.instagram) { <li><span>Instagram</span><a [href]="'https://instagram.com/' + p.instagram" target="_blank" rel="noopener">&#64;{{ p.instagram }}</a></li> }
