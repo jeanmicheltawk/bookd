@@ -20,8 +20,8 @@
   }
 
   <div class="status-chips">
-    @for (s of statuses; track s) {
-      <button type="button" class="chip" [class.active]="activeStatus() === s" (click)="filterByStatus(s)">{{ s }}</button>
+    @for (s of statusFilters; track s.id) {
+      <button type="button" class="chip" [class.active]="activeStatus() === s.id" (click)="filterByStatus(s.id)">{{ s.label }}</button>
     }
   </div>
 

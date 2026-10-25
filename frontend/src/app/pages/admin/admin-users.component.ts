@@ -63,7 +63,7 @@ export class AdminUsersComponent implements OnInit {
   loading = signal(true);
   search = '';
   verifiedOnly = false;
-  activeStatus = signal<ApprovalStatus | 'all'>('all');
+  activeStatus = signal<ApprovalStatus | 'all' | 'paid_pending'>('all');
   savingId = signal<string | null>(null);
 
   editingUser = signal<AdminUser | null>(null);
@@ -76,7 +76,13 @@ export class AdminUsersComponent implements OnInit {
   editCategorySlugs = signal<string[]>([]);
   editForm: EditForm = this.emptyEditForm();
 
-  statuses: Array<ApprovalStatus | 'all'> = ['pending', 'approved', 'rejected', 'all'];
+  statusFilters: Array<{ id: ApprovalStatus | 'all' | 'paid_pending'; label: string }> = [
+    { id: 'paid_pending', label: 'paid · pending review' },
+    { id: 'pending', label: 'not paid · pending' },
+    { id: 'approved', label: 'approved' },
+    { id: 'rejected', label: 'rejected' },
+    { id: 'all', label: 'all' },
+  ];
   emailPattern = EMAIL_FORMAT_PATTERN;
   phonePattern = PHONE_CHAR_PATTERN;
 
@@ -133,7 +139,7 @@ export class AdminUsersComponent implements OnInit {
     this.load();
   }
 
-  filterByStatus(status: ApprovalStatus | 'all'): void {
+  filterByStatus(status: ApprovalStatus | 'all' | 'paid_pending'): void {
     this.activeStatus.set(status);
     this.load();
   }
@@ -143,17 +149,27 @@ export class AdminUsersComponent implements OnInit {
     this.listError.set('');
     this.listNotice.set('');
     const status = this.activeStatus();
+    const paidPending = status === 'paid_pending';
     this.usersApi
       .list({
         q: this.search || undefined,
         verified: this.verifiedOnly || undefined,
         approval_status: status === 'all' ? undefined : status,
+        payment_confirmed: paidPending ? true : undefined,
         role: 'member',
         limit: 60,
       })
       .pipe(catchError(() => of({ data: [], pagination: { page: 1, limit: 60, total: 0, totalPages: 0 } })))
       .subscribe((res) => {
-        this.users.set(res.data);
+        const rows = paidPending
+          ? res.data.filter(
+              (u) =>
+                u.approval_status === 'pending' &&
+                !!u.payment_confirmed &&
+                !u.is_complimentary,
+            )
+          : res.data;
+        this.users.set(rows);
         this.loading.set(false);
       });
   }

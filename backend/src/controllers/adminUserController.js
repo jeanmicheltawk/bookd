@@ -91,7 +91,14 @@ async function listUsers(req, res, next) {
   try {
     await expireOverdueSubscriptions();
     const { page, limit, offset } = parsePageLimit(req.query);
-    const { q, role, membership, verified, approval_status: approvalStatus } = req.query;
+    const {
+      q,
+      role,
+      membership,
+      verified,
+      approval_status: approvalStatus,
+      payment_confirmed: paymentConfirmed,
+    } = req.query;
     const params = [];
     const where = ['1=1'];
 
@@ -111,9 +118,26 @@ async function listUsers(req, res, next) {
     }
     if (verified === 'true') where.push('u.is_verified = TRUE');
     if (verified === 'false') where.push('u.is_verified = FALSE');
-    if (approvalStatus && APPROVAL_STATUSES.includes(approvalStatus)) {
+
+    const paidConfirmedSql = `EXISTS (
+      SELECT 1 FROM subscription_payments spc
+      WHERE spc.user_id = u.id AND spc.status = 'confirmed'
+    )`;
+
+    // Paid but not yet approved/rejected — review queue for admins.
+    if (approvalStatus === 'paid_pending') {
+      where.push(`u.approval_status = 'pending'`);
+      where.push(paidConfirmedSql);
+      where.push(`COALESCE(u.is_complimentary, FALSE) = FALSE`);
+    } else if (approvalStatus && APPROVAL_STATUSES.includes(approvalStatus)) {
       params.push(approvalStatus);
       where.push(`u.approval_status = $${params.length}`);
+    }
+
+    if (paymentConfirmed === 'true') {
+      where.push(paidConfirmedSql);
+    } else if (paymentConfirmed === 'false') {
+      where.push(`NOT (${paidConfirmedSql})`);
     }
 
     const countRes = await query(
