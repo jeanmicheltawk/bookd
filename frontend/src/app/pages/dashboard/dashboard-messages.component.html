@@ -24,7 +24,7 @@
             [class.unread]="c.unread_count > 0"
             (click)="openConversation(c)"
           >
-            <img [src]="api.assetUrl(c.participants[0].profile_photo_url) || 'https://placehold.co/48x48/1a0f28/fff?text=BKD'" alt="" />
+            <img [src]="api.assetUrl(c.participants[0].profile_photo_url, 96) || 'https://placehold.co/48x48/1a0f28/fff?text=BKD'" alt="" />
             <div class="conv-item__info">
               <strong>{{ otherParticipant(c) }}</strong>
               @if (bookingLabel(c)) {

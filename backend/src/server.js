@@ -57,21 +57,9 @@ app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 app.use('/api/auth/reset-password', authLimiter);
 
-app.use(
-  '/uploads',
-  express.static(uploadRoot, {
-    fallthrough: true,
-    setHeaders(res, filePath) {
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-      if (String(filePath).toLowerCase().endsWith('.pdf')) {
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline');
-      }
-    },
-  }),
-  servePersistedUpload
-);
+// Uploads: served from Postgres through a resize + disk cache (see utils/mediaOptimizer).
+// Images are capped at 1600px WebP; add ?w=480 etc. for thumbnails, ?original=1 for the raw file.
+app.use('/uploads', servePersistedUpload);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'bookd-haus-api', env: config.env });

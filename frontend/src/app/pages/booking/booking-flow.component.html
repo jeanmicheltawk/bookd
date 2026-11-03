@@ -25,7 +25,7 @@
   @if (profile(); as p) {
     <div class="container booking-body">
       <aside class="booking-summary glass-panel">
-        <img [src]="api.assetUrl(p.profile_photo_url) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="" />
+        <img [src]="api.assetUrl(p.profile_photo_url, 160) || 'https://placehold.co/100x100/1a0f28/fff?text=BKD'" alt="" />
         <h3>{{ p.professional_name || p.full_name }}</h3>
         <p>{{ p.category_name }}</p>
         @if (p.city || p.country) { <span class="loc">{{ p.city }}{{ p.city && p.country ? ', ' : '' }}{{ p.country }}</span> }

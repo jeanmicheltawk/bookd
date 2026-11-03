@@ -90,7 +90,7 @@
           <div class="app-row app-row--card">
             <img
               class="app-row__photo"
-              [src]="api.assetUrl(app.profile_photo_url) || 'assets/placeholder-avatar.svg'"
+              [src]="api.assetUrl(app.profile_photo_url, 160) || 'assets/placeholder-avatar.svg'"
               [alt]="applicantName(app)"
             />
             <div class="app-row__info">
@@ -140,7 +140,7 @@
                 <div class="app-row">
                   <img
                     class="app-row__photo"
-                    [src]="api.assetUrl(app.profile_photo_url) || 'assets/placeholder-avatar.svg'"
+                    [src]="api.assetUrl(app.profile_photo_url, 160) || 'assets/placeholder-avatar.svg'"
                     [alt]="applicantName(app)"
                   />
                   <div class="app-row__info">

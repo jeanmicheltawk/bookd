@@ -13,7 +13,7 @@
           @for (item of news(); track item.id) {
             <button type="button" class="news-ticker__card" (click)="open(item)">
               @if (item.image_url) {
-                <img class="news-ticker__image" [src]="api.assetUrl(item.image_url)" [alt]="" />
+                <img class="news-ticker__image" [src]="api.assetUrl(item.image_url, 320)" [alt]="" />
               }
               <span class="news-ticker__copy">
                 @if (auth.isAdmin() && item.is_published === false) {
@@ -45,7 +45,7 @@
       <h2>{{ item.title }}</h2>
       <time>{{ item.created_at | date: 'MMMM d, y' }}</time>
       @if (item.image_url) {
-        <img [src]="api.assetUrl(item.image_url)" [alt]="item.title" />
+        <img [src]="api.assetUrl(item.image_url, 960)" [alt]="item.title" loading="lazy" />
       }
       @if (item.body) {
         <p class="news-popup__body">{{ item.body }}</p>

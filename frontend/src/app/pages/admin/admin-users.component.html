@@ -42,7 +42,7 @@
         <div class="mod-row" [class.is-saving]="savingId() === u.id">
           <div class="mod-row__info">
             <div class="user-name">
-              <img [src]="u.profile_photo_url ? api.assetUrl(u.profile_photo_url) : 'assets/placeholder-avatar.svg'" [alt]="u.full_name || u.email" />
+              <img [src]="u.profile_photo_url ? api.assetUrl(u.profile_photo_url, 96) : 'assets/placeholder-avatar.svg'" [alt]="u.full_name || u.email" />
               <span>
                 <strong>{{ u.professional_name || u.full_name || '—' }}</strong>
                 <small>{{ u.email }}</small>

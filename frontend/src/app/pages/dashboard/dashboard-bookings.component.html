@@ -22,7 +22,7 @@
       @for (b of filtered(); track b.id) {
         <div class="booking-row">
           <div class="booking-row__head">
-            <img class="booking-row__photo" [src]="api.assetUrl(isCreative(b) ? b.client_photo : b.creative_photo) || 'https://placehold.co/80x80/1a0f28/fff?text=BKD'" alt="" />
+            <img class="booking-row__photo" [src]="api.assetUrl(isCreative(b) ? b.client_photo : b.creative_photo, 160) || 'https://placehold.co/80x80/1a0f28/fff?text=BKD'" alt="" />
             <div class="booking-row__info">
               <strong>{{ b.project_type || 'Booking request' }}</strong>
               <span>{{ isCreative(b) ? (b.client_professional_name || b.client_name) : (b.creative_professional_name || b.creative_name) }}</span>

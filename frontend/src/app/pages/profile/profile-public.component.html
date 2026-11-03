@@ -16,7 +16,7 @@
   <section
     class="p-hero"
     [class.p-hero--cover]="!!p.cover_photo_url"
-    [style.background-image]="p.cover_photo_url ? 'url(' + photo(p.cover_photo_url) + ')' : null"
+    [style.background-image]="p.cover_photo_url ? 'url(' + photo(p.cover_photo_url, 1600) + ')' : null"
   >
     <div class="p-hero__scrim"></div>
   </section>
@@ -31,7 +31,7 @@
             (click)="openPhotoLightbox()"
             [attr.aria-label]="'View ' + (p.professional_name || p.full_name) + ' photo'"
           >
-            <img [src]="photo(p.profile_photo_url)" [alt]="p.professional_name || p.full_name" />
+            <img [src]="photo(p.profile_photo_url, 640)" [alt]="p.professional_name || p.full_name" />
           </button>
         } @else {
           <div class="p-header__placeholder">{{ (p.professional_name || p.full_name).slice(0,2).toUpperCase() }}</div>
@@ -125,11 +125,11 @@
             @for (item of p.portfolio; track item.id; let i = $index) {
               <button type="button" class="portfolio-item" (click)="openLightbox(i)" [attr.aria-label]="'View ' + (item.title || 'portfolio piece')">
                 @if (item.media_type === 'video') {
-                  <app-video-cover [src]="photo(item.url)" [playable]="isPlayableVideo(item)" [posterUrl]="item.thumbnail_url ? photo(item.thumbnail_url) : ''" />
+                  <app-video-cover [src]="photo(item.url)" [playable]="isPlayableVideo(item)" [posterUrl]="item.thumbnail_url ? photo(item.thumbnail_url, 640) : ''" />
                 } @else if (isPdf(item)) {
                   <app-pdf-cover [src]="photo(item.url)" [title]="item.title || 'Document'" />
                 } @else {
-                  <img [src]="photo(item.url)" [alt]="item.title || 'Portfolio piece'" loading="lazy" />
+                  <img [src]="photo(item.url, 800)" [alt]="item.title || 'Portfolio piece'" loading="lazy" />
                 }
               </button>
             }

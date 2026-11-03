@@ -113,8 +113,8 @@ export class ProfilePublicComponent implements OnInit {
     });
   }
 
-  photo(url?: string): string {
-    return this.api.assetUrl(url);
+  photo(url?: string, width?: number): string {
+    return this.api.assetUrl(url, width);
   }
 
   portfolioItems(): PortfolioItem[] {

@@ -33,7 +33,7 @@ export class NavbarComponent implements OnInit {
   }
 
   get avatarUrl(): string {
-    return this.api.assetUrl(this.auth.user()?.profile_photo_url);
+    return this.api.assetUrl(this.auth.user()?.profile_photo_url, 96);
   }
 
   get bookingBadge(): number {

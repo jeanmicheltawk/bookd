@@ -15,7 +15,7 @@
       @for (item of items(); track item.board_id; let i = $index) {
         <div class="mod-app mod-app--card">
           <div class="board-person">
-            <img [src]="api.assetUrl(item.profile_photo_url) || 'assets/placeholder-avatar.svg'" [alt]="name(item)" />
+            <img [src]="api.assetUrl(item.profile_photo_url, 160) || 'assets/placeholder-avatar.svg'" [alt]="name(item)" />
             <div>
               <strong>{{ name(item) }}</strong>
               <span>{{ item.category_name || 'Creative' }}{{ item.city || item.country ? ' · ' + (item.city ? item.city + ', ' : '') + (item.country || '') : '' }}</span>
@@ -56,7 +56,7 @@
           @for (p of results(); track p.id) {
             <div class="mod-app mod-app--card">
               <div class="board-person">
-                <img [src]="api.assetUrl(p.profile_photo_url) || 'assets/placeholder-avatar.svg'" [alt]="name(p)" />
+                <img [src]="api.assetUrl(p.profile_photo_url, 160) || 'assets/placeholder-avatar.svg'" [alt]="name(p)" />
                 <div>
                   <strong>{{ name(p) }}</strong>
                   <span>{{ p.category_name || 'Creative' }}{{ p.city || p.country ? ' · ' + (p.city ? p.city + ', ' : '') + (p.country || '') : '' }}</span>

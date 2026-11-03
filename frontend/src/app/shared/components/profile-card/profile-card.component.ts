@@ -43,7 +43,7 @@ export class ProfileCardComponent {
   }
 
   get photo(): string {
-    return this.api.assetUrl(this.profile.profile_photo_url) || '';
+    return this.api.assetUrl(this.profile.profile_photo_url, 640) || '';
   }
 
   get initials(): string {

@@ -56,7 +56,7 @@
             <a class="rank-row" [routerLink]="profileLink(p)">
               <span class="rank-row__n">{{ i + 1 }}</span>
               <img
-                [src]="p.profile_photo_url ? api.assetUrl(p.profile_photo_url) : 'assets/placeholder-avatar.svg'"
+                [src]="p.profile_photo_url ? api.assetUrl(p.profile_photo_url, 96) : 'assets/placeholder-avatar.svg'"
                 [alt]="profileName(p)"
               />
               <div class="rank-row__meta">

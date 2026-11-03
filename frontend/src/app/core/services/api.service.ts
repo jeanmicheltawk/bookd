@@ -62,11 +62,19 @@ export class ApiService {
     return this.http.patch<T>(`${this.base}${path}`, formData);
   }
 
-  /** Absolute URL builder for uploaded assets served outside /api (e.g. /uploads/...). */
-  assetUrl(path?: string | null): string {
+  /**
+   * Absolute URL builder for uploaded assets served outside /api (e.g. /uploads/...).
+   * Pass `width` for images shown small (cards, avatars): the API resizes and caches
+   * them, which cuts bandwidth a lot. Without it, images are capped at 1600px.
+   */
+  assetUrl(path?: string | null, width?: number): string {
     if (!path) return '';
     if (/^https?:\/\//i.test(path)) return path;
     const origin = this.base.replace(/\/api\/?$/, '');
-    return `${origin}${path.startsWith('/') ? '' : '/'}${path}`;
+    const url = `${origin}${path.startsWith('/') ? '' : '/'}${path}`;
+    if (width && /\/uploads\/.+\.(jpe?g|png|webp)$/i.test(path)) {
+      return `${url}?w=${Math.round(width)}`;
+    }
+    return url;
   }
 }

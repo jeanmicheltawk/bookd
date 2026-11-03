@@ -29,9 +29,9 @@
       @for (item of items(); track item.id) {
         <div class="media-tile">
           @if (item.mime_type.startsWith('image')) {
-            <img [src]="api.assetUrl(item.url)" [alt]="item.alt_text || item.original_name" loading="lazy" />
+            <img [src]="api.assetUrl(item.url, 320)" [alt]="item.alt_text || item.original_name" loading="lazy" />
           } @else if (item.mime_type.startsWith('video')) {
-            <video [src]="api.assetUrl(item.url)" muted></video>
+            <video [src]="api.assetUrl(item.url)" muted preload="metadata"></video>
           } @else {
             <div class="media-tile__file">📄</div>
           }

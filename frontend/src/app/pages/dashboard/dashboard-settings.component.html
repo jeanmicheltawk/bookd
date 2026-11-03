@@ -19,7 +19,7 @@
       <div class="settings-panel glass-panel">
         <h3>Photo</h3>
         <div class="photo-row">
-          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/180x240/1a0f28/fff?text=BKD'" alt="Profile" />
+          <img [src]="api.assetUrl(form.profilePhotoUrl, 480) || 'https://placehold.co/180x240/1a0f28/fff?text=BKD'" alt="Profile" />
           <label class="upload-btn">
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
             {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
@@ -56,7 +56,7 @@
       <div class="settings-panel glass-panel">
         <h3>Profile Photo</h3>
         <div class="photo-row">
-          <img [src]="api.assetUrl(form.profilePhotoUrl) || 'https://placehold.co/180x240/1a0f28/fff?text=BKD'" alt="Profile" />
+          <img [src]="api.assetUrl(form.profilePhotoUrl, 480) || 'https://placehold.co/180x240/1a0f28/fff?text=BKD'" alt="Profile" />
           <label class="upload-btn">
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden (change)="onPhotoSelected($event)" [disabled]="uploadingPhoto()" />
             {{ uploadingPhoto() ? 'Uploading...' : 'Change Photo' }}
