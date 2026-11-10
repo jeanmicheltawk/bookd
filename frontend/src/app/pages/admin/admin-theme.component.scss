@@ -11,8 +11,8 @@
   flex-wrap: wrap;
   padding: 18px 0;
   margin-bottom: 24px;
-  border-top: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 
   strong {
     display: block;
@@ -47,17 +47,18 @@
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
   &.is-live {
-    background: var(--acid-lime);
-    color: var(--ink-black);
-    border-color: var(--acid-lime);
+    background: var(--surface-hover);
+    color: var(--text);
+    border-color: transparent;
   }
   &.is-preview:not(.is-live) {
     background: var(--electric-blue);
@@ -67,7 +68,7 @@
 
   &__swatches {
     display: flex;
-    span { width: 16px; height: 16px; margin-left: -6px; border: 1px solid currentColor; }
+    span { width: 16px; height: 16px; margin-left: -6px; border: 1px solid var(--line); }
     span:first-child { margin-left: 0; }
   }
 
@@ -91,9 +92,10 @@
 
 .color-field {
   padding: 16px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
+  border-radius: var(--radius-md);
   label {
     display: block;
     font-size: 0.72rem;
@@ -111,7 +113,7 @@
 
     input[type="color"] {
       width: 42px; height: 42px;
-      border: 1px solid currentColor;
+      border: 1px solid var(--line);
       background: none;
       padding: 0;
       cursor: pointer;
@@ -120,7 +122,7 @@
       flex: 1;
       background: transparent;
       border: none;
-      border-bottom: 1px solid currentColor;
+      border-bottom: 1px solid var(--line);
       padding: 10px 0;
       color: var(--text);
       font-family: var(--font-body);

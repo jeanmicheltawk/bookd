@@ -121,7 +121,7 @@ interface DashNavItem {
         button {
           flex-shrink: 0;
           padding: 8px 14px;
-          border: 1px solid #fff;
+          border: 1px solid var(--line);
           background: transparent;
           color: #fff;
           font-size: 0.72rem;

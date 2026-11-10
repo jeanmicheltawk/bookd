@@ -23,18 +23,20 @@
   flex-direction: column;
   gap: 10px;
   padding: 24px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   text-decoration: none;
   color: inherit;
 
+  border-radius: var(--radius-md);
+  overflow: hidden;
   &__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text); }
   &__value { font-family: var(--font-body); font-size: 2.2rem; font-weight: 800; }
 
   &.has-alert {
-    background: var(--acid-lime);
-    color: var(--ink-black);
-    border-color: var(--acid-lime);
+    background: var(--surface-hover);
+    color: var(--text);
+    border-color: transparent;
     .stat-card__label, .stat-card__value { color: var(--ink-black); }
   }
 }
@@ -56,9 +58,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
+  border-radius: var(--radius-md);
   div { display: flex; flex-direction: column; gap: 4px; }
   strong { font-size: 0.92rem; text-transform: uppercase; }
   span { font-size: 0.78rem; color: var(--text); }
@@ -70,13 +73,14 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  background: var(--laser-cyan);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--sky) 16%, transparent);
+  color: var(--sky);
+  border-radius: var(--radius-pill);
 }
-.status-pending { background: var(--nuclear-yellow); color: var(--ink-black); }
-.status-accepted, .status-in_progress { background: var(--laser-cyan); color: var(--ink-black); }
+.status-pending { background: color-mix(in srgb, var(--sand) 16%, transparent); color: var(--sand); }
+.status-accepted, .status-in_progress { background: color-mix(in srgb, var(--sky) 16%, transparent); color: var(--sky); }
 .status-completed { background: var(--acid-lime); color: var(--ink-black); }
-.status-cancelled { background: var(--hyper-pink); color: #ffffff; }
+.status-cancelled { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
 
 .empty-hint { color: var(--text); padding: 24px 0; }
 
@@ -88,7 +92,9 @@
   flex-wrap: wrap;
   padding: 20px 24px;
   margin-top: 48px;
-  border: 1px solid currentColor;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
 
   &__label {
     display: block;
@@ -112,8 +118,8 @@
   }
 
   &--alert {
-    background: var(--nuclear-yellow);
-    color: var(--ink-black);
+    background: color-mix(in srgb, var(--sand) 16%, transparent);
+    color: var(--sand);
     border-color: var(--nuclear-yellow);
     .sub-card__label, p { color: var(--ink-black); }
   }
@@ -147,18 +153,21 @@
 .pay-unpaid-note {
   padding: 28px;
   margin-bottom: 16px;
-  border: 1px solid currentColor;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
 
   span {
     display: inline-block;
     padding: 6px 12px;
     margin-bottom: 14px;
-    background: var(--hyper-pink);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--rose) 16%, transparent);
+    color: var(--rose);
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    border-radius: var(--radius-pill);
   }
 
   h3 {
@@ -176,18 +185,21 @@
 
 .pay-confirmed-note {
   padding: 28px;
-  border: 1px solid currentColor;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
 
   span {
     display: inline-block;
     padding: 6px 12px;
     margin-bottom: 14px;
-    background: var(--acid-lime);
-    color: var(--ink-black);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    border-radius: var(--radius-pill);
   }
 
   h3 {
@@ -208,7 +220,9 @@
 .pending-status,
 .pending-guide {
   padding: 32px;
-  border: 1px solid currentColor;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
 }
 
 .pending-status {
@@ -216,12 +230,13 @@
     display: inline-block;
     padding: 6px 12px;
     margin-bottom: 16px;
-    background: var(--nuclear-yellow);
-    color: var(--ink-black);
+    background: color-mix(in srgb, var(--sand) 16%, transparent);
+    color: var(--sand);
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    border-radius: var(--radius-pill);
   }
 
   h2 { margin: 0 0 16px; font-size: 2.2rem; }

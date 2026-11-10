@@ -1,8 +1,8 @@
 .footer {
   position: relative;
   padding: 80px 0 32px;
-  background: transparent;
-  border-top: 1px solid currentColor;
+  background: var(--bg-raised);
+  border-top: none;
 
   &__glow { display: none; }
 
@@ -45,16 +45,18 @@
       height: 38px;
       padding: 0 12px;
       display: flex; align-items: center; justify-content: center;
-      border: 1px solid currentColor;
+      border: none;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
       font-size: 0.7rem;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       transition: transform var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
       &:hover {
-        background: var(--acid-lime);
-        color: var(--ink-black);
-        border-color: var(--acid-lime);
+        background: var(--surface-hover);
+        color: var(--text);
+        border-color: transparent;
         transform: translateY(-1px);
       }
     }

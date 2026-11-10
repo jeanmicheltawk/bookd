@@ -4,9 +4,10 @@
 
 .panel {
   padding: 24px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   margin-bottom: 20px;
+  border-radius: var(--radius-md);
   h3 { font-size: 1rem; text-transform: uppercase; margin-bottom: 20px; }
 }
 
@@ -30,7 +31,7 @@ textarea, .json-editor {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
   padding: 14px 0;
   color: var(--text);
   font-family: var(--font-body);
@@ -56,4 +57,4 @@ textarea, .json-editor {
 }
 
 .empty-state, .empty-hint { text-align: center; padding: 40px 24px; color: var(--text); }
-.empty-state { border: 1px solid currentColor; }
+.empty-state { border: 1px solid var(--line); }

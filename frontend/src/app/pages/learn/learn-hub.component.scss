@@ -19,9 +19,10 @@
 .learn-card {
   display: block;
   overflow: hidden;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
+  border-radius: var(--radius-md);
   &:hover { transform: translateY(-1px); }
 
   &__cover {
@@ -51,4 +52,5 @@
   &__cta { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--acid-lime); }
 }
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }
+.empty-state { text-align: center; padding: 80px 24px; border: none; background: var(--surface);  border-radius: var(--radius-md);
+}

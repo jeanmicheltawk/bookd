@@ -14,7 +14,9 @@
   a {
     flex-shrink: 0;
     padding: 8px 14px;
-    border: 1px solid #fff;
+    border: none;
+    background: var(--surface);
+    border-radius: var(--radius-md);
     color: #fff;
     font-size: 0.72rem;
     font-weight: 800;
@@ -50,7 +52,8 @@
   &__photo {
     width: 150px; height: 150px;
     overflow: hidden;
-    border: 1px solid currentColor;
+    border: 4px solid var(--bg);
+    border-radius: var(--radius-lg);
     flex-shrink: 0;
 
     img { width: 100%; height: 100%; object-fit: cover; }
@@ -126,6 +129,7 @@
 
 .verified-badge {
   width: 26px; height: 26px;
+  border-radius: 50%;
   background: var(--color-verified-badge);
   color: var(--ink-black);
   display: flex; align-items: center; justify-content: center;
@@ -144,11 +148,12 @@
 
 .chip {
   padding: 3px 12px;
-  background: var(--laser-cyan);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--sky) 16%, transparent);
+  color: var(--sky);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
+  border-radius: var(--radius-pill);
 }
 
 .p-grid {
@@ -186,10 +191,11 @@
   padding: 0;
   overflow: hidden;
   aspect-ratio: 9 / 16;
-  background: var(--electric-blue);
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   color: inherit;
   cursor: zoom-in;
+  border-radius: var(--radius-md);
   img, video {
     position: absolute;
     inset: 0;
@@ -206,15 +212,17 @@
 
 .p-side-card {
   padding: 24px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
+  overflow: hidden;
   h4 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
   ul { display: flex; flex-direction: column; gap: 12px; }
   li {
     display: flex; justify-content: space-between; gap: 12px;
     font-size: 0.85rem;
     padding-bottom: 12px;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     &:last-child { border: none; padding-bottom: 0; }
     span { color: var(--text); }
     a { color: var(--acid-lime); font-weight: 700; }

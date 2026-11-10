@@ -51,7 +51,7 @@ import { AnimatedButtonComponent } from '../animated-button/animated-button.comp
     .whish-box {
       text-align: left;
       padding: 24px;
-      border: 1px solid currentColor;
+      border: 1px solid var(--line);
     }
 
     .whish-box__label {

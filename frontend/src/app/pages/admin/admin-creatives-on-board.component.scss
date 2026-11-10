@@ -17,7 +17,7 @@
     min-width: 220px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 12px 0;
     color: var(--text);
     &:focus { outline: none; border-bottom-color: var(--focus); }
@@ -47,7 +47,7 @@
   padding: 32px 28px 28px;
   background: var(--toxic-orange);
   color: var(--text);
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
 
   h2 {
     margin: 0 0 16px;
@@ -62,11 +62,12 @@
   right: 16px;
   width: 36px;
   height: 36px;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: var(--text);
   font-size: 1.1rem;
   cursor: pointer;
+  border-radius: var(--radius-md);
 }
 
 .mod-list { display: flex; flex-direction: column; gap: 12px; }
@@ -79,7 +80,9 @@
   flex-wrap: wrap;
   &--card {
     padding: 16px 20px;
-    border: 1px solid currentColor;
+    border: none;
+    background: var(--surface);
+    border-radius: var(--radius-md);
   }
 }
 
@@ -121,7 +124,9 @@
   &:disabled { opacity: 0.4; }
 }
 .approve-btn { background: var(--acid-lime); color: var(--ink-black); }
-.reject-btn { background: var(--hyper-pink); color: #ffffff; }
-.close-btn { background: transparent; border: 1px solid currentColor; color: var(--text); }
+.reject-btn { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
+.close-btn { background: var(--surface); border: none; color: var(--text);  border-radius: var(--radius-md);
+}
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }
+.empty-state { text-align: center; padding: 80px 24px; border: none; background: var(--surface);  border-radius: var(--radius-md);
+}

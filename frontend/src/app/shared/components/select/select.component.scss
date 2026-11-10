@@ -19,8 +19,8 @@
   padding: 12px 0;
   background: transparent;
   border: none;
-  border-bottom: 1px solid currentColor;
-  border-radius: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-family: var(--font-body);
   font-size: inherit;
@@ -77,7 +77,7 @@
   list-style: none;
   background: var(--ink-black);
   color: #ffffff;
-  border: 1px solid #ffffff;
+  border: 1px solid var(--line);
   text-transform: none;
   letter-spacing: 0;
 }

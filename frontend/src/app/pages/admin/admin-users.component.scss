@@ -27,7 +27,7 @@
     min-width: 220px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 12px 0;
     color: var(--text);
     &:focus { outline: none; border-bottom-color: var(--focus); }
@@ -54,6 +54,7 @@
   letter-spacing: 0.12em;
   font-size: 0.78rem;
   border: none;
+  border-radius: var(--radius-sm);
   &:hover { transform: translateY(-1px); }
 }
 
@@ -69,10 +70,11 @@
   align-items: flex-start;
   gap: 20px;
   padding: 20px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   flex-wrap: wrap;
 
+  border-radius: var(--radius-md);
   &__info {
     flex: 1;
     min-width: 240px;
@@ -109,7 +111,7 @@
     height: 42px;
     object-fit: cover;
     background: var(--electric-blue);
-    border: 1px solid currentColor;
+    border: 1px solid var(--line);
   }
 
   strong { display: block; font-size: 1rem; text-transform: uppercase; }
@@ -140,12 +142,15 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: var(--laser-cyan);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--sky) 16%, transparent);
+  color: var(--sky);
 
+  border-radius: var(--radius-pill);
   &[data-status='trial'] { background: var(--acid-lime); }
-  &[data-status='ending_soon'] { background: var(--nuclear-yellow); }
-  &[data-status='expired'] { background: var(--hyper-pink); color: #fff; }
+  &[data-status='ending_soon'] { background: color-mix(in srgb, var(--sand) 16%, transparent);
+  color: var(--sand);
+}
+  &[data-status='expired'] { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
   &[data-status='complimentary'] { background: var(--acid-lime); }
 }
 
@@ -160,9 +165,10 @@
   &:disabled { opacity: 0.5; }
 }
 .edit-btn {
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   color: var(--text);
+  border-radius: var(--radius-md);
 }
 a.view-btn {
   display: inline-flex;
@@ -170,10 +176,10 @@ a.view-btn {
   text-decoration: none;
   background: #000;
   color: #fff;
-  border: 1px solid #000;
+  border: 1px solid var(--line);
 }
 .approve-btn { background: var(--acid-lime); color: var(--ink-black); }
-.reject-btn { background: var(--hyper-pink); color: #ffffff; }
+.reject-btn { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
 
 .portfolio-wait {
   margin: 8px 0 0;
@@ -193,8 +199,8 @@ a.view-btn {
   color: #ffffff;
 }
 .delete-btn {
-  background: var(--hyper-pink);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--rose) 16%, transparent);
+  color: var(--rose);
 }
 
 .edit-overlay {
@@ -215,8 +221,9 @@ a.view-btn {
   padding: 28px;
   background: var(--electric-blue);
   color: #ffffff;
-  border: 1px solid #ffffff;
+  border: 1px solid var(--line);
 
+  border-radius: var(--radius-sm);
   &__head {
     display: flex;
     justify-content: space-between;
@@ -240,14 +247,14 @@ a.view-btn {
 
 .close-btn, .cancel-btn {
   background: none;
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   color: inherit;
   padding: 8px 14px;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
 }
 
 .edit-form {
@@ -273,7 +280,7 @@ a.view-btn {
     input, select, textarea {
       background: transparent;
       border: none;
-      border-bottom: 1px solid #ffffff;
+      border-bottom: 1px solid var(--line);
       padding: 12px 0;
       color: #ffffff;
       font-family: var(--font-body);
@@ -296,7 +303,9 @@ a.view-btn {
     gap: 10px;
     min-width: 0;
     padding: 8px 10px;
-    border: 1px solid currentColor;
+    border: none;
+    background: var(--surface);
+    border-radius: var(--radius-md);
     cursor: pointer;
     font-size: 0.8rem;
 
@@ -312,7 +321,7 @@ a.view-btn {
   .category-fields {
     margin-top: 20px;
     padding-top: 16px;
-    border-top: 1px solid #ffffff;
+    border-top: 1px solid var(--line);
 
     .eyebrow { display: block; margin-bottom: 12px; }
   }
@@ -335,6 +344,7 @@ a.view-btn {
   letter-spacing: 0.12em;
   font-size: 0.78rem;
   cursor: pointer;
+  border-radius: var(--radius-sm);
   &:hover:not(:disabled) { transform: translateY(-1px); }
   &:disabled { opacity: 0.6; cursor: wait; }
 }
@@ -357,8 +367,8 @@ a.view-btn {
 }
 
 .chip-btn {
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: inherit;
   padding: 6px 12px;
   font-size: 0.7rem;
@@ -367,8 +377,9 @@ a.view-btn {
   text-transform: uppercase;
   cursor: pointer;
 
-  &.on { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
-  &.off { background: var(--hyper-pink); color: #ffffff; border-color: var(--hyper-pink); }
+  border-radius: var(--radius-md);
+  &.on { background: var(--surface-hover); color: var(--text); border-color: transparent; }
+  &.off { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); border-color: var(--hyper-pink); }
 }
 
 .user-card__actions app-select {
@@ -381,6 +392,7 @@ a.view-btn {
 .empty-state {
   text-align: center;
   padding: 80px 24px;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
 }

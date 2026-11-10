@@ -73,7 +73,9 @@
   flex-direction: column;
   gap: 4px;
   padding: 14px 12px;
-  border: 1px solid currentColor;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--surface);
   text-align: center;
   text-decoration: none;
   color: inherit;
@@ -97,9 +99,9 @@
 
   &:hover,
   &:focus-visible {
-    background: var(--acid-lime);
-    border-color: var(--acid-lime);
-    color: var(--ink-black);
+    background: var(--surface-hover);
+    border-color: transparent;
+    color: var(--text);
     outline: none;
 
     .auth-path__label,

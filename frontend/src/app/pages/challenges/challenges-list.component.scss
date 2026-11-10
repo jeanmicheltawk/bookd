@@ -18,9 +18,10 @@
 .ch-card {
   display: block;
   overflow: hidden;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
+  border-radius: var(--radius-md);
   &:hover { transform: translateY(-1px); }
 
   &__cover {
@@ -33,25 +34,28 @@
     align-items: flex-start;
     justify-content: space-between;
     padding: 14px;
+    border-radius: var(--radius-sm);
   }
   &__live {
-    background: var(--hyper-pink);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--rose) 16%, transparent);
+    color: var(--rose);
     font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 4px 10px;
+    border-radius: var(--radius-pill);
   }
   &__type {
-    background: var(--laser-cyan);
-    color: var(--ink-black);
+    background: color-mix(in srgb, var(--sky) 16%, transparent);
+    color: var(--sky);
     font-size: 0.65rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     padding: 4px 10px;
     margin-left: auto;
+    border-radius: var(--radius-pill);
   }
 
   &__body { padding: 22px; }
@@ -70,4 +74,5 @@
   }
 }
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }
+.empty-state { text-align: center; padding: 80px 24px; border: none; background: var(--surface);  border-radius: var(--radius-md);
+}

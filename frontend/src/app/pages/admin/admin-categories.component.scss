@@ -21,7 +21,7 @@
     min-width: 160px;
     padding: 12px 0;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     background: transparent;
     color: var(--text);
   }
@@ -37,6 +37,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
+  border-radius: var(--radius-sm);
   &:hover:not(:disabled) { transform: translateY(-1px); }
   &:disabled { opacity: 0.6; cursor: wait; }
 }
@@ -56,10 +57,11 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   max-height: 720px;
   overflow-y: auto;
+  border-radius: var(--radius-md);
 }
 
 .cat-row {
@@ -100,7 +102,7 @@
   min-width: 0;
   padding: 8px 0;
   border: none;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -108,8 +110,8 @@
 
 .edit-btn {
   padding: 7px 12px;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: inherit;
   font-size: 0.72rem;
   font-weight: 700;
@@ -118,16 +120,18 @@
   cursor: pointer;
   white-space: nowrap;
 
+  border-radius: var(--radius-md);
   &:hover:not(:disabled) { background: currentColor; color: var(--bg, #0a0a0a); }
   &:disabled { opacity: 0.6; cursor: wait; }
 }
 
 .cat-detail {
   padding: 28px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   min-height: 360px;
 
+  border-radius: var(--radius-md);
   &__head {
     margin-bottom: 20px;
     h3 { margin-bottom: 4px; text-transform: uppercase; }
@@ -158,9 +162,10 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
+  border-radius: var(--radius-md);
   > div:first-child {
     display: flex;
     flex-direction: column;
@@ -183,13 +188,14 @@
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: inherit;
   font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
 
+  border-radius: var(--radius-md);
   &:hover:not(:disabled) { background: var(--acid-lime); color: var(--ink-black); }
   &:disabled { opacity: 0.35; cursor: not-allowed; }
 }
@@ -197,7 +203,7 @@
 .field-form {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid currentColor;
+  border-top: 1px solid var(--line);
 
   &__grid {
     display: grid;
@@ -221,7 +227,7 @@
   input {
     padding: 11px 0;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     background: transparent;
     color: var(--text);
   }
@@ -241,8 +247,8 @@
 
 .delete-btn {
   padding: 7px 12px;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: inherit;
   font-size: 0.72rem;
   font-weight: 700;
@@ -251,6 +257,7 @@
   cursor: pointer;
   white-space: nowrap;
 
+  border-radius: var(--radius-md);
   &:hover:not(:disabled) {
     background: var(--ink-black);
     border-color: var(--ink-black);
@@ -269,5 +276,7 @@
   padding: 40px;
   text-align: center;
   color: var(--text);
-  border: 1px solid currentColor;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
 }

@@ -25,10 +25,11 @@
   &__bar {
     width: 180px;
     height: 4px;
-    background: transparent;
-    border: 1px solid currentColor;
+    background: var(--surface);
+    border: none;
     overflow: hidden;
 
+    border-radius: var(--radius-md);
     span {
       display: block;
       height: 100%;

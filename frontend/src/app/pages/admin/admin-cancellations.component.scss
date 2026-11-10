@@ -23,10 +23,11 @@
   align-items: flex-start;
   gap: 20px;
   padding: 20px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   flex-wrap: wrap;
 
+  border-radius: var(--radius-md);
   &__info {
     flex: 1;
     min-width: 240px;
@@ -62,8 +63,8 @@
 }
 
 .chip-btn {
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: inherit;
   padding: 6px 12px;
   font-size: 0.7rem;
@@ -72,8 +73,9 @@
   text-transform: uppercase;
   cursor: pointer;
 
-  &.on { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
-  &.off { background: var(--hyper-pink); color: #ffffff; border-color: var(--hyper-pink); }
+  border-radius: var(--radius-md);
+  &.on { background: var(--surface-hover); color: var(--text); border-color: transparent; }
+  &.off { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); border-color: var(--hyper-pink); }
   &:disabled { opacity: 0.5; }
 }
 

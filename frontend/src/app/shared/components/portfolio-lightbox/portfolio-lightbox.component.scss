@@ -15,13 +15,14 @@
   right: 16px;
   width: 44px;
   height: 44px;
-  border: 1px solid #ffffff;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: #ffffff;
   font-size: 1.2rem;
   cursor: pointer;
   z-index: 2;
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
 }
 
 .lightbox__nav {
@@ -30,14 +31,15 @@
   transform: translateY(-50%);
   width: 48px;
   height: 72px;
-  border: 1px solid #ffffff;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: #ffffff;
   font-size: 2rem;
   line-height: 1;
   cursor: pointer;
   z-index: 2;
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
 
   &--prev { left: 16px; }
   &--next { right: 16px; }
@@ -58,7 +60,7 @@
     width: auto;
     height: auto;
     object-fit: contain;
-    border: 1px solid #ffffff;
+    border: 1px solid var(--line);
     background: var(--ink-black);
   }
 
@@ -101,7 +103,9 @@
   min-width: min(420px, 80vw);
   min-height: 240px;
   padding: 32px;
-  border: 1px solid #ffffff;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
   color: #ffffff;
   text-align: center;
 
@@ -119,8 +123,9 @@
   font-weight: 800;
   letter-spacing: 0.16em;
   padding: 6px 10px;
-  background: var(--acid-lime);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  border-radius: var(--radius-pill);
 }
 
 .lightbox__pdf-open {

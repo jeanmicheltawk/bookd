@@ -12,7 +12,7 @@
 .admin-sidebar {
   background: var(--electric-blue);
   color: #ffffff;
-  border-right: 1px solid #ffffff;
+  border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
@@ -21,6 +21,7 @@
   height: 100vh;
   overflow-y: auto;
 
+  border-radius: var(--radius-sm);
   @media (max-width: 900px) {
     position: fixed;
     top: 0;
@@ -47,9 +48,10 @@
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    background: var(--acid-lime);
-    color: var(--ink-black);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
     padding: 2px 8px;
+    border-radius: var(--radius-pill);
   }
 
   &__nav {
@@ -62,19 +64,20 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 12px 14px;
-      color: #ffffff;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
       font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: 0.08em;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
 
       .icon { width: 20px; text-align: center; }
 
-      &:hover { background: var(--uv-purple); }
+      &:hover { background: var(--surface-hover); color: var(--text); }
       &.active {
-        background: var(--acid-lime);
-        color: var(--ink-black);
+        background: var(--accent-soft);
+        color: var(--accent);
       }
     }
   }
@@ -84,7 +87,7 @@
     flex-direction: column;
     gap: 8px;
     padding-top: 16px;
-    border-top: 1px solid #ffffff;
+    border-top: 1px solid var(--line);
   }
   &__back {
     font-size: 0.82rem;
@@ -95,15 +98,18 @@
     &:hover { color: var(--acid-lime); }
   }
   &__logout {
-    background: transparent;
-    border: 1px solid #ffffff;
+    background: var(--surface);
+    border: none;
     color: #ffffff;
     padding: 10px 14px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     font-size: 0.75rem;
-    &:hover { background: var(--hyper-pink); border-color: var(--hyper-pink); }
+    border-radius: var(--radius-md);
+    &:hover { background: color-mix(in srgb, var(--rose) 16%, transparent); border-color: var(--hyper-pink);
+  color: var(--rose);
+}
   }
 }
 
@@ -139,6 +145,7 @@
   font-size: 1.2rem;
   line-height: 1;
 
+  border-radius: var(--radius-sm);
   @media (max-width: 900px) { display: flex; }
 
   &__close {

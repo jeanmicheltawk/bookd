@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 32px;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
 
   &__logo {
     display: flex;
@@ -25,8 +25,8 @@
   &__close {
     width: 36px; height: 36px;
     display: flex; align-items: center; justify-content: center;
-    border: 1px solid currentColor;
-    &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+    border: 1px solid var(--line);
+    &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
   }
 }
 
@@ -50,10 +50,11 @@
   padding: 28px;
   text-align: center;
   height: fit-content;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
-  img { width: 90px; height: 90px; object-fit: cover; margin: 0 auto 16px; border: 1px solid currentColor; }
+  border-radius: var(--radius-md);
+  img { width: 90px; height: 90px; object-fit: cover; margin: 0 auto 16px; border: 1px solid var(--line); }
   h3 { font-size: 1.1rem; margin-bottom: 4px; text-transform: uppercase; }
   p { font-size: 0.85rem; color: var(--text); margin-bottom: 10px; }
   .loc { font-size: 0.8rem; color: var(--text); }
@@ -67,12 +68,13 @@
 .step-dot {
   width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
-  background: transparent;
+  background: var(--surface);
   color: var(--text);
   font-weight: 800;
   font-size: 0.85rem;
-  border: 1px solid currentColor;
-  &.active { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border: none;
+  border-radius: var(--radius-md);
+  &.active { background: var(--surface-hover); color: var(--text); border-color: transparent; }
 }
 
 .step-content {
@@ -95,7 +97,7 @@ textarea {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
   padding: 14px 0;
   color: var(--text);
   font-family: var(--font-body);
@@ -110,31 +112,33 @@ textarea {
     flex: 1;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 12px 0;
     color: var(--text);
   }
   button {
-    background: transparent;
-    border: 1px solid currentColor;
+    background: var(--surface);
+    border: none;
     padding: 0 20px;
     color: var(--text);
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+    border-radius: var(--radius-md);
+    &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
   }
 }
 .moodboard-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .moodboard-tag {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 12px;
-  background: var(--laser-cyan);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--sky) 16%, transparent);
+  color: var(--sky);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  border-radius: var(--radius-pill);
   button { background: none; border: none; color: var(--ink-black); }
 }
 
@@ -146,7 +150,7 @@ textarea {
   li {
     display: flex; justify-content: space-between;
     padding-bottom: 12px;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     font-size: 0.9rem;
     span { color: var(--text); }
   }

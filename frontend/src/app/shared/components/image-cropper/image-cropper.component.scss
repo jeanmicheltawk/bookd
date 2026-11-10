@@ -18,7 +18,7 @@
   padding: 28px 24px 24px;
   background: var(--toxic-orange);
   color: var(--text);
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -35,11 +35,12 @@
   right: 12px;
   width: 40px;
   height: 40px;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: var(--text);
   font-size: 1.1rem;
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
 }
 
 .cropper__hint {
@@ -61,18 +62,19 @@
 .cropper__frame-btn {
   flex: 1;
   padding: 10px 12px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   color: var(--text);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  border-radius: var(--radius-md);
   &:hover,
   &.is-active {
-    background: var(--acid-lime);
-    color: var(--ink-black);
-    border-color: var(--acid-lime);
+    background: var(--surface-hover);
+    color: var(--text);
+    border-color: transparent;
   }
 }
 
@@ -83,7 +85,7 @@
   min-height: min(52vh, 420px);
   height: min(52vh, 420px);
   background: var(--ink-black);
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   touch-action: none;
 }
 
@@ -94,7 +96,7 @@
   touch-action: none;
   user-select: none;
   background: var(--ink-black);
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
 
   &.is-dragging { cursor: grabbing; }
 
@@ -143,10 +145,11 @@
 }
 
 .cropper__ghost {
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   color: var(--text);
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
 }
 
 .cropper__confirm {

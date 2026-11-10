@@ -21,7 +21,7 @@
     min-width: 160px;
     padding: 12px 0;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     background: transparent;
     color: var(--text);
   }
@@ -37,6 +37,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
+  border-radius: var(--radius-sm);
   &:hover:not(:disabled) { transform: translateY(-1px); }
   &:disabled { opacity: 0.6; cursor: wait; }
 }
@@ -46,9 +47,10 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   max-width: 640px;
+  border-radius: var(--radius-md);
 }
 
 .country-row {
@@ -83,7 +85,7 @@
   min-width: 0;
   padding: 8px 0;
   border: none;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
   background: transparent;
   color: var(--text);
   font: inherit;
@@ -92,7 +94,7 @@
 
 .edit-btn {
   background: none;
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   color: var(--text);
   padding: 8px 12px;
   font-size: 0.75rem;
@@ -101,9 +103,9 @@
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    color: var(--ink-black);
-    background: var(--acid-lime);
-    border-color: var(--acid-lime);
+    color: var(--text);
+    background: var(--surface-hover);
+    border-color: transparent;
   }
 
   &:disabled { opacity: 0.5; cursor: wait; }
@@ -111,7 +113,7 @@
 
 .delete-btn {
   background: none;
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   color: var(--text);
   padding: 8px 12px;
   font-size: 0.75rem;
@@ -120,8 +122,8 @@
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    color: #ffffff;
-    background: var(--hyper-pink);
+    color: var(--rose);
+    background: color-mix(in srgb, var(--rose) 16%, transparent);
     border-color: var(--hyper-pink);
   }
 
@@ -131,6 +133,8 @@
 .empty-state {
   padding: 48px 24px;
   text-align: center;
-  border: 1px solid currentColor;
+  border: none;
+  background: var(--surface);
+  border-radius: var(--radius-md);
   max-width: 640px;
 }

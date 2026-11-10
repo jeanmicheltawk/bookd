@@ -17,12 +17,13 @@
 
 .step {
   padding: 16px 18px;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: inherit;
   text-align: left;
   cursor: pointer;
 
+  border-radius: var(--radius-md);
   small {
     display: block;
     font-size: 0.68rem;
@@ -41,12 +42,12 @@
 
   &.is-active,
   &.is-done {
-    background: var(--nuclear-yellow);
+    background: color-mix(in srgb, var(--sand) 16%, transparent);
     border-color: var(--nuclear-yellow);
-    color: #000;
+    color: var(--sand);
   }
 
-  &.is-active { background: var(--acid-lime); border-color: var(--acid-lime); }
+  &.is-active { background: var(--surface-hover); border-color: transparent; }
 
   &:disabled { opacity: 0.45; cursor: default; }
 }
@@ -89,7 +90,7 @@
     min-width: 220px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 12px 0;
     color: var(--text);
     &:focus { outline: none; border-bottom-color: var(--focus); }
@@ -111,6 +112,7 @@
   cursor: pointer;
   border: none;
 
+  border-radius: var(--radius-sm);
   &.is-disabled,
   &:disabled { opacity: 0.5; cursor: default; }
 }
@@ -131,7 +133,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   overflow: hidden;
   font-size: 0.72rem;
   font-weight: 800;

@@ -23,10 +23,11 @@
   align-items: flex-start;
   gap: 20px;
   padding: 20px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   flex-wrap: wrap;
 
+  border-radius: var(--radius-md);
   &__info {
     flex: 1;
     min-width: 240px;
@@ -53,9 +54,10 @@
       b {
         font-weight: 800;
         letter-spacing: 0.08em;
-        color: var(--ink-black);
-        background: var(--acid-lime);
+        color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
         padding: 2px 8px;
+        border-radius: var(--radius-pill);
       }
     }
 
@@ -104,8 +106,8 @@
   text-transform: uppercase;
 
   &--paid { background: var(--acid-lime); color: var(--ink-black); }
-  &--unpaid { background: var(--hyper-pink); color: #ffffff; }
-  &--waiting { background: var(--nuclear-yellow); color: var(--ink-black); }
+  &--unpaid { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
+  &--waiting { background: color-mix(in srgb, var(--sand) 16%, transparent); color: var(--sand); }
 }
 
 .meta-line {
@@ -122,8 +124,8 @@
 }
 
 .chip-btn {
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: inherit;
   padding: 6px 12px;
   font-size: 0.7rem;
@@ -132,8 +134,9 @@
   text-transform: uppercase;
   cursor: pointer;
 
-  &.on { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
-  &.off { background: var(--hyper-pink); color: #ffffff; border-color: var(--hyper-pink); }
+  border-radius: var(--radius-md);
+  &.on { background: var(--surface-hover); color: var(--text); border-color: transparent; }
+  &.off { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); border-color: var(--hyper-pink); }
   &:disabled { opacity: 0.5; }
 }
 
@@ -145,10 +148,10 @@
   text-transform: uppercase;
 }
 
-.status-pending { background: var(--nuclear-yellow); color: var(--ink-black); }
-.status-awaiting { background: var(--laser-cyan); color: var(--ink-black); }
+.status-pending { background: color-mix(in srgb, var(--sand) 16%, transparent); color: var(--sand); }
+.status-awaiting { background: color-mix(in srgb, var(--sky) 16%, transparent); color: var(--sky); }
 .status-confirmed { background: var(--acid-lime); color: var(--ink-black); }
-.status-rejected { background: var(--hyper-pink); color: #ffffff; }
+.status-rejected { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
 
 .form-error {
   margin: 0 0 14px;

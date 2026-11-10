@@ -4,11 +4,12 @@
 .pending-banner {
   margin: -8px 0 24px;
   padding: 14px 18px;
-  background: var(--nuclear-yellow);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--sand) 16%, transparent);
+  color: var(--sand);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.04em;
+  border-radius: var(--radius-sm);
 }
 
 .upload-panel {
@@ -19,14 +20,14 @@
   flex-wrap: wrap;
   background: transparent;
   border: none;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
 
   input[type="text"] {
     flex: 1;
     min-width: 200px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 12px 0;
     color: var(--text);
     &:focus { outline: none; border-bottom-color: var(--focus); }
@@ -48,6 +49,7 @@
   cursor: pointer;
   border: none;
   white-space: nowrap;
+  border-radius: var(--radius-sm);
   &:hover { transform: translateY(-1px); }
   &--disabled {
     opacity: 0.45;
@@ -93,10 +95,11 @@
   aspect-ratio: 9 / 16;
   overflow: hidden;
   background: var(--electric-blue);
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   color: inherit;
   cursor: zoom-in;
 
+  border-radius: var(--radius-sm);
   img, video {
     position: absolute;
     inset: 0;
@@ -136,7 +139,7 @@
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   background: color-mix(in srgb, var(--ink-black) 72%, transparent);
   color: #ffffff;
   font-size: 0.9rem;
@@ -144,11 +147,12 @@
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: var(--acid-lime);
-    border-color: var(--acid-lime);
-    color: var(--ink-black);
+    background: var(--surface-hover);
+    border-color: transparent;
+    color: var(--text);
   }
   &:disabled { opacity: 0.35; cursor: not-allowed; }
 }
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; margin-top: 24px; }
+.empty-state { text-align: center; padding: 80px 24px; border: none; background: var(--surface); margin-top: 24px;  border-radius: var(--radius-md);
+}

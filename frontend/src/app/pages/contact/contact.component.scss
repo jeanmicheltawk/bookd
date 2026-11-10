@@ -32,8 +32,9 @@
 
 .contact-form-panel {
   padding: 36px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
 }
 
 .contact-error,

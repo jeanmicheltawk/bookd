@@ -1,5 +1,5 @@
 .bkd-btn {
-  --btn-fg: var(--ink-black);
+  --btn-fg: var(--accent-ink);
   --btn-bg: var(--cta);
 
   position: relative;
@@ -8,14 +8,15 @@
   justify-content: center;
   gap: 8px;
   border: none;
+  border-radius: var(--radius-pill);
   font-family: var(--font-body);
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
   background: var(--btn-bg);
   color: var(--btn-fg);
-  transition: transform var(--dur-fast);
+  transition: transform var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
   white-space: nowrap;
 
   &.full-width { width: 100%; }
@@ -46,6 +47,7 @@
     width: 14px;
     height: 14px;
     border: 2px solid currentColor;
+    border-radius: 50%;
     border-top-color: transparent;
     animation: spin-slow 0.7s linear infinite;
   }
@@ -56,23 +58,22 @@
 
   &.variant-primary {
     --btn-bg: var(--cta);
-    --btn-fg: var(--ink-black);
+    --btn-fg: var(--accent-ink);
   }
+  &.variant-primary:hover:not(.is-disabled) { --btn-bg: var(--accent-hover); }
 
   &.variant-secondary {
-    --btn-bg: var(--hyper-pink);
-    --btn-fg: #ffffff;
+    --btn-bg: var(--surface-strong);
+    --btn-fg: var(--text);
   }
 
   &.variant-outline {
-    background: transparent;
+    background: var(--surface-strong);
     --btn-fg: var(--text);
-    border: 1px solid currentColor;
+    border: none;
   }
   &.variant-outline:hover:not(.is-disabled) {
-    background: var(--acid-lime);
-    color: var(--ink-black);
-    border-color: var(--acid-lime);
+    background: var(--surface-hover);
   }
 
   &.variant-ghost {
@@ -86,7 +87,7 @@
   }
 
   &.variant-danger {
-    --btn-bg: var(--hyper-pink);
-    --btn-fg: #ffffff;
+    --btn-bg: color-mix(in srgb, var(--rose) 18%, transparent);
+    --btn-fg: #f6b3c2;
   }
 }

@@ -9,15 +9,16 @@
 
 .export-btn {
   padding: 12px 22px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   color: var(--text);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-size: 0.82rem;
   cursor: pointer;
-  &:hover:not(:disabled) { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); border-color: transparent; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
@@ -33,7 +34,7 @@
     min-width: 220px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 12px 0;
     color: var(--text);
     &:focus { outline: none; border-bottom-color: var(--focus); }
@@ -50,6 +51,7 @@
   font-size: 0.78rem;
   border: none;
   cursor: pointer;
+  border-radius: var(--radius-sm);
   &:hover { transform: translateY(-1px); }
 }
 

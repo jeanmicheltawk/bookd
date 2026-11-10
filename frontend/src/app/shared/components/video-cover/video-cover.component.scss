@@ -24,6 +24,7 @@ img, video {
   font-weight: 800;
   letter-spacing: 0.14em;
   padding: 4px 7px;
-  background: var(--acid-lime);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  border-radius: var(--radius-pill);
 }

@@ -14,8 +14,10 @@
   flex-direction: column;
   gap: 8px;
   padding: 22px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
+  overflow: hidden;
   .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text); }
   .value { font-family: var(--font-body); font-size: 2rem; font-weight: 800; }
 }
@@ -32,13 +34,14 @@
   align-items: center;
   gap: 10px;
   padding: 16px 18px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
   &__icon { font-size: 1.1rem; }
   &__arrow { margin-left: auto; }
 }
@@ -52,8 +55,9 @@
 
 .panel {
   padding: 24px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
   h3 { font-size: 1rem; text-transform: uppercase; margin-bottom: 20px; }
 }
 
@@ -65,7 +69,8 @@
   gap: 12px;
   font-size: 0.8rem;
   &__path { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  &__track { height: 8px; background: transparent; border: 1px solid currentColor; overflow: hidden; }
+  &__track { height: 8px; background: var(--surface); border: none; overflow: hidden;  border-radius: var(--radius-md);
+}
   &__fill { height: 100%; background: var(--acid-lime); }
   &__count { color: var(--text); text-align: right; }
 }
@@ -76,7 +81,7 @@
   flex-direction: column;
   gap: 2px;
   padding-bottom: 12px;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
   &:last-child { border: none; }
   &__type { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--laser-cyan); }
   &__detail { font-size: 0.82rem; color: var(--text); }

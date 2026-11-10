@@ -10,7 +10,7 @@
     padding: 5px 14px;
     font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
   }
-  &__type { background: var(--laser-cyan); color: var(--ink-black); }
+  &__type { background: color-mix(in srgb, var(--sky) 16%, transparent); color: var(--sky); }
   &__paid { background: var(--acid-lime); color: var(--ink-black); }
 
   &__author {
@@ -38,20 +38,21 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-bottom: 24px;
-  img { aspect-ratio: 1; object-fit: cover; border: 1px solid currentColor; }
+  img { aspect-ratio: 1; object-fit: cover; border: 1px solid var(--line); }
 }
 
 .apply-box {
   padding: 28px;
   margin-top: 32px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
+  border-radius: var(--radius-md);
   textarea {
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 14px 0;
     color: var(--text);
     margin: 16px 0;
@@ -64,8 +65,10 @@
 
 .detail-card {
   padding: 24px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
+  overflow: hidden;
   h4 { font-size: 0.95rem; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.12em; }
   ul { display: flex; flex-direction: column; gap: 12px; }
   li {
@@ -73,7 +76,7 @@
     font-family: var(--font-editorial);
     font-size: 0.85rem;
     padding-bottom: 12px;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     &:last-child { border: none; padding: 0; }
     span { color: var(--text); }
     strong { text-transform: uppercase; }

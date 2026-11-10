@@ -10,13 +10,14 @@
   &__type {
     display: inline-block;
     padding: 5px 14px;
-    background: var(--laser-cyan);
-    color: var(--ink-black);
+    background: color-mix(in srgb, var(--sky) 16%, transparent);
+    color: var(--sky);
     font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 14px;
+    border-radius: var(--radius-pill);
   }
 
   &__meta {
@@ -34,8 +35,9 @@
 .cd-cta {
   padding: 32px;
   text-align: center;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
   h3 { margin-bottom: 8px; }
   p { margin-bottom: 24px; }
 }

@@ -12,9 +12,10 @@
 .ann-form {
   padding: 28px;
   margin-bottom: 32px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
 
+  border-radius: var(--radius-md);
   .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -26,7 +27,7 @@
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1px solid currentColor;
+    border-bottom: 1px solid var(--line);
     padding: 14px 0;
     color: var(--text);
     font-family: var(--font-body);
@@ -50,8 +51,10 @@
 .my-ann-list { display: flex; flex-direction: column; gap: 10px; }
 
 .my-ann-card {
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .my-ann-row {
@@ -86,7 +89,7 @@
 }
 
 .apps-panel {
-  border-top: 1px solid currentColor;
+  border-top: 1px solid var(--line);
   padding: 12px 20px 16px;
 }
 
@@ -104,8 +107,10 @@
   & + & { border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
   &--card {
     padding: 16px 20px;
-    border: 1px solid currentColor;
-    & + & { border-top: 1px solid currentColor; }
+    border: none;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    & + & { border-top: 1px solid var(--line); }
   }
 
   &__photo {
@@ -146,14 +151,16 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: var(--laser-cyan);
-  color: var(--ink-black);
+  background: color-mix(in srgb, var(--sky) 16%, transparent);
+  color: var(--sky);
+  border-radius: var(--radius-pill);
 }
 .status-approved { background: var(--acid-lime); color: var(--ink-black); }
-.status-pending { background: var(--nuclear-yellow); color: var(--ink-black); }
-.status-rejected, .status-closed { background: var(--hyper-pink); color: #ffffff; }
+.status-pending { background: color-mix(in srgb, var(--sand) 16%, transparent); color: var(--sand); }
+.status-rejected, .status-closed { background: color-mix(in srgb, var(--rose) 16%, transparent); color: var(--rose); }
 
-.empty-state { text-align: center; padding: 80px 24px; border: 1px solid currentColor; background: transparent; }
+.empty-state { text-align: center; padding: 80px 24px; border: none; background: var(--surface);  border-radius: var(--radius-md);
+}
 
 .upgrade-popup {
   position: fixed;
@@ -172,7 +179,7 @@
   padding: 32px 28px 28px;
   background: var(--toxic-orange);
   color: var(--text);
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -196,10 +203,11 @@
   right: 12px;
   width: 40px;
   height: 40px;
-  border: 1px solid currentColor;
-  background: transparent;
+  border: none;
+  background: var(--surface);
   color: var(--text);
   font-size: 1.1rem;
   cursor: pointer;
-  &:hover { background: var(--acid-lime); color: var(--ink-black); border-color: var(--acid-lime); }
+  border-radius: var(--radius-md);
+  &:hover { background: var(--surface-hover); color: var(--text); border-color: transparent; }
 }

@@ -11,27 +11,30 @@
 
 .stat-card {
   padding: 20px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
   display: flex;
   flex-direction: column;
   gap: 6px;
   color: inherit;
+  border-radius: var(--radius-md);
+  overflow: hidden;
   .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text); }
   .value { font-family: var(--font-body); font-size: 1.7rem; font-weight: 800; }
   .hint { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
   &--link:hover {
-    background: var(--acid-lime);
-    color: var(--ink-black);
-    border-color: var(--acid-lime);
+    background: var(--surface-hover);
+    color: var(--text);
+    border-color: transparent;
     .label, .hint { color: var(--ink-black); }
   }
 }
 
 .panel {
   padding: 24px;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-md);
   h3 { font-size: 1rem; text-transform: uppercase; margin-bottom: 20px; }
 }
 
@@ -43,7 +46,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid currentColor;
+  border-bottom: 1px solid var(--line);
   color: inherit;
   &:hover { color: var(--acid-lime); }
   img {
@@ -51,7 +54,7 @@
     height: 42px;
     object-fit: cover;
     background: var(--electric-blue);
-    border: 1px solid currentColor;
+    border: 1px solid var(--line);
   }
   &__n {
     font-weight: 800;
@@ -72,8 +75,9 @@
   }
   &__bar {
     height: 8px;
-    background: transparent;
-    border: 1px solid currentColor;
+    background: var(--surface);
+    border: none;
+    border-radius: var(--radius-md);
   }
   &__fill { height: 100%; background: var(--acid-lime); }
   &__views { font-weight: 800; text-align: right; min-width: 48px; }

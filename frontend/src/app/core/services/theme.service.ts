@@ -14,6 +14,11 @@ const CSS_VAR_MAP: Array<{ key: keyof ThemeSettings; vars: string[] }> = [
   { key: 'verified_badge_color', vars: ['--color-verified-badge'] },
 ];
 
+/** Colors of the retired "Acid Lime" theme (backend THEME_DEFAULTS). */
+const LEGACY_DEFAULTS = new Set([
+  '#c6ff00', '#ff00a8', '#00f5ff', '#ff4d00', '#ffffff', '#09000f',
+]);
+
 export function cloneTheme(theme: ThemeSettings): ThemeSettings {
   return { ...theme };
 }
@@ -53,7 +58,9 @@ export class ThemeService {
     const root = document.documentElement;
     for (const { key, vars } of CSS_VAR_MAP) {
       const value = theme[key];
-      if (typeof value === 'string' && value) {
+      // The old acid/orange defaults stored in the CMS are ignored so the new
+      // design tokens win; colors an admin picks on purpose still apply.
+      if (typeof value === 'string' && value && !LEGACY_DEFAULTS.has(value.toLowerCase())) {
         for (const cssVar of vars) root.style.setProperty(cssVar, value);
       }
     }
