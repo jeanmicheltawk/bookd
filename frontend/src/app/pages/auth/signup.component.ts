@@ -7,6 +7,7 @@ import { catchError, of } from 'rxjs';
 
 import { AuthService, RegisterPayload } from '../../core/services/auth.service';
 import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
+import { MAX_PROFILE_CATEGORIES } from '../../core/utils/categories';
 import { CountryService } from '../../core/services/country.service';
 import { Category, CategoryField, Country, Membership, WhishPaymentInstructions } from '../../core/models';
 import {
@@ -248,8 +249,19 @@ export class SignupComponent implements OnInit {
     return this.talent.categorySlugs.includes(slug);
   }
 
-  toggleCategory(slug: string, checked: boolean): void {
+  readonly maxCategories = MAX_PROFILE_CATEGORIES;
+
+  /** True once the member has picked the maximum number of categories. */
+  atCategoryLimit(): boolean {
+    return this.talent.categorySlugs.length >= MAX_PROFILE_CATEGORIES;
+  }
+
+  toggleCategory(slug: string, checked: boolean, input?: HTMLInputElement): void {
     const current = new Set(this.talent.categorySlugs);
+    if (checked && !current.has(slug) && current.size >= MAX_PROFILE_CATEGORIES) {
+      if (input) input.checked = false;
+      return;
+    }
     if (checked) current.add(slug);
     else current.delete(slug);
     this.talent.categorySlugs = [...current];
@@ -421,6 +433,10 @@ export class SignupComponent implements OnInit {
     }
     if (!this.talent.categorySlugs.length) {
       this.error.set('Please choose at least one category.');
+      return;
+    }
+    if (this.talent.categorySlugs.length > MAX_PROFILE_CATEGORIES) {
+      this.error.set(`You can choose up to ${MAX_PROFILE_CATEGORIES} categories.`);
       return;
     }
     if (!this.talent.country.trim()) {

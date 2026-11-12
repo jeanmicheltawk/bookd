@@ -210,15 +210,21 @@
           </div>
           <div class="form-field form-field--full">
             <label>Categories *</label>
-            <p class="field-hint">Select all that apply — you will appear in each chosen category in search.</p>
+            <p class="field-hint">
+              Choose up to {{ maxCategories }} — you will appear in each chosen category in search.
+              @if (atCategoryLimit()) {
+                <strong class="category-limit">{{ maxCategories }} selected.</strong>
+              }
+            </p>
             <div class="category-checkboxes">
               @for (opt of talentCategoryOptions(); track opt.value) {
-                <label class="category-check">
+                <label class="category-check" [class.is-disabled]="atCategoryLimit() && !isCategorySelected(opt.value)">
                   <input
                     type="checkbox"
                     [name]="'talentCategory-' + opt.value"
                     [checked]="isCategorySelected(opt.value)"
-                    (change)="toggleCategory(opt.value, $any($event.target).checked)"
+                    [disabled]="atCategoryLimit() && !isCategorySelected(opt.value)"
+                    (change)="toggleCategory(opt.value, $any($event.target).checked, $any($event.target))"
                   />
                   <span>{{ opt.label }}</span>
                 </label>

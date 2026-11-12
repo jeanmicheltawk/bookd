@@ -7,6 +7,7 @@ const { expireOverdueSubscriptions } = require('../utils/subscription');
 const { buildCustomUrl, profilePublicPath, syncProfileCustomUrl } = require('../utils/profileUrl');
 const { trackEvent } = require('../utils/analytics');
 const {
+  categoryLimitError,
   parseCategorySlugs,
   resolveCategoriesBySlugs,
   replaceProfileCategories,
@@ -230,6 +231,10 @@ async function updateMyProfile(req, res, next) {
     if (hasCategoryUpdate) {
       if (!requestedCategorySlugs.length) {
         return res.status(400).json({ error: 'At least one category is required' });
+      }
+      const limitError = categoryLimitError(requestedCategorySlugs);
+      if (limitError) {
+        return res.status(400).json({ error: limitError });
       }
       const cats = await resolveCategoriesBySlugs(query, requestedCategorySlugs, { allowBrand: false });
       nextCategoryIds = cats.map((c) => c.id);

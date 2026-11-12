@@ -141,3 +141,13 @@ textarea {
   letter-spacing: 0.04em;
   border-radius: var(--radius-sm);
 }
+
+.category-check.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.category-limit {
+  color: var(--accent);
+  font-weight: 700;
+}

@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { CountryService } from '../../core/services/country.service';
 import { CategoryService, sortCategoryFields } from '../../core/services/category.service';
+import { MAX_PROFILE_CATEGORIES } from '../../core/utils/categories';
 import { ApiService } from '../../core/services/api.service';
 import { Category, CategoryField, Country } from '../../core/models';
 import { CreatorSetupService } from '../../core/services/creator-setup.service';
@@ -152,8 +153,19 @@ export class DashboardSettingsComponent implements OnInit {
     return (this.form.categorySlugs || []).includes(slug);
   }
 
-  toggleCategory(slug: string, checked: boolean): void {
+  readonly maxCategories = MAX_PROFILE_CATEGORIES;
+
+  /** True once the member has picked the maximum number of categories. */
+  atCategoryLimit(): boolean {
+    return (this.form.categorySlugs || []).length >= MAX_PROFILE_CATEGORIES;
+  }
+
+  toggleCategory(slug: string, checked: boolean, input?: HTMLInputElement): void {
     const current = new Set(this.form.categorySlugs || []);
+    if (checked && !current.has(slug) && current.size >= MAX_PROFILE_CATEGORIES) {
+      if (input) input.checked = false;
+      return;
+    }
     if (checked) current.add(slug);
     else current.delete(slug);
     this.form.categorySlugs = [...current];
@@ -241,6 +253,13 @@ export class DashboardSettingsComponent implements OnInit {
 
     if (!this.form.categorySlugs?.length) {
       this.error.set('Please choose at least one category.');
+      this.saving.set(false);
+      return;
+    }
+    if (this.form.categorySlugs.length > MAX_PROFILE_CATEGORIES) {
+      this.error.set(
+        `You can choose up to ${MAX_PROFILE_CATEGORIES} categories. Please untick the extra ones.`,
+      );
       this.saving.set(false);
       return;
     }

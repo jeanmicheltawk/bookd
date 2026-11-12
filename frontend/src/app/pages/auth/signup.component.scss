@@ -561,3 +561,13 @@
   font-size: 0.9rem;
   a { color: var(--acid-lime); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 }
+
+.category-check.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.category-limit {
+  color: var(--accent);
+  font-weight: 700;
+}

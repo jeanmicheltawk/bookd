@@ -9,6 +9,7 @@ const { expireOverdueSubscriptions, withSubscription, isPaidPlan } = require('..
 const { ensureOpenPayment, instructionsFor } = require('../utils/payment');
 const { syncProfileCustomUrl } = require('../utils/profileUrl');
 const {
+  categoryLimitError,
   parseCategorySlugs,
   resolveCategoriesBySlugs,
   replaceProfileCategories,
@@ -148,6 +149,10 @@ async function register(req, res, next) {
       const requestedSlugs = parseCategorySlugs(req.body);
       if (!requestedSlugs.length) {
         return res.status(400).json({ error: 'At least one category is required' });
+      }
+      const limitError = categoryLimitError(requestedSlugs);
+      if (limitError) {
+        return res.status(400).json({ error: limitError });
       }
       const cats = await resolveCategoriesBySlugs(query, requestedSlugs, { allowBrand: false });
       categoryIds = cats.map((c) => c.id);

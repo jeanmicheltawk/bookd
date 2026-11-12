@@ -1,3 +1,13 @@
+/** A member can be listed in at most this many categories. */
+const MAX_PROFILE_CATEGORIES = 2;
+
+/** Error message for a request that picks too many categories (null when within the limit). */
+function categoryLimitError(slugs) {
+  return slugs.length > MAX_PROFILE_CATEGORIES
+    ? `You can choose up to ${MAX_PROFILE_CATEGORIES} categories`
+    : null;
+}
+
 /**
  * Normalize incoming category slug(s) from request body.
  * Accepts categorySlugs (array) and/or legacy categorySlug (string).
@@ -102,6 +112,8 @@ function attachCategories(profile, categories = []) {
 }
 
 module.exports = {
+  MAX_PROFILE_CATEGORIES,
+  categoryLimitError,
   parseCategorySlugs,
   resolveCategoriesBySlugs,
   replaceProfileCategories,
